@@ -9,7 +9,7 @@ tiene fuente, no se dibuja**.
 ## Implementado
 
 - Capas base: cuenca ANA, 9 subcuencas, red HydroRIVERS, lagunas y salinas OSM.
-- Relieve sombreado y maqueta 3D recortada a la cuenca.
+- Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,7 MB).
 - Cortes transversales de referencia (5) y corte dibujado por el visitante.
 - Catálogo de fuentes generado desde `data/sources.yml`, con enlaces por capa.
 - Escenarios históricos como texto documentado; sin manchas inventadas.

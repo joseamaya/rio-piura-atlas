@@ -10,7 +10,7 @@ técnicas y el estado real para no improvisarlas después.
 | Sitio | Astro (salida estática) | HTML mínimo, carga rápida, sin servidor |
 | Mapa | **MapLibre GL JS** | relieve 3D nativo, teselas vectoriales, rótulos, móvil |
 | Capas pesadas | deck.gl (previsto) | inundaciones y agregados; aún no se usa |
-| Maqueta 3D | Three.js | solo para el diorama (`piura` / `piura-cuenca`) |
+| Maqueta 3D | Three.js + DRACOLoader | solo para el diorama (`piura`) |
 | Datos | COG + PMTiles + GeoJSON | servible desde CDN sin backend |
 | Estilos | CSS propio, sin framework | menos peso y menos dependencias |
 
@@ -33,7 +33,7 @@ web/
 │   └── styles/global.css
 └── public/
     ├── data/                  # GeoJSON, relieve JPG y malla de elevación
-    └── models/                # piura-cuenca.glb
+    └── models/                # piura.glb (Draco, ~1,7 MB)
 ```
 
 ## Capas y datos

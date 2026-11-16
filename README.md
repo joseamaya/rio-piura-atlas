@@ -103,7 +103,7 @@ solo se descarga al abrir esa página.
 |---|---|
 | `/` | qué es el atlas y qué no es |
 | `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, cortes transversales, lagunas y ciudades |
-| `/maqueta` | bloque 3D recortado a la cuenca (Three.js) |
+| `/maqueta` | la cuenca, el desierto y el mar en un bloque 3D (Three.js + Draco) |
 | `/escenarios` | los eventos documentados y lo que falta |
 | `/fuentes` | catálogo generado desde `data/sources.yml`, con enlaces por capa |
 
@@ -120,5 +120,5 @@ fuente; ver [`LICENSES/DATOS.md`](LICENSES/DATOS.md).
 ## Contexto
 
 Nace como pieza hermana del laboratorio [Del Trazo al Modelo](../blender), que aporta
-el diorama 3D de la cuenca (`projects/piura`) y su versión recortada
-(`projects/piura-cuenca`).
+el diorama 3D de la cuenca (`projects/piura`). La versión web se exporta con
+compresión Draco desde `projects/piura/scripts/export_web.py` (21 MB → 1,7 MB).

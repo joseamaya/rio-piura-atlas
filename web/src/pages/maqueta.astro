@@ -4,25 +4,32 @@ import { withBase } from "../lib/url";
 ---
 
 <Base
-  title="Maqueta 3D"
+  title="La cuenca y su salida al mar"
   current="maqueta"
-  description="Maqueta 3D de la cuenca del río Piura: bloque recortado al polígono oficial, con relieve del Copernicus DEM y exageración vertical declarada."
+  description="Maqueta 3D del río Piura: la cuenca, el desierto de Sechura y la bahía en un solo bloque. Relieve Copernicus DEM con exageración vertical declarada."
 >
   <main id="main" class="wide">
     <div class="map-shell">
       <p id="scene-summary" class="sr-only">
-        Maqueta 3D de la cuenca del río Piura. El relieve está exagerado siete veces
-        para que se lea; no es una escala real. Arrastra para girar, usa la rueda para
-        acercar y haz doble clic para reiniciar la vista. El mapa 2D ofrece la misma
-        información con capas consultables.
+        Maqueta 3D del río Piura con la cuenca, el desierto de Sechura y la bahía.
+        La cresta oscura marca la divisoria de aguas. El relieve está exagerado siete
+        veces para que se lea; no es una escala real. Arrastra para girar, usa la rueda
+        para acercar y haz doble clic para reiniciar la vista.
       </p>
       <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura" aria-describedby="scene-summary"></div>
 
       <aside class="map-panel" aria-label="Información de la maqueta">
-        <h2>Cuenca del río Piura</h2>
+        <h2>La cuenca y su salida al mar</h2>
         <p class="src">
-          Bloque recortado al polígono oficial de la ANA. El relieve está exagerado
-          <strong>×7</strong> para que se lea: no es una escala real.
+          La <strong>cresta oscura</strong> es la divisoria de aguas de la ANA. Dentro
+          queda la cuenca; fuera, el desierto de Sechura y la bahía.
+        </p>
+        <p class="src">
+          El río muere en la laguna; las <strong>líneas punteadas</strong> son las rutas
+          de crecida que solo con El Niño llegan al mar.
+        </p>
+        <p class="src">
+          Relieve exagerado <strong>×7</strong> para que se lea: no es una escala real.
         </p>
         <hr />
         <p class="src"><strong>Arrastra</strong> para girar · <strong>rueda</strong> para acercar · <strong>doble clic</strong> para reiniciar.</p>
@@ -42,6 +49,7 @@ import { withBase } from "../lib/url";
   import * as THREE from "three";
   import { OrbitControls } from "three/addons/controls/OrbitControls.js";
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+  import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
   import { withBase } from "../lib/url";
 
   const container = document.getElementById("scene")!;
@@ -52,8 +60,9 @@ import { withBase } from "../lib/url";
   const camera = new THREE.PerspectiveCamera(38, 1, 100, 3_000_000);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  // Mismo revelado que el render de origen (Blender usa AgX).
+  renderer.toneMapping = THREE.AgXToneMapping;
+  renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -61,9 +70,10 @@ import { withBase } from "../lib/url";
   controls.dampingFactor = 0.08;
   controls.maxPolarAngle = Math.PI * 0.49;
 
-  scene.add(new THREE.HemisphereLight(0xe8f0f5, 0x8a7f63, 1.1));
-  const sun = new THREE.DirectionalLight(0xfff4e0, 2.4);
-  sun.position.set(-1, 1.4, 0.8);
+  // Sol en la misma posición que la escena de Blender (46°, -42°), con relleno frío.
+  scene.add(new THREE.HemisphereLight(0xc8d8e2, 0x8a7f63, 0.45));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 3.0);
+  sun.position.set(-0.48, 0.70, 0.53).multiplyScalar(1000);
   scene.add(sun);
 
   let model: THREE.Object3D | null = null;
@@ -169,9 +179,46 @@ import { withBase } from "../lib/url";
   if (panel) observer.observe(panel);
   layout();
 
-  new GLTFLoader().load(withBase("/models/piura-cuenca.glb"), (gltf) => {
+  // Los rótulos del modelo están orientados a una cámara fija. Se les añade un
+  // pivote y se giran solo en horizontal: así miran al visitante sin perder la
+  // inclinación que los mantiene por encima del terreno.
+  type LabelPivot = { pivot: THREE.Group; base: THREE.Vector3; yaw0: number };
+  const labels: LabelPivot[] = [];
+  const _v = new THREE.Vector3();
+  const _q = new THREE.Quaternion();
+
+  const draco = new DRACOLoader();
+  draco.setDecoderPath(withBase("/draco/"));
+
+  const loader = new GLTFLoader();
+  loader.setDRACOLoader(draco);
+  loader.load(withBase("/models/piura.glb"), (gltf) => {
     model = gltf.scene;
     scene.add(model);
+    scene.updateMatrixWorld(true);
+    // Se recogen primero y se recolocan después: no se puede mutar el árbol
+    // mientras se recorre.
+    const found: THREE.Object3D[] = [];
+    model.traverse((child) => {
+      if (child.name.startsWith("GEO-Etiqueta")) found.push(child);
+    });
+    const pivots = new Map<string, LabelPivot>();
+    for (const child of found) {
+      // La placa y el texto de un mismo rótulo comparten posición: un solo pivote.
+      const key = child.name.replace(/-(placa|texto)$/, "");
+      let entry = pivots.get(key);
+      if (!entry) {
+        child.getWorldPosition(_v);
+        const pivot = new THREE.Group();
+        pivot.position.copy(_v);
+        scene.add(pivot);
+        const n = new THREE.Vector3(0, 0, 1).applyQuaternion(child.getWorldQuaternion(_q));
+        entry = { pivot, base: _v.clone(), yaw0: Math.atan2(n.x, n.z) };
+        pivots.set(key, entry);
+        labels.push(entry);
+      }
+      entry.pivot.attach(child);
+    }
     layout();
     frame(model);
     animate();
@@ -181,9 +228,17 @@ import { withBase } from "../lib/url";
     if (model) frame(model);
   });
 
+  function faceCamera() {
+    for (const { pivot, base, yaw0 } of labels) {
+      const yaw = Math.atan2(camera.position.x - base.x, camera.position.z - base.z);
+      pivot.rotation.y = yaw - yaw0;
+    }
+  }
+
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    faceCamera();
     renderer.render(scene, camera);
   }
 </script>
