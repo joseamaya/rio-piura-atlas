@@ -61,5 +61,15 @@ const nav = [
         <span><strong>No es un sistema de alerta ni un pronóstico.</strong></span>
       </div>
     </footer>
+
+    <script is:inline>
+      const header = document.querySelector(".site-header");
+      if (header) {
+        const sync = () =>
+          document.documentElement.style.setProperty("--header-h", `${header.offsetHeight}px`);
+        sync();
+        new ResizeObserver(sync).observe(header);
+      }
+    </script>
   </body>
 </html>

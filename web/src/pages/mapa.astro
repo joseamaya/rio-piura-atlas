@@ -77,6 +77,25 @@ import Base from "../layouts/Base.astro";
 
   const BBOX: [number, number, number, number] = [-81.45, -6.25, -79.30, -4.55];
 
+  const mapShell = document.querySelector(".map-shell") as HTMLElement | null;
+  const layerPanel = document.querySelector(".map-panel") as HTMLElement | null;
+  const isNarrow = () => (mapShell?.clientWidth ?? window.innerWidth) <= 720;
+
+  // El panel de capas tapa parte del mapa: el encuadre debe usar ese hueco,
+  // no un padding simétrico que esconde el oeste de la cuenca.
+  function mapPadding() {
+    if (isNarrow()) {
+      const top = layerPanel ? layerPanel.offsetTop + layerPanel.offsetHeight + 16 : 24;
+      return { top, bottom: 24, left: 24, right: 24 };
+    }
+    const left = layerPanel ? layerPanel.offsetLeft + layerPanel.offsetWidth + 16 : 24;
+    return { top: 24, bottom: 24, left, right: 24 };
+  }
+
+  function fitBasin() {
+    map.fitBounds(BBOX, { padding: mapPadding(), duration: 0 });
+  }
+
   interface Perfil {
     nombre: string;
     longitud_km: number;
@@ -104,7 +123,7 @@ import Base from "../layouts/Base.astro";
       layers: [{ id: "bg", type: "background", paint: { "background-color": "#cdd6d6" } }],
     },
     bounds: BBOX,
-    fitBoundsOptions: { padding: 30 },
+    fitBoundsOptions: { padding: mapPadding() },
     attributionControl: {
       compact: true,
       customAttribution: '<a href="/fuentes#copernicus-dem-30">Copernicus DEM GLO-30 © ESA/Airbus</a>',
@@ -115,6 +134,26 @@ import Base from "../layouts/Base.astro";
 
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+
+  // Reencuadra solo cuando cambia el ancho (escritorio ↔ móvil) o, en móvil,
+  // cuando el panel cambia de alto. Así no se pisa el zoom del visitante.
+  let narrowLayout = isNarrow();
+  let pendingFit = 0;
+  const scheduleFit = () => {
+    cancelAnimationFrame(pendingFit);
+    pendingFit = requestAnimationFrame(fitBasin);
+  };
+  const shellObserver = new ResizeObserver(() => {
+    const narrow = isNarrow();
+    if (narrow !== narrowLayout) {
+      narrowLayout = narrow;
+      scheduleFit();
+    } else if (narrow) {
+      scheduleFit();
+    }
+  });
+  if (mapShell) shellObserver.observe(mapShell);
+  if (layerPanel) shellObserver.observe(layerPanel);
 
   const get = (url: string) => fetch(url).then((r) => r.json());
 
@@ -189,10 +228,17 @@ import Base from "../layouts/Base.astro";
     chart.innerHTML = profileSvg(perfil);
 
     if (opts.dibujado) {
-      const res = opts.resolution ? ` Resolución aproximada de la malla: ${opts.resolution} m.` : "";
+      const paso = perfil.dist_km.length > 1
+        ? Math.round((perfil.longitud_km * 1000) / (perfil.dist_km.length - 1))
+        : null;
+      const detalle = [
+        opts.resolution ? `malla de ${opts.resolution} m` : "",
+        paso ? `una muestra cada ${paso} m` : "",
+      ].filter(Boolean).join(", ");
       corteNote.textContent =
-        "Corte dibujado sobre una malla derivada del DEM de 30 m." + res +
-        " Sirve para explicar la forma del valle; no sirve para dimensionar obras.";
+        "Corte dibujado sobre una malla derivada del DEM de 30 m" +
+        (detalle ? ` (${detalle})` : "") +
+        ". Sirve para explicar la forma del valle; no sirve para dimensionar obras.";
     } else {
       corteNote.textContent =
         "Corte de referencia calculado del DEM de 30 m. No sirve para dimensionar obras.";
@@ -238,7 +284,9 @@ import Base from "../layouts/Base.astro";
     const total = distanceKm(a, b);
     const dist: number[] = [];
     const elev: number[] = [];
-    const n = 160;
+    // Una muestra por celda como máximo: no inventar precisión que la malla no tiene.
+    const step = Math.max(loaded.meta.resolution_m_aprox, 1);
+    const n = Math.max(2, Math.min(400, Math.ceil((total * 1000) / step) + 1));
     for (let i = 0; i < n; i++) {
       const t = i / (n - 1);
       const lon = a.lng + (b.lng - a.lng) * t;
@@ -277,6 +325,7 @@ import Base from "../layouts/Base.astro";
   drawButton.addEventListener("click", () => setDrawMode(!drawMode));
 
   map.on("load", async () => {
+    fitBasin();
     const [cuenca, subcuencas, rios, agua, lugares, cortes, perfilesData] = await Promise.all([
       get("/data/cuenca.geojson"),
       get("/data/subcuencas.geojson"),

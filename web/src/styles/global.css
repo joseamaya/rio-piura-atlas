@@ -193,7 +193,11 @@ footer.site {
 footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 18px; flex-wrap: wrap; justify-content: space-between; }
 
 /* --- mapa --- */
-.map-shell { position: relative; height: calc(100vh - 61px); }
+.map-shell {
+  position: relative;
+  height: calc(100vh - var(--header-h, 61px));
+  height: calc(100dvh - var(--header-h, 61px));
+}
 #map { position: absolute; inset: 0; background: #cfd6d9; }
 #scene { position: absolute; inset: 0; background: #cdd6d6; }
 #scene canvas { display: block; }

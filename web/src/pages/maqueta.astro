@@ -65,40 +65,113 @@ import Base from "../layouts/Base.astro";
   scene.add(sun);
 
   let model: THREE.Object3D | null = null;
-  let home = new THREE.Vector3();
+  const panel = document.querySelector(".map-panel") as HTMLElement | null;
+  const lastSize = { w: 0, h: 0 };
 
   function frame(object: THREE.Object3D) {
+    object.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(object);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    home.copy(center);
 
-    const dist = Math.max(size.x, size.z) * 1.15;
-    camera.position.set(center.x - dist * 0.55, center.y + dist * 0.62, center.z + dist * 0.85);
-    camera.lookAt(center);
-    camera.near = dist / 500;
+    // Las placas de las etiquetas agrandan la caja: se encuadra el terreno,
+    // pero se mantienen las etiquetas dentro del margen.
+    const terrain = new THREE.Box3();
+    object.traverse((child) => {
+      const mesh = child as THREE.Mesh;
+      if (!mesh.isMesh || child.name.includes("Etiqueta")) return;
+      if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+      if (mesh.geometry.boundingBox) {
+        terrain.union(mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld));
+      }
+    });
+    const terrainBox = terrain.isEmpty() ? box : terrain;
+    const center = terrainBox.getCenter(new THREE.Vector3());
+    // La placa se proyecta por debajo del centro geométrico al inclinar la
+    // cámara; se apunta un poco más abajo para centrar la masa visible.
+    const target = center.clone();
+    target.y -= (terrainBox.max.y - terrainBox.min.y) * 0.28;
+
+    // Encuadre ajustado a la cámara: proyecto las esquinas del bloque sobre
+    // los ejes de la vista en vez de usar una esfera conservadora.
+    const dir = new THREE.Vector3(-0.55, 0.62, 0.85).normalize();
+    const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), dir).normalize();
+    const up = new THREE.Vector3().crossVectors(dir, right).normalize();
+    let halfW = 0;
+    let halfH = 0;
+    for (let i = 0; i < 8; i++) {
+      const corner = new THREE.Vector3(
+        i & 1 ? box.max.x : box.min.x,
+        i & 2 ? box.max.y : box.min.y,
+        i & 4 ? box.max.z : box.min.z,
+      ).sub(center);
+      halfW = Math.max(halfW, Math.abs(corner.dot(right)));
+      halfH = Math.max(halfH, Math.abs(corner.dot(up)));
+    }
+
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const distH = halfH / Math.tan(vFov / 2);
+    const distW = halfW / (Math.tan(vFov / 2) * camera.aspect);
+    const dist = Math.max(distH, distW) * 1.08;
+
+    camera.position.copy(target).addScaledVector(dir, dist);
+    camera.lookAt(target);
+    camera.near = Math.max(dist / 1000, 0.1);
     camera.far = dist * 40;
     camera.updateProjectionMatrix();
 
-    controls.target.copy(center);
+    controls.target.copy(target);
     controls.update();
   }
 
-  function resize() {
-    const w = container.clientWidth;
-    const h = container.clientHeight;
+  // La maqueta ocupa solo el área que deja libre el panel, igual que el mapa.
+  function layout() {
+    const fullW = container.clientWidth;
+    const fullH = container.clientHeight;
+    if (!fullW || !fullH) return;
+
+    const narrow = fullW <= 720;
+    let left = 0;
+    let top = 0;
+    let w = fullW;
+    let h = fullH;
+    if (panel) {
+      if (narrow) {
+        top = Math.min(panel.offsetTop + panel.offsetHeight + 12, fullH * 0.62);
+        h = Math.max(fullH - top, fullH * 0.3);
+      } else {
+        left = panel.offsetLeft + panel.offsetWidth + 12;
+        w = Math.max(fullW - left, fullW * 0.4);
+      }
+    }
+
+    const style = renderer.domElement.style;
+    style.position = "absolute";
+    style.left = `${left}px`;
+    style.top = `${top}px`;
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+
+    const changed = Math.abs(w - lastSize.w) > 1 || Math.abs(h - lastSize.h) > 1;
+    lastSize.w = w;
+    lastSize.h = h;
+    if (model && changed) frame(model);
   }
 
-  window.addEventListener("resize", resize);
+  let pendingLayout = 0;
+  const scheduleLayout = () => {
+    cancelAnimationFrame(pendingLayout);
+    pendingLayout = requestAnimationFrame(layout);
+  };
+  const observer = new ResizeObserver(scheduleLayout);
+  observer.observe(container);
+  if (panel) observer.observe(panel);
+  layout();
 
   new GLTFLoader().load("/models/piura-cuenca.glb", (gltf) => {
     model = gltf.scene;
     scene.add(model);
+    layout();
     frame(model);
-    resize();
     animate();
   });
 
