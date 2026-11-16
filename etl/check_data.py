@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import struct
 import sys
 from pathlib import Path
@@ -21,6 +22,11 @@ from pyproj import Geod, Transformer
 from shapely.geometry import LineString, Point, Polygon, shape
 from shapely.ops import transform, unary_union
 from shapely.validation import explain_validity, make_valid
+
+try:  # Ejecución como módulo (`python -m etl.check_data`)
+    from etl.topology import Tolerances, as_polygonal, audit_partition
+except ModuleNotFoundError:  # Ejecución directa (`python etl/check_data.py`)
+    from topology import Tolerances, as_polygonal, audit_partition
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "data" / "sources.yml"
@@ -33,18 +39,34 @@ DRACO_FILES = ("draco_wasm_wrapper.js", "draco_decoder.wasm")
 
 ESTADOS = {"disponible", "por_solicitar", "por_verificar"}
 GRUPOS = {"Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"}
-CAMPOS = ["id", "titulo", "institucion", "url", "fecha", "escala", "licencia", "estado", "metodo", "grupo"]
+CERTEZAS = {"medido", "derivado", "documentado", "interpretacion", "por_verificar"}
+TIPOS = {"dataset", "documento", "prensa", "elaboracion_propia"}
+CAMPOS = [
+    "id",
+    "titulo",
+    "institucion",
+    "url",
+    "fecha",
+    "escala",
+    "licencia",
+    "estado",
+    "metodo",
+    "grupo",
+    "certeza",
+    "tipo",
+]
 
 # Áreas y nombres de control. La cuenca se mide con Geod (WGS84); ANA publica
 # Shape_Area en EPSG:32718, que no es la zona del polígono.
-BASIN_AREA_KM2 = 10_938.4
 BASIN_AREA_TOLERANCE = 0.005  # 0,5 %
-GAP_WARN_KM2 = 5.5            # 0,05 % de la cuenca
-GAP_ERROR_KM2 = 1.0           # un hueco individual mayor que esto es error
+TOPOLOGY_TOLERANCES = Tolerances()
 RIVER_TOLERANCE_DEG = 0.001   # ~100 m; el redondeo a 5 decimales deja <2 m
 PROFILE_STEP_TOLERANCE = 0.90
 POECHOS = (-80.5036, -4.6686)
 CURUMUY = (-80.6302, -5.0283)
+FECHA_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])(-\d{2})?$")
+CONSULTA_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+TOPOLOGY_SEEN: set[tuple] = set()
 
 GEOD = Geod(ellps="WGS84")
 TO_UTM = Transformer.from_crs("EPSG:4326", "EPSG:32717", always_xy=True)
@@ -59,6 +81,25 @@ def error(msg: str) -> None:
 
 def aviso(msg: str) -> None:
     avisos.append(msg)
+
+
+def add_findings(findings, prefix: str) -> None:
+    """Agrega hallazgos sin duplicar los que ya vienen de limits.json."""
+    for finding in findings:
+        key = (
+            finding.kind,
+            finding.severity,
+            finding.names,
+            round(finding.area_km2, 4),
+        )
+        if key in TOPOLOGY_SEEN:
+            continue
+        TOPOLOGY_SEEN.add(key)
+        message = finding.message(prefix)
+        if finding.severity == "error":
+            error(message)
+        else:
+            aviso(message)
 
 
 def cargar_json(path: Path):
@@ -121,16 +162,60 @@ def check_sources():
             error(f"{fid}: estado inválido '{fuente.get('estado')}'")
         if fuente.get("grupo") not in GRUPOS:
             error(f"{fid}: grupo inválido '{fuente.get('grupo')}'")
+        if not fuente.get("institucion"):
+            error(f"{fid}: institución vacía")
         if not fuente.get("licencia"):
             error(f"{fid}: licencia vacía")
         if not fuente.get("metodo"):
             error(f"{fid}: método vacío")
-        if fuente.get("fecha") is not None and not isinstance(fuente["fecha"], str):
-            aviso(f"{fid}: fecha no es texto; YAML puede interpretarla como fecha")
-        if fuente.get("url") is not None and not isinstance(fuente["url"], str):
-            error(f"{fid}: URL no es texto")
 
-    print(f"fuentes: {len(ids)}")
+        certeza = fuente.get("certeza")
+        if certeza not in CERTEZAS:
+            error(f"{fid}: certeza inválida '{certeza}'")
+        tipo = fuente.get("tipo")
+        if tipo not in TIPOS:
+            error(f"{fid}: tipo inválido '{tipo}'")
+        if certeza == "medido" and tipo == "elaboracion_propia":
+            error(f"{fid}: una geometría propia no puede declararse 'medido'")
+        if tipo == "elaboracion_propia" and "Río Piura Atlas" not in str(fuente.get("institucion")):
+            error(f"{fid}: una fuente de elaboración propia debe atribuirse al atlas")
+
+        fecha = fuente.get("fecha")
+        if fecha is not None:
+            if not isinstance(fecha, str):
+                error(f"{fid}: fecha no es texto")
+            elif not FECHA_RE.match(fecha):
+                error(f"{fid}: fecha '{fecha}' no tiene formato YYYY-MM o YYYY-MM-DD")
+            elif fecha.endswith("-01-01") and fuente.get("estado") != "disponible":
+                aviso(f"{fid}: fecha {fecha} parece un marcador de posición")
+        consultado = fuente.get("consultado")
+        if consultado is not None:
+            if not isinstance(consultado, str) or not CONSULTA_RE.match(consultado):
+                error(f"{fid}: 'consultado' debe ser una fecha YYYY-MM-DD")
+        if fuente.get("pagina") and not fuente.get("documento"):
+            error(f"{fid}: declara página sin documento")
+
+        url = fuente.get("url")
+        if url is not None and not isinstance(url, str):
+            error(f"{fid}: URL no es texto")
+        if fuente.get("estado") == "disponible" and tipo != "elaboracion_propia":
+            if not url and not fuente.get("documento"):
+                error(f"{fid}: está disponible pero no tiene URL ni documento")
+        generic = {
+            "https://www.senamhi.gob.pe/",
+            "https://enfen.gob.pe/",
+            "https://www.openstreetmap.org/",
+            "https://sigrid.cenepred.gob.pe/",
+        }
+        if (
+            fuente.get("estado") == "disponible"
+            and url in generic
+            and not fuente.get("documento")
+        ):
+            aviso(f"{fid}: enlace genérico; falta el documento concreto")
+
+    disponible = sum(1 for f in ids.values() if f.get("estado") == "disponible")
+    print(f"fuentes: {len(ids)} · disponibles: {disponible}")
     return ids
 
 
@@ -238,11 +323,36 @@ def check_layer_fuentes(ids: dict[str, dict]):
                 error(f"{path.name}: elemento sin 'fuente'")
             elif fuente not in ids:
                 error(f"{path.name}: fuente desconocida '{fuente}'")
+            elif ids[fuente].get("estado") != "disponible":
+                error(f"{path.name}: usa la fuente '{fuente}', que no está disponible")
             if not feature.get("geometry"):
                 error(f"{path.name}: feature sin geometría")
                 continue
             check_geometry(path, feature["geometry"])
         print(f"  {path.name}: {len(data.get('features', []))} elementos")
+
+
+def _geometry_from_record(record):
+    """Reconstruye Polygon/MultiPolygon desde limits.json o subcuencas.geojson."""
+    if not record:
+        return None
+    polygons = record.get("polygons")
+    if polygons:
+        parts = [
+            Polygon(p["ring"], p.get("holes") or [])
+            for p in polygons
+            if p.get("ring")
+        ]
+    elif record.get("ring"):
+        parts = [Polygon(record["ring"], record.get("holes") or [])]
+    else:
+        return None
+    parts = [make_valid(p) for p in parts if p is not None]
+    parts = [p for p in parts if not p.is_empty]
+    if not parts:
+        return None
+    merged = parts[0] if len(parts) == 1 else unary_union(parts)
+    return as_polygonal(merged)
 
 
 def check_raw_limits():
@@ -251,38 +361,48 @@ def check_raw_limits():
         return None
     if not data.get("metodo"):
         error("limits.json: falta el método de construcción")
-    if data.get("polygons"):
-        parts = [Polygon(p["ring"], p.get("holes") or []) for p in data["polygons"]]
-        basin = make_valid(parts[0] if len(parts) == 1 else unary_union(parts))
-    else:
-        basin = make_valid(
-            shape({"type": "Polygon", "coordinates": [data["ring"]] + (data.get("holes") or [])})
-        )
+    basin = _geometry_from_record(data)
+    if basin is None:
+        error("limits.json: no se pudo reconstruir la cuenca")
+        return data
     if not basin.is_valid:
         error(f"limits.json: cuenca inválida: {explain_validity(basin)}")
+
     subs = data.get("subbasins") or []
     if len(subs) != 9:
         error(f"limits.json: se esperaban 9 subcuencas; hay {len(subs)}")
-    geoms = []
+    named = []
     for sub in subs:
-        polygons = sub.get("polygons") or [{"ring": sub["ring"], "holes": sub.get("holes") or []}]
-        parts = [Polygon(p["ring"], p.get("holes") or []) for p in polygons]
-        geom = parts[0] if len(parts) == 1 else unary_union(parts)
+        name = sub.get("name", "?")
+        geom = _geometry_from_record(sub)
+        if geom is None:
+            error(f"limits.json: no se pudo reconstruir la subcuenca {name}")
+            continue
         if not geom.is_valid:
-            error(f"limits.json: subcuenca {sub['name']} inválida: {explain_validity(geom)}")
+            error(f"limits.json: subcuenca {name} inválida: {explain_validity(geom)}")
         if not sub.get("area_km2"):
-            error(f"limits.json: subcuenca {sub['name']} sin área")
-        geoms.append(make_valid(geom))
-    union = unary_union(geoms)
-    gap = transform(TO_UTM.transform, make_valid(basin).difference(union)).area / 1e6
-    outside = transform(TO_UTM.transform, union.difference(make_valid(basin))).area / 1e6
-    if gap > GAP_WARN_KM2:
-        error(f"limits.json: hueco de {gap:.2f} km² entre cuenca y subcuencas")
-    elif gap > 0.01:
-        aviso(f"limits.json: slivers de simplificación de {gap:.2f} km² entre cuenca y subcuencas")
-    if outside > 0.01:
-        aviso(f"limits.json: subcuencas sobresalen {outside:.2f} km² de la cuenca")
-    print(f"  limits: cuenca {data.get('area_km2')} km² · subcuencas {len(subs)}")
+            error(f"limits.json: subcuenca {name} sin área")
+        named.append((name, geom))
+
+    report = audit_partition(basin, named, TOPOLOGY_TOLERANCES)
+    add_findings(report.findings, "limits.json")
+
+    reconciliation = data.get("reconciliacion") or {}
+    for field in (
+        "crs_metrico",
+        "tolerancia_simplificacion_deg",
+        "caras",
+        "slivers_asignados_km2",
+        "solapamientos_eliminados_km2",
+        "superficie_fuera_eliminada_km2",
+        "metodo",
+    ):
+        if field not in reconciliation:
+            error(f"limits.json: falta 'reconciliacion.{field}'")
+    if reconciliation.get("crs_metrico") != "EPSG:32717":
+        error("limits.json: la reconciliación debe declarar EPSG:32717")
+
+    print(f"  limits: {report.summary()}")
     return data
 
 
@@ -291,41 +411,46 @@ def check_topology():
     subs_data = cargar_json(WEB_DATA / "subcuencas.geojson")
     if not cuenca_data or not subs_data:
         return
-    basin = geom_of(cuenca_data["features"][0])
-    if not basin.is_valid:
-        error(f"cuenca.geojson: inválida: {explain_validity(basin)}")
+    basin = as_polygonal(geom_of(cuenca_data["features"][0]))
+    if basin is None or not basin.is_valid:
+        detail = explain_validity(basin) if basin is not None else "geometría vacía"
+        error(f"cuenca.geojson: inválida: {detail}")
+        return
     declared = (cuenca_data["features"][0].get("properties") or {}).get("area_km2")
     measured = geodesic_km2(basin)
     if not isinstance(declared, (int, float)) or abs(measured - float(declared)) / measured > BASIN_AREA_TOLERANCE:
         error(f"cuenca.geojson: área declarada {declared} vs medida {measured:.2f} km²")
 
-    subs = []
-    total = 0.0
+    named = []
+    hole_notes: dict[str, str] = {}
     for feature in subs_data.get("features", []):
-        geom = geom_of(feature)
+        geom = as_polygonal(geom_of(feature))
         props = feature.get("properties") or {}
         name = props.get("nombre", "?")
-        if not geom.is_valid:
-            error(f"subcuencas.geojson: {name} inválida: {explain_validity(geom)}")
-        area = geodesic_km2(geom)
-        total += area
+        if geom is None or not geom.is_valid:
+            detail = explain_validity(geom) if geom is not None else "geometría vacía"
+            error(f"subcuencas.geojson: {name} inválida: {detail}")
+            continue
         declared_sub = props.get("area_km2")
+        area = geodesic_km2(geom)
         if not isinstance(declared_sub, (int, float)) or abs(area - float(declared_sub)) / area > BASIN_AREA_TOLERANCE:
             error(f"subcuencas.geojson: {name} declara {declared_sub} km²; mide {area:.2f} km²")
-        subs.append(make_valid(geom))
+        expected = "bajo-piura-derivado" if name == "Bajo Piura" else "ana-subcuencas"
+        if props.get("fuente") != expected:
+            error(
+                f"subcuencas.geojson: {name} usa la fuente '{props.get('fuente')}'; "
+                f"se esperaba '{expected}'"
+            )
+        if props.get("motivo_hueco"):
+            hole_notes[name] = str(props["motivo_hueco"])
+        named.append((name, geom))
 
-    if abs(total - measured) / measured > BASIN_AREA_TOLERANCE:
-        error(f"subcuencas: suma {total:.2f} km² vs cuenca {measured:.2f} km²")
-    union = unary_union(subs)
-    gap = transform(TO_UTM.transform, basin.difference(union)).area / 1e6
-    outside = transform(TO_UTM.transform, union.difference(basin)).area / 1e6
-    if gap > GAP_WARN_KM2:
-        error(f"subcuencas: hueco de {gap:.2f} km² dentro de la cuenca")
-    elif gap > 0.01:
-        aviso(f"subcuencas: slivers de simplificación de {gap:.2f} km²")
-    if outside > 0.01:
-        aviso(f"subcuencas: superficie fuera de la cuenca {outside:.2f} km²")
-    print(f"  topología: cuenca {measured:.1f} km² · subcuencas {total:.1f} km² · hueco {gap:.2f} km²")
+    if not any(name == "Bajo Piura" for name, _ in named):
+        error("subcuencas.geojson: falta la subcuenca derivada 'Bajo Piura'")
+
+    report = audit_partition(basin, named, TOPOLOGY_TOLERANCES, hole_notes=hole_notes)
+    add_findings(report.findings, "subcuencas.geojson")
+    print(f"  topología: {report.summary()}")
 
 
 def check_rivers():
@@ -387,13 +512,79 @@ def check_flood():
     total = 0.0
     for feature in features:
         props = feature.get("properties") or {}
-        for campo in ("evento", "zona", "aoi", "fecha", "sensores", "area_km2", "fuente", "metodo", "cobertura"):
+        for campo in (
+            "evento",
+            "zona",
+            "aoi",
+            "fecha",
+            "fecha_texto",
+            "sensores",
+            "observaciones",
+            "clase",
+            "area_km2",
+            "area_original_km2",
+            "fuente",
+            "metodo",
+            "cobertura",
+            "esquematico",
+            "advertencia",
+        ):
             if campo not in props:
                 error(f"flood_2017.geojson: falta '{campo}' en {props.get('aoi', '?')}")
         if props.get("fuente") != "copernicus-ems-emsr199":
             error(f"flood_2017.geojson: fuente inesperada '{props.get('fuente')}'")
+        if props.get("clase") != "Flooded Area":
+            error("flood_2017.geojson: la capa publicada debe ser solo 'Flooded Area'")
         if props.get("esquematico") is not False:
             error("flood_2017.geojson: la mancha no debe marcarse como esquemática")
+        if "no es una mancha simultánea" not in str(props.get("metodo", "")):
+            error("flood_2017.geojson: el método debe declarar que es una unión de fechas")
+        if not props.get("advertencia"):
+            error("flood_2017.geojson: falta la advertencia de metadatos del producto")
+
+        observations = props.get("observaciones")
+        if not isinstance(observations, list) or not observations:
+            error(f"flood_2017.geojson: {props.get('aoi', '?')} no tiene observaciones por fecha")
+            observations = []
+        obs_areas = []
+        obs_dates = []
+        for obs in observations:
+            if not isinstance(obs, dict):
+                error("flood_2017.geojson: observación con formato inválido")
+                continue
+            for field in ("fecha", "sensor", "area_original_km2", "partes"):
+                if field not in obs:
+                    error(f"flood_2017.geojson: observación sin '{field}' en {props.get('aoi', '?')}")
+            fecha = obs.get("fecha")
+            if isinstance(fecha, str) and FECHA_RE.match(fecha):
+                obs_dates.append(fecha)
+            else:
+                error(f"flood_2017.geojson: fecha de observación inválida '{fecha}'")
+            area_obs = obs.get("area_original_km2")
+            if not isinstance(area_obs, (int, float)) or area_obs <= 0:
+                error("flood_2017.geojson: área de observación inválida")
+            else:
+                obs_areas.append(float(area_obs))
+            if not isinstance(obs.get("partes"), int) or obs["partes"] <= 0:
+                error("flood_2017.geojson: número de partes inválido")
+
+        if obs_dates:
+            expected = obs_dates[0] if len(obs_dates) == 1 else f"{min(obs_dates)}/{max(obs_dates)}"
+            if props.get("fecha") != expected:
+                error(
+                    f"flood_2017.geojson: fecha '{props.get('fecha')}' no coincide con "
+                    f"las observaciones ({expected})"
+                )
+        if obs_areas:
+            area_original = props.get("area_original_km2")
+            if not isinstance(area_original, (int, float)):
+                error("flood_2017.geojson: falta el área original")
+            elif not (max(obs_areas) - 0.5 <= float(area_original) <= sum(obs_areas) + 0.5):
+                error(
+                    "flood_2017.geojson: el área original no está entre la mayor "
+                    "observación y la suma de observaciones"
+                )
+
         area = props.get("area_km2")
         geom = geom_of(feature)
         if not geom.is_valid:
@@ -405,6 +596,19 @@ def check_flood():
             error(f"flood_2017.geojson: área declarada {area} vs medida {measured:.1f} km²")
         else:
             total += float(area)
+        if obs_areas and isinstance(area, (int, float)):
+            reference = props.get("area_original_km2")
+            if isinstance(reference, (int, float)) and reference > 0:
+                if abs(float(area) - float(reference)) / float(reference) > 0.02:
+                    error(
+                        "flood_2017.geojson: el área publicada difiere más de 2 % "
+                        "del vector original"
+                    )
+            if float(area) < max(obs_areas) * 0.98:
+                error(
+                    "flood_2017.geojson: el área publicada es menor que la mayor "
+                    "observación por más del 2 %"
+                )
     if not 500 <= total <= 600:
         error(f"flood_2017.geojson: área total {total:.1f} km² fuera del rango esperado (500–600)")
     size = path.stat().st_size

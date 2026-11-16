@@ -52,19 +52,36 @@ FLOOD_AOIS = [
         "id": "AOI10",
         "carpeta": "aoi10_piura",
         "zona": "Piura, Catacaos y La Unión",
-        "fecha": "2017-03-26/2017-03-30",
-        "fecha_texto": "26–30 de marzo de 2017",
-        "sensores": "Radarsat-2 (26/03) y Cosmo-SkyMed (30/03)",
     },
     {
         "id": "AOI11",
         "carpeta": "aoi11_parachique",
         "zona": "Parachique y llanura baja",
-        "fecha": "2017-03-26",
-        "fecha_texto": "26 de marzo de 2017",
-        "sensores": "Radarsat-2 (26/03)",
     },
 ]
+
+# Los atributos del vector son la fuente directa para fecha y sensor. El PDF v2
+# de AOI10 declara Sentinel-1A, pero el DBF del mismo producto declara Radarsat
+# (26/03) y Cosmo-SkyMed (30/03). Se usan los atributos del vector y se advierte
+# la discrepancia en la ficha.
+SENSOR_LABELS = {
+    "Radarsat Ultra-Fine Beam imagery": "Radarsat Ultra-Fine Beam",
+    "Cosmo-Skymed 3-15m Stripmap imagery": "Cosmo-SkyMed 3-15m Stripmap",
+}
+MESES = (
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+)
 
 FIG_BBOX = (-81.18, -6.12, -80.30, -5.06)
 
@@ -124,7 +141,7 @@ def build_limits():
         raise SystemExit(f"limits.json: la cuenca no es válida: {detail}")
 
     cuenca = feature(
-        _json_geom(basin),
+        _json_geom(basin, nd=6),
         {
             "nombre": "Cuenca del río Piura",
             "area_km2": data["area_km2"],
@@ -141,15 +158,21 @@ def build_limits():
         if geom is None or not geom.is_valid:
             detail = explain_validity(geom) if geom is not None else "geometría vacía"
             raise SystemExit(f"limits.json: subcuenca {s['name']} no es válida: {detail}")
+        es_bajo = s["name"] == "Bajo Piura"
         subs.append(
             feature(
-                _json_geom(geom),
+                _json_geom(geom, nd=6),
                 {
                     "nombre": s["name"],
                     "area_km2": s["area_km2"],
                     "area_fuente_km2": s.get("area_fuente_km2"),
                     "origen": s.get("origen"),
-                    "fuente": "ana-subcuencas",
+                    "fuente": "bajo-piura-derivado" if es_bajo else "ana-subcuencas",
+                    "metodo": (
+                        "derivada de ANA antes de simplificar; reconciliación topológica"
+                        if es_bajo
+                        else "ANA simplificada y reconciliada topológicamente"
+                    ),
                 },
             )
         )
@@ -170,9 +193,32 @@ def _round_coords(coords, nd=5):
     return [_round_coords(c, nd) for c in coords]
 
 
-def _json_geom(geom):
+def _only_polygons(geom):
+    """Extrae Polygon/MultiPolygon de una geometría, sin líneas ni puntos."""
+    if geom is None or geom.is_empty:
+        return []
+    if geom.geom_type == "Polygon":
+        return [geom]
+    if geom.geom_type == "MultiPolygon":
+        return list(geom.geoms)
+    parts = []
+    if hasattr(geom, "geoms"):
+        for child in geom.geoms:
+            parts.extend(_only_polygons(child))
+    return parts
+
+
+def _json_geom(geom, nd: int = 5):
     """Geometría GeoJSON redondeada, conservando agujeros y multipartes."""
-    return {"type": geom.geom_type, "coordinates": _round_coords(mapping(geom)["coordinates"])}
+    if geom.geom_type not in {"Polygon", "MultiPolygon"}:
+        parts = _only_polygons(geom)
+        if not parts:
+            raise ValueError("la geometría no contiene polígonos")
+        geom = parts[0] if len(parts) == 1 else MultiPolygon(parts)
+    return {
+        "type": geom.geom_type,
+        "coordinates": _round_coords(mapping(geom)["coordinates"], nd),
+    }
 
 
 def _geom_from_record(record):
@@ -190,11 +236,17 @@ def _geom_from_record(record):
         parts = [Polygon(record["ring"], record.get("holes") or [])]
     else:
         return None
-    parts = [make_valid(p) for p in parts]
-    parts = [p for p in parts if not p.is_empty]
-    if not parts:
+    clean_parts = []
+    for part in parts:
+        clean_parts.extend(_only_polygons(make_valid(part)))
+    clean_parts = [p for p in clean_parts if not p.is_empty]
+    if not clean_parts:
         return None
-    return parts[0] if len(parts) == 1 else unary_union(parts)
+    merged = clean_parts[0] if len(clean_parts) == 1 else unary_union(clean_parts)
+    polygonal = _only_polygons(merged)
+    if not polygonal:
+        return None
+    return polygonal[0] if len(polygonal) == 1 else MultiPolygon(polygonal)
 
 
 def _line_parts(geom):
@@ -339,25 +391,70 @@ def _polygonal(geom):
     return None
 
 
-def _flood_polygons(shp_path: Path):
-    """Lee la capa `crisis_information_poly` y conserva solo `Flooded Area`."""
+def _iso_date(value) -> str | None:
+    if value is None:
+        return None
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    text = str(value).strip()
+    if len(text) == 8 and text.isdigit():
+        return f"{text[:4]}-{text[4:6]}-{text[6:]}"
+    return text or None
+
+
+def _sensor_label(value) -> str:
+    raw = str(value or "").strip()
+    return SENSOR_LABELS.get(raw, raw or "Sensor no declarado")
+
+
+def _fecha_texto(fechas) -> str:
+    from datetime import date
+
+    days = sorted({_iso_date(f) for f in fechas if _iso_date(f)})
+    if not days:
+        return "fecha no declarada"
+    parsed = [date.fromisoformat(d) for d in days]
+    if len(parsed) == 1:
+        d = parsed[0]
+        return f"{d.day} de {MESES[d.month - 1]} de {d.year}"
+    a, b = parsed[0], parsed[-1]
+    if a.year == b.year and a.month == b.month:
+        return f"{a.day}–{b.day} de {MESES[a.month - 1]} de {a.year}"
+    if a.year == b.year:
+        return f"{a.day} {MESES[a.month - 1]} – {b.day} {MESES[b.month - 1]} de {a.year}"
+    return (
+        f"{a.day} {MESES[a.month - 1]} {a.year} – "
+        f"{b.day} {MESES[b.month - 1]} {b.year}"
+    )
+
+
+def _flood_records(shp_path: Path):
+    """Lee `crisis_information_poly` y conserva solo `Flooded Area`.
+
+    Devuelve cada polígono con la fecha de imagen (`src_date`) y el sensor
+    (`source_nam`) que declara el atributo del vector. No se deduce el sensor
+    del pie del PDF: el propio producto puede tener metadatos discrepantes.
+    """
     reader = shapefile.Reader(str(shp_path), encoding="latin1")
     fields = [f[0] for f in reader.fields[1:]]
-    geoms = []
+    records = []
     for sr in reader.iterShapeRecords():
         props = dict(zip(fields, sr.record))
         if props.get("interpret") != "Flooded Area":
             continue
-        geom = shape(sr.shape.__geo_interface__)
-        if not geom.is_valid:
-            geom = make_valid(geom)
-        if geom.geom_type == "Polygon":
-            geoms.append(geom)
-        elif geom.geom_type == "MultiPolygon":
-            geoms.extend(geom.geoms)
-        elif geom.geom_type == "GeometryCollection":
-            geoms.extend(g for g in geom.geoms if g.geom_type == "Polygon")
-    return geoms
+        geom = _polygonal(make_valid(shape(sr.shape.__geo_interface__)))
+        if geom is None:
+            continue
+        parts = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+        for part in parts:
+            records.append(
+                {
+                    "geom": part,
+                    "fecha": _iso_date(props.get("src_date")),
+                    "sensor": _sensor_label(props.get("source_nam")),
+                }
+            )
+    return records
 
 
 def _keep_parts(geom, min_area_m2: float):
@@ -381,12 +478,39 @@ def build_flood():
         if not shp_files:
             print(f"  (sin shapefile para {aoi['id']}; se omite)")
             continue
-        raw = _flood_polygons(shp_files[0])
-        if not raw:
+        records = _flood_records(shp_files[0])
+        if not records:
             print(f"  ({aoi['id']} sin polígonos 'Flooded Area'; se omite)")
             continue
 
-        merged = unary_union(raw)
+        grouped: dict[tuple[str | None, str], list] = {}
+        for record in records:
+            grouped.setdefault((record["fecha"], record["sensor"]), []).append(record["geom"])
+
+        observaciones = []
+        for (fecha, sensor), geoms in sorted(
+            grouped.items(), key=lambda item: (item[0][0] or "", item[0][1])
+        ):
+            raw_union = unary_union(geoms)
+            observaciones.append(
+                {
+                    "fecha": fecha,
+                    "sensor": sensor,
+                    "area_original_km2": round(raw_union.area / 1e6, 3),
+                    "partes": len(geoms),
+                }
+            )
+
+        fechas = [o["fecha"] for o in observaciones if o["fecha"]]
+        fecha = fechas[0] if len(fechas) == 1 else f"{min(fechas)}/{max(fechas)}"
+        sensores = "; ".join(
+            f"{o['sensor']} ({o['fecha'][8:10]}/{o['fecha'][5:7]})"
+            for o in observaciones
+            if o["fecha"]
+        )
+
+        merged = unary_union([record["geom"] for record in records])
+        raw_area_km2 = merged.area / 1e6
         kept = _keep_parts(merged, FLOOD_MIN_AREA_M2)
         if kept is None:
             print(f"  ({aoi['id']} sin partes por encima del área mínima; se omite)")
@@ -411,18 +535,36 @@ def build_flood():
                     "evento": "Inundación de marzo de 2017",
                     "zona": aoi["zona"],
                     "aoi": f"EMSR199_{aoi['id']}",
-                    "fecha": aoi["fecha"],
-                    "fecha_texto": aoi["fecha_texto"],
-                    "sensores": aoi["sensores"],
+                    "fecha": fecha,
+                    "fecha_texto": _fecha_texto(fechas),
+                    "sensores": sensores,
+                    "observaciones": observaciones,
+                    "clase": "Flooded Area",
                     "area_km2": round(area_km2, 1),
+                    "area_original_km2": round(raw_area_km2, 3),
                     "fuente": "copernicus-ems-emsr199",
-                    "metodo": "vector oficial EMSR199; disuelto, filtrado y simplificado",
+                    "metodo": (
+                        "vector oficial EMSR199; unión de observaciones por fecha; "
+                        "disuelto, filtrado y simplificado; no es una mancha simultánea"
+                    ),
                     "esquematico": False,
-                    "cobertura": "Cubre la llanura baja y el desierto adyacente; no toda la cuenca",
+                    "cobertura": (
+                        "Cubre la llanura baja y el desierto adyacente; no toda la cuenca. "
+                        "La extensión publicada es la unión de las observaciones, no la "
+                        "extensión máxima simultánea."
+                    ),
+                    "advertencia": (
+                        "El PDF del producto declara Sentinel-1A; los atributos del vector "
+                        "declaran Radarsat (26/03) y Cosmo-SkyMed (30/03). Se usan los "
+                        "atributos del vector."
+                    ),
                 },
             )
         )
-        print(f"  {aoi['id']}: {len(raw)} polígonos → {area_km2:.1f} km²")
+        print(
+            f"  {aoi['id']}: {len(records)} polígonos · "
+            f"{len(observaciones)} observación(es) → {area_km2:.1f} km²"
+        )
 
     if feats:
         write("flood_2017.geojson", feature_collection(feats))
@@ -640,7 +782,7 @@ def build_flood_figure():
     )
     draw.text(
         (legend[0] + 12, legend[3] - 22),
-        "Copernicus EMSR199 · 26–30 mar 2017",
+        "Copernicus EMSR199 · observaciones de marzo de 2017",
         font=_font(13),
         fill=(76, 88, 102),
     )
