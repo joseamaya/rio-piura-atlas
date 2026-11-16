@@ -23,15 +23,19 @@ El atlas no dibuja nada que no pueda justificar. Cada elemento visible tiene:
 ### Límites y subcuencas
 Polígono oficial ANA 1:100 000, simplificado a ~1 000 puntos por anillo. Sin
 reinterpretación. Si se compara con otra delimitación (HydroBASINS, estudios
-hidrológicos), la diferencia se documenta en la ficha.
+hidrológicos), la diferencia se documenta en la ficha. En la maqueta 3D las
+subcuencas aparecen solo como rótulos; sus límites se consultan en el mapa 2D.
 
 ### Relieve
 Copernicus DEM 30 m. El relieve se muestra con **exageración vertical declarada**
 (×7 en la maqueta). La exageración no es un dato: se dice en la leyenda y en la ficha.
+En la maqueta, el color del terreno es una **rampa hipsométrica**: indica altitud, no
+cobertura vegetal.
 
 ### Red hídrica
 HydroRIVERS, filtrada por área aportante y recortada a la cuenca. En la llanura el
-DEM no resuelve el cauce: el trazo procede del vector, no del ráster.
+DEM no resuelve el cauce: el trazo procede del vector, no del ráster. En la maqueta
+la red se eleva 45 m sobre el terreno para que se lea; no es una cota real.
 
 ### Cortes transversales
 Implementados en `etl/build_cortes.py` y visibles en `/mapa`.

@@ -14,12 +14,14 @@ import { withBase } from "../lib/url";
       <p id="scene-summary" class="sr-only">
         Maqueta 3D del río Piura con la cuenca, el desierto de Sechura y la bahía.
         La cresta oscura deriva del límite de cuenca de la ANA. El relieve está
-        exagerado siete veces para que se lea; no es una escala real. El río muere en
-        la laguna Ramón; las líneas punteadas son trazos aproximados de rutas
-        históricas de crecida y no son cartografía oficial. Arrastra para girar, usa
-        la rueda para acercar y haz doble clic para reiniciar la vista. El
-        <a href={withBase("/mapa")}>mapa 2D</a> ofrece la misma información con capas
-        consultables.
+        exagerado siete veces para que se lea; no es una escala real. El color indica
+        altitud, no vegetación. El río muere en la laguna Ramón, un polígono OSM
+        intermitente que puede estar seco; el agua dibujada es narrativa. Las líneas
+        punteadas son trazos aproximados de rutas históricas de crecida y no son
+        cartografía oficial. Las subcuencas solo aparecen como rótulos; sus límites
+        están en el mapa 2D. Arrastra para girar, usa la rueda para acercar y haz doble
+        clic para reiniciar la vista. El <a href={withBase("/mapa")}>mapa 2D</a> ofrece
+        la misma información con capas consultables.
       </p>
       <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
       <p id="scene-status" class="scene-status" role="status" aria-live="polite"></p>
@@ -53,15 +55,17 @@ import { withBase } from "../lib/url";
           <li><span class="swatch divide"></span> Límite de cuenca (ANA)</li>
         </ul>
         <details class="src">
-          <summary>Fuentes y método</summary>
-          <p>
-            Relieve exagerado <strong>×7</strong>: no es una escala real. La traza de
-            las rutas de crecida es una interpretación del equipo: no hay una capa
-            oficial publicada; el relato y sus fuentes están en
-            <a href={withBase("/escenarios")}>Escenarios</a>. Poechos y el canal Daniel
-            Escobar son geometría esquemática. Los lugares y cuerpos de agua provienen
-            de OpenStreetMap (ODbL). El relieve es Copernicus DEM GLO-30 (30 m).
-          </p>
+          <summary>Fuentes, método y límites</summary>
+          <ul>
+            <li>El color del terreno es una rampa hipsométrica: indica altitud, no vegetación.</li>
+            <li>La red es HydroRIVERS (~500 m), elevada 45 m para que se lea; no es el cauce exacto.</li>
+            <li>La laguna Ramón es un polígono OSM intermitente y puede estar seca; el agua del modelo es narrativa. Las superficies están a cota simbólica (+25 m).</li>
+            <li>Las rutas punteadas son una interpretación del equipo; no hay una capa oficial publicada. El relato está en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
+            <li>Las subcuencas solo están rotuladas; sus límites están en el <a href={withBase("/mapa")}>mapa 2D</a>.</li>
+            <li>Los rótulos «Naciente ~2 700 m» y «Reserva Illescas» están por verificar; no deben leerse como cota ni como límite oficial.</li>
+            <li>Poechos y el canal Daniel Escobar son geometría esquemática; los bordes del bloque no son un corte geológico.</li>
+            <li>Lugares: OSM/IGN; subcuencas: ANA; cuerpos de agua: OSM. Coordenadas aproximadas. Relieve: Copernicus DEM GLO-30 (30 m).</li>
+          </ul>
         </details>
       </aside>
     </div>

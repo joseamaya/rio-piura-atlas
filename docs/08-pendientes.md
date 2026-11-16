@@ -66,8 +66,18 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 - **Red hídrica.** HydroRIVERS incluye tramos que sobresalen levemente de la ventana
   del atlas. `build_layers.py` los recorta a la cuenca y el script de descarga usa un
   margen de 0,05° para no cortar tramos en el borde.
-- **Poechos.** La represa figura como polígono manual en `water.json`, pero no se
-  dibuja: falta fuente y licencia confirmadas para su geometría.
+- **Poechos.** La represa figura como polígono manual de 9 puntos en `water.json` y
+  se dibuja como **geometría esquemática** en la maqueta, no como levantamiento.
+  Falta una fuente y una licencia confirmadas para su geometría.
+- **Color del terreno.** La maqueta usa una rampa hipsométrica: el verde indica
+  altitud, no cobertura vegetal.
+- **Lagunas.** Los polígonos son de OSM; Ramón y Las Salinas figuran como
+  intermitentes. La maqueta las pinta como agua permanente por el relato y las sitúa
+  a una cota simbólica (+25 m), no a un nivel medido.
+- **Rótulos del GLB.** «Naciente ~2 700 m» no coincide con el DEM en su posición
+  (1 933 m; máximo de ventana 3 019 m) y «Reserva Illescas» no dibuja el área
+  protegida. Corregirlos o retirarlos en una próxima exportación; el GLB actual no se
+  toca.
 - **ENFEN y Sentinel-1.** Están disponibles como documentos o imágenes, pero no como
   capas geográficas listas para publicar. Por eso no hay mancha de inundación todavía.
 
