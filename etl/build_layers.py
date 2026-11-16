@@ -20,9 +20,9 @@ import shapefile
 from PIL import Image, ImageDraw, ImageFont
 from pyproj import Transformer
 from shapely import set_precision
-from shapely.geometry import MultiPolygon, mapping, shape
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon, mapping, shape
 from shapely.ops import transform, unary_union
-from shapely.validation import make_valid
+from shapely.validation import explain_validity, make_valid
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
@@ -35,14 +35,17 @@ EMSR = RAW / "emsr199"
 FLOOD_MIN_AREA_M2 = 5_000
 FLOOD_SIMPLIFY_M = 25
 
-# Mismo eje que usa la maqueta 3D (`build_scene.py`). Es una interpretación
-# aproximada: no es el eje oficial del canal ni un levantamiento.
+# Trazo de referencia Poechos → Curumuy. No es el eje oficial: la ficha pública
+# del PECHP documenta 54 km y 70 m³/s, pero no publica el eje. Se dibuja recto,
+# punteado y marcado como interpretación; no se inventa un meandro.
 CANAL_DANIEL_ESCOBAR = [
-    (-80.500, -4.884),
-    (-80.474, -4.918),
-    (-80.448, -4.952),
-    (-80.420, -4.985),
+    (-80.5036, -4.6686),  # dique de Poechos (PECHP)
+    (-80.5350, -4.7600),
+    (-80.5750, -4.8550),
+    (-80.6100, -4.9500),
+    (-80.6302, -5.0283),  # Curumuy
 ]
+POECHOS_DIQUE = (-80.5036, -4.6686)
 
 FLOOD_AOIS = [
     {
@@ -115,31 +118,97 @@ def feature(geom, props):
 
 def build_limits():
     data = json.loads((RAW / "limits.json").read_text(encoding="utf-8"))
+    basin = _geom_from_record(data)
+    if basin is None or not basin.is_valid:
+        detail = explain_validity(basin) if basin is not None else "geometría vacía"
+        raise SystemExit(f"limits.json: la cuenca no es válida: {detail}")
+
     cuenca = feature(
-        {"type": "Polygon", "coordinates": [round_ring(rdp(data["ring"], 0.0006))]},
+        _json_geom(basin),
         {
             "nombre": "Cuenca del río Piura",
             "area_km2": data["area_km2"],
+            "area_fuente_km2": data.get("area_fuente_km2"),
             "fuente": "ana-subcuencas",
             "escala": "1:100 000",
             "codigo": data.get("code"),
+            "metodo": "geometría ANA simplificada una vez; área geodésica",
         },
     )
     subs = []
     for s in data["subbasins"]:
+        geom = _geom_from_record(s)
+        if geom is None or not geom.is_valid:
+            detail = explain_validity(geom) if geom is not None else "geometría vacía"
+            raise SystemExit(f"limits.json: subcuenca {s['name']} no es válida: {detail}")
         subs.append(
             feature(
-                {"type": "Polygon", "coordinates": [round_ring(rdp(s["ring"], 0.0006))]},
-                {"nombre": s["name"], "area_km2": s["area_km2"], "fuente": "ana-subcuencas"},
+                _json_geom(geom),
+                {
+                    "nombre": s["name"],
+                    "area_km2": s["area_km2"],
+                    "area_fuente_km2": s.get("area_fuente_km2"),
+                    "origen": s.get("origen"),
+                    "fuente": "ana-subcuencas",
+                },
             )
         )
     write("cuenca.geojson", feature_collection([cuenca]))
     write("subcuencas.geojson", feature_collection(subs))
-    return data["ring"]
+    return basin
 
 
 def feature_collection(features):
     return {"type": "FeatureCollection", "features": features}
+
+
+def _round_coords(coords, nd=5):
+    if not coords:
+        return coords
+    if isinstance(coords[0], (int, float)):
+        return [round(float(v), nd) for v in coords]
+    return [_round_coords(c, nd) for c in coords]
+
+
+def _json_geom(geom):
+    """Geometría GeoJSON redondeada, conservando agujeros y multipartes."""
+    return {"type": geom.geom_type, "coordinates": _round_coords(mapping(geom)["coordinates"])}
+
+
+def _geom_from_record(record):
+    """Reconstruye Polygon/MultiPolygon desde el esquema de limits.json."""
+    if not record:
+        return None
+    polygons = record.get("polygons")
+    if polygons:
+        parts = [
+            Polygon(p["ring"], p.get("holes") or [])
+            for p in polygons
+            if p.get("ring")
+        ]
+    elif record.get("ring"):
+        parts = [Polygon(record["ring"], record.get("holes") or [])]
+    else:
+        return None
+    parts = [make_valid(p) for p in parts]
+    parts = [p for p in parts if not p.is_empty]
+    if not parts:
+        return None
+    return parts[0] if len(parts) == 1 else unary_union(parts)
+
+
+def _line_parts(geom):
+    """Extrae las componentes LineString de una intersección."""
+    if geom is None or geom.is_empty:
+        return []
+    if geom.geom_type == "LineString":
+        return [geom]
+    if geom.geom_type in {"MultiLineString", "GeometryCollection"}:
+        out = []
+        for child in geom.geoms:
+            out.extend(_line_parts(child))
+        return out
+    return []
 
 
 def point_in_ring(x, y, ring):
@@ -156,23 +225,38 @@ def point_in_ring(x, y, ring):
 def build_rivers():
     net = json.loads((RAW / "network.json").read_text(encoding="utf-8"))
     limits = json.loads((RAW / "limits.json").read_text(encoding="utf-8"))
-    ring = limits["ring"]
+    basin = _geom_from_record(limits)
+    if basin is None:
+        raise SystemExit("limits.json no contiene la cuenca para recortar la red")
     feats = []
     for seg in net["rivers"]:
         if seg["upland"] < 150 or len(seg["coords"]) < 2:
             continue
-        mid = seg["coords"][len(seg["coords"]) // 2]
-        if not point_in_ring(mid[0], mid[1], ring):
-            continue  # fuera de la cuenca: el atlas no dibuja cuencas vecinas
-        coords = [[round(x, 5), round(y, 5)] for x, y in seg["coords"]]
-        if len(coords) > 4:
-            coords = rdp(coords, 0.0004)
-        feats.append(
-            feature(
-                {"type": "LineString", "coordinates": coords},
-                {"aporte_km2": seg["upland"], "orden": seg["order"], "fuente": "hydrorivers"},
-            )
-        )
+        line = LineString(seg["coords"])
+        clipped = line.intersection(basin)
+        parts = [p for p in _line_parts(clipped) if p.length > 1e-8]
+        for n, part in enumerate(parts):
+            simplified = part.simplify(0.0004, preserve_topology=True)
+            coords = [
+                [round(x, 5), round(y, 5)]
+                for x, y in simplified.coords
+            ]
+            # La simplificación y el redondeo pueden duplicar puntos consecutivos.
+            dedup = [coords[0]]
+            for point in coords[1:]:
+                if point != dedup[-1]:
+                    dedup.append(point)
+            if len(dedup) < 2:
+                continue
+            props = {
+                "aporte_km2": seg["upland"],
+                "orden": seg["order"],
+                "fuente": "hydrorivers",
+                "metodo": "intersección exacta con la cuenca ANA; simplificado a 0.0004°",
+            }
+            if len(parts) > 1:
+                props["parte"] = n + 1
+            feats.append(feature({"type": "LineString", "coordinates": dedup}, props))
     write("red_hidrica.geojson", feature_collection(feats))
 
 
@@ -182,45 +266,62 @@ def build_water():
     for b in data["bodies"]:
         if b.get("manual"):
             continue
+        geom = _geom_from_record(b)
+        if geom is None:
+            continue
+        geom = make_valid(geom)
+        if not geom.is_valid or geom.is_empty:
+            detail = explain_validity(geom)
+            raise SystemExit(f"water.json: cuerpo {b.get('name') or '(sin nombre)'} inválido: {detail}")
+        simplified = geom.simplify(0.0005, preserve_topology=True)
         feats.append(
             feature(
-                {"type": "Polygon", "coordinates": [round_ring(rdp(b["ring"], 0.0005))]},
+                _json_geom(simplified),
                 {
                     "nombre": b["name"] or "Cuerpo de agua sin nombre",
                     "area_km2": b["area_km2"],
                     "intermitente": b["intermittent"],
                     "fuente": "osm-agua",
+                    "metodo": "OSM; polígono simplificado conservando agujeros",
                 },
             )
         )
     write("agua.geojson", feature_collection(feats))
 
 
+# Nodos de localidad de OpenStreetMap, no centroides de distrito. Se corrigieron
+# las coordenadas que estaban a decenas de kilómetros (Huarmaca) o fuera del
+# casco urbano (Castilla, La Unión, Paita, Salitral, Canchaque).
 LUGARES = [
-    ("Piura", -80.63, -5.19, "ciudad", 1),
-    ("Castilla", -80.69, -5.11, "ciudad", 2),
-    ("Catacaos", -80.68, -5.27, "ciudad", 2),
-    ("Chulucanas", -80.16, -5.09, "ciudad", 1),
-    ("Tambogrande", -80.35, -4.93, "ciudad", 2),
-    ("Morropón", -79.97, -5.19, "ciudad", 2),
-    ("Sechura", -80.82, -5.55, "ciudad", 2),
-    ("Paita", -81.06, -5.08, "ciudad", 2),
-    ("La Unión", -80.66, -5.42, "ciudad", 3),
-    ("Cura Mori", -80.72, -5.38, "ciudad", 3),
-    ("Huarmaca", -79.85, -5.75, "ciudad", 3),
-    ("Salitral", -79.79, -5.42, "ciudad", 3),
-    ("Canchaque", -79.62, -5.40, "ciudad", 3),
+    ("Piura", -80.62666, -5.19711, "ciudad", 1, False),
+    ("Castilla", -80.66700, -5.20000, "ciudad", 2, False),
+    ("Catacaos", -80.67608, -5.26548, "ciudad", 2, False),
+    ("Chulucanas", -80.16092, -5.09651, "ciudad", 1, False),
+    ("Tambogrande", -80.34240, -4.93535, "ciudad", 2, False),
+    ("Morropón", -79.97172, -5.18429, "ciudad", 2, False),
+    ("Sechura", -80.82233, -5.55754, "ciudad", 2, False),
+    ("Paita", -81.11368, -5.08516, "ciudad", 2, True),
+    ("La Unión", -80.74391, -5.40437, "ciudad", 3, False),
+    ("Cura Mori", -80.72000, -5.38000, "ciudad", 3, False),
+    ("Huarmaca", -79.52399, -5.56779, "ciudad", 3, False),
+    ("Salitral", -79.83257, -5.34211, "ciudad", 3, False),
+    ("Canchaque", -79.60629, -5.37635, "ciudad", 3, False),
 ]
 
 
 def build_places():
-    feats = [
-        feature(
-            {"type": "Point", "coordinates": [lo, la]},
-            {"nombre": n, "tipo": t, "jerarquia": j, "fuente": "osm-lugares"},
-        )
-        for n, lo, la, t, j in LUGARES
-    ]
+    feats = []
+    for nombre, lon, lat, tipo, jerarquia, fuera in LUGARES:
+        props = {
+            "nombre": nombre,
+            "tipo": tipo,
+            "jerarquia": jerarquia,
+            "fuente": "osm-lugares",
+            "metodo": "nodo de localidad OSM consultado y contrastado; coordenada aproximada",
+        }
+        if fuera:
+            props["fuera_cuenca"] = True
+        feats.append(feature({"type": "Point", "coordinates": [lon, lat]}, props))
     write("lugares.geojson", feature_collection(feats))
 
 
@@ -328,28 +429,26 @@ def build_flood():
 
 
 def build_obras():
-    """Publica Poechos y el canal Daniel Escobar como geometría esquemática."""
-    data = json.loads((RAW / "water.json").read_text(encoding="utf-8"))
-    poechos = next(
-        (b for b in data.get("bodies", []) if b.get("manual") and "Poechos" in b.get("name", "")),
-        None,
-    )
-    if poechos is None:
-        raise SystemExit("water.json no contiene la represa manual de Poechos")
+    """Publica Poechos y el canal Daniel Escobar como referencias esquemáticas.
 
-    ring = [[round(x, 5), round(y, 5)] for x, y in poechos["ring"]]
-    if ring[0] != ring[-1]:
-        ring.append(ring[0])
-
+    Poechos se publica como punto en el dique, no como polígono: no hay geometría
+    oficial del embalse en las fuentes disponibles y el contorno anterior estaba
+    ~19 km al sur. El canal se dibuja como una recta de referencia entre el dique
+    y Curumuy; la longitud oficial (54 km) no se representa a escala.
+    """
     feats = [
         feature(
-            {"type": "Polygon", "coordinates": [ring]},
+            {"type": "Point", "coordinates": list(POECHOS_DIQUE)},
             {
                 "nombre": "Represa de Poechos",
                 "tipo": "represa",
                 "esquematico": True,
                 "fuente": "obras-esquematicas",
-                "nota": "Contorno aproximado de 9 puntos; no es un levantamiento.",
+                "referencia": "PECHP: dique 4°40′07″S, 80°30′13″W",
+                "nota": (
+                    "Punto en el dique según la ficha del PECHP. No se dibuja el embalse "
+                    "porque no hay geometría oficial publicada."
+                ),
             },
         ),
         feature(
@@ -362,7 +461,12 @@ def build_obras():
                 "tipo": "canal",
                 "esquematico": True,
                 "fuente": "obras-esquematicas",
-                "nota": "Trazo aproximado de 4 puntos; no es el eje oficial del canal.",
+                "longitud_oficial_km": 54,
+                "caudal_m3s": 70,
+                "nota": (
+                    "Recta de referencia Poechos–Curumuy; no es el eje oficial ni está "
+                    "a escala. El PECHP documenta 54 km y 70 m³/s."
+                ),
             },
         ),
     ]
@@ -491,14 +595,28 @@ def build_flood_figure():
             x, y = _px(lon, lat, FIG_BBOX, (fig_w, fig_h))
             jerarquia = int(props.get("jerarquia") or 3)
             size = 22 if jerarquia == 1 else 18 if jerarquia == 2 else 16
+            nombre = str(props.get("nombre") or "")
+            # Piura/Castilla y Cura Mori/La Unión están muy próximos: se dibujan
+            # a lados opuestos para que la figura estática no los superponga.
+            offsets = {
+                "Castilla": (-9, -4, "rm"),
+                "Piura": (8, -8, "lm"),
+                "Catacaos": (8, 1, "lm"),
+                "Cura Mori": (-9, -8, "rm"),
+                "La Unión": (8, 6, "lm"),
+                "Paita": (8, 0, "lm"),
+                "Sechura": (8, 0, "lm"),
+            }
+            dx, dy, anchor = offsets.get(nombre, (7, -size * 0.7, "lm"))
             draw.ellipse((x - 4, y - 4, x + 4, y + 4), fill=(26, 34, 44))
             draw.text(
-                (x + 7, y - size * 0.7),
-                str(props.get("nombre") or ""),
+                (x + dx, y + dy),
+                nombre,
                 font=_font_bold(size) if jerarquia <= 2 else _font(size),
                 fill=(26, 34, 44),
                 stroke_width=2,
                 stroke_fill=(247, 244, 234),
+                anchor=anchor,
             )
 
     # Leyenda
@@ -599,9 +717,12 @@ def build_relief():
     path = WEB / "relieve.jpg"
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(path, quality=86, optimize=True)
-    (OUT / "relieve_info.json").write_text(
-        json.dumps({"bbox": [float(lon[0]), float(lat[0]), float(lon[1]), float(lat[1])],
-                    "size": [W, H]})
+    write(
+        "relieve_info.json",
+        {
+            "bbox": [float(lon[0]), float(lat[0]), float(lon[1]), float(lat[1])],
+            "size": [W, H],
+        },
     )
     print(f"  {'relieve.jpg':24s} {path.stat().st_size / 1e3:7.0f} kB")
 

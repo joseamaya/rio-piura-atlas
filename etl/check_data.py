@@ -11,14 +11,22 @@ Uso:
 from __future__ import annotations
 
 import json
+import math
+import struct
 import sys
 from pathlib import Path
 
 import yaml
+from pyproj import Geod, Transformer
+from shapely.geometry import LineString, Point, Polygon, shape
+from shapely.ops import transform, unary_union
+from shapely.validation import explain_validity, make_valid
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "data" / "sources.yml"
+RAW = ROOT / "data" / "raw"
 WEB_DATA = ROOT / "web" / "public" / "data"
+PROCESSED = ROOT / "data" / "processed"
 MODEL = ROOT / "web" / "public" / "models" / "piura.glb"
 DRACO = ROOT / "web" / "public" / "draco"
 DRACO_FILES = ("draco_wasm_wrapper.js", "draco_decoder.wasm")
@@ -26,6 +34,20 @@ DRACO_FILES = ("draco_wasm_wrapper.js", "draco_decoder.wasm")
 ESTADOS = {"disponible", "por_solicitar", "por_verificar"}
 GRUPOS = {"Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"}
 CAMPOS = ["id", "titulo", "institucion", "url", "fecha", "escala", "licencia", "estado", "metodo", "grupo"]
+
+# Áreas y nombres de control. La cuenca se mide con Geod (WGS84); ANA publica
+# Shape_Area en EPSG:32718, que no es la zona del polígono.
+BASIN_AREA_KM2 = 10_938.4
+BASIN_AREA_TOLERANCE = 0.005  # 0,5 %
+GAP_WARN_KM2 = 5.5            # 0,05 % de la cuenca
+GAP_ERROR_KM2 = 1.0           # un hueco individual mayor que esto es error
+RIVER_TOLERANCE_DEG = 0.001   # ~100 m; el redondeo a 5 decimales deja <2 m
+PROFILE_STEP_TOLERANCE = 0.90
+POECHOS = (-80.5036, -4.6686)
+CURUMUY = (-80.6302, -5.0283)
+
+GEOD = Geod(ellps="WGS84")
+TO_UTM = Transformer.from_crs("EPSG:4326", "EPSG:32717", always_xy=True)
 
 errores: list[str] = []
 avisos: list[str] = []
@@ -47,6 +69,27 @@ def cargar_json(path: Path):
     except json.JSONDecodeError as exc:
         error(f"JSON inválido en {path.relative_to(ROOT)}: {exc}")
     return None
+
+
+def geom_of(feature: dict):
+    return shape(feature["geometry"])
+
+
+def geodesic_km2(geom) -> float:
+    return abs(GEOD.geometry_area_perimeter(make_valid(geom))[0]) / 1e6
+
+
+def utm_km2(geom) -> float:
+    return transform(TO_UTM.transform, make_valid(geom)).area / 1e6
+
+
+def haversine_km(a: tuple[float, float], b: tuple[float, float]) -> float:
+    lon1, lat1 = map(math.radians, a)
+    lon2, lat2 = map(math.radians, b)
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 6371.0088 * 2 * math.asin(math.sqrt(h))
 
 
 def check_sources():
@@ -80,8 +123,12 @@ def check_sources():
             error(f"{fid}: grupo inválido '{fuente.get('grupo')}'")
         if not fuente.get("licencia"):
             error(f"{fid}: licencia vacía")
+        if not fuente.get("metodo"):
+            error(f"{fid}: método vacío")
         if fuente.get("fecha") is not None and not isinstance(fuente["fecha"], str):
             aviso(f"{fid}: fecha no es texto; YAML puede interpretarla como fecha")
+        if fuente.get("url") is not None and not isinstance(fuente["url"], str):
+            error(f"{fid}: URL no es texto")
 
     print(f"fuentes: {len(ids)}")
     return ids
@@ -100,6 +147,19 @@ def check_licencias(ids: dict[str, dict]):
             continue
         error(f"{fid}: falta en LICENSES/DATOS.md")
     print(f"licencias: {len(ids)} fuentes revisadas")
+
+
+def check_page_sources(ids: dict[str, dict]):
+    """Comprueba que los enlaces /fuentes#id de las páginas existan."""
+    import re
+
+    for path in sorted((ROOT / "web" / "src" / "pages").glob("*.astro")):
+        text = path.read_text(encoding="utf-8")
+        for match in re.finditer(r"/fuentes#([a-z0-9-]+)", text):
+            fid = match.group(1)
+            if fid not in ids:
+                error(f"{path.name}: enlace a fuente desconocida '{fid}'")
+    print("  páginas: enlaces a fuentes revisados")
 
 
 def check_citation():
@@ -122,33 +182,48 @@ def check_citation():
 def check_geometry(path: Path, geom: dict):
     gtype = geom.get("type")
     if gtype == "Point":
-        if len(geom.get("coordinates") or []) != 2:
-            error(f"{path.name}: punto sin dos coordenadas")
+        coords = geom.get("coordinates") or []
+        if len(coords) != 2 or not all(isinstance(v, (int, float)) for v in coords):
+            error(f"{path.name}: punto sin dos coordenadas numéricas")
         return
     if gtype == "LineString":
-        if len(geom.get("coordinates") or []) < 2:
+        coords = geom.get("coordinates") or []
+        if len(coords) < 2:
             error(f"{path.name}: línea con menos de 2 puntos")
+            return
+        line = LineString(coords)
+        if not line.is_simple:
+            error(f"{path.name}: línea autointersectada")
+        if line.length == 0:
+            error(f"{path.name}: línea de longitud cero")
         return
-    if gtype == "Polygon":
-        polygons = [geom.get("coordinates") or []]
-    elif gtype == "MultiPolygon":
-        polygons = geom.get("coordinates") or []
-    else:
-        error(f"{path.name}: geometría no soportada '{gtype}'")
+    if gtype in {"Polygon", "MultiPolygon"}:
+        polygons = [geom.get("coordinates") or []] if gtype == "Polygon" else (geom.get("coordinates") or [])
+        if not polygons:
+            error(f"{path.name}: geometría sin polígonos")
+            return
+        for polygon in polygons:
+            if not polygon:
+                error(f"{path.name}: polígono vacío")
+                continue
+            ring = polygon[0]
+            if len(ring) < 4 or ring[0] != ring[-1]:
+                error(f"{path.name}: anillo no cerrado o con menos de 4 puntos")
+            for hole in polygon[1:]:
+                if len(hole) < 4 or hole[0] != hole[-1]:
+                    error(f"{path.name}: hueco no cerrado o con menos de 4 puntos")
+        geom_obj = shape(geom)
+        if not geom_obj.is_valid:
+            error(f"{path.name}: geometría inválida: {explain_validity(geom_obj)}")
+        if geom_obj.is_empty:
+            error(f"{path.name}: geometría vacía")
         return
-    if not polygons:
-        error(f"{path.name}: geometría sin polígonos")
+    if gtype in {"MultiLineString", "GeometryCollection"}:
+        for child in geom.get("geometries") or geom.get("coordinates") or []:
+            if isinstance(child, dict):
+                check_geometry(path, child)
         return
-    for polygon in polygons:
-        if not polygon:
-            error(f"{path.name}: polígono vacío")
-            continue
-        ring = polygon[0]
-        if len(ring) < 4 or ring[0] != ring[-1]:
-            error(f"{path.name}: anillo no cerrado o con menos de 4 puntos")
-        for hole in polygon[1:]:
-            if len(hole) < 4 or hole[0] != hole[-1]:
-                error(f"{path.name}: hueco no cerrado o con menos de 4 puntos")
+    error(f"{path.name}: geometría no soportada '{gtype}'")
 
 
 def check_layer_fuentes(ids: dict[str, dict]):
@@ -170,6 +245,136 @@ def check_layer_fuentes(ids: dict[str, dict]):
         print(f"  {path.name}: {len(data.get('features', []))} elementos")
 
 
+def check_raw_limits():
+    data = cargar_json(RAW / "limits.json")
+    if not data:
+        return None
+    if not data.get("metodo"):
+        error("limits.json: falta el método de construcción")
+    if data.get("polygons"):
+        parts = [Polygon(p["ring"], p.get("holes") or []) for p in data["polygons"]]
+        basin = make_valid(parts[0] if len(parts) == 1 else unary_union(parts))
+    else:
+        basin = make_valid(
+            shape({"type": "Polygon", "coordinates": [data["ring"]] + (data.get("holes") or [])})
+        )
+    if not basin.is_valid:
+        error(f"limits.json: cuenca inválida: {explain_validity(basin)}")
+    subs = data.get("subbasins") or []
+    if len(subs) != 9:
+        error(f"limits.json: se esperaban 9 subcuencas; hay {len(subs)}")
+    geoms = []
+    for sub in subs:
+        polygons = sub.get("polygons") or [{"ring": sub["ring"], "holes": sub.get("holes") or []}]
+        parts = [Polygon(p["ring"], p.get("holes") or []) for p in polygons]
+        geom = parts[0] if len(parts) == 1 else unary_union(parts)
+        if not geom.is_valid:
+            error(f"limits.json: subcuenca {sub['name']} inválida: {explain_validity(geom)}")
+        if not sub.get("area_km2"):
+            error(f"limits.json: subcuenca {sub['name']} sin área")
+        geoms.append(make_valid(geom))
+    union = unary_union(geoms)
+    gap = transform(TO_UTM.transform, make_valid(basin).difference(union)).area / 1e6
+    outside = transform(TO_UTM.transform, union.difference(make_valid(basin))).area / 1e6
+    if gap > GAP_WARN_KM2:
+        error(f"limits.json: hueco de {gap:.2f} km² entre cuenca y subcuencas")
+    elif gap > 0.01:
+        aviso(f"limits.json: slivers de simplificación de {gap:.2f} km² entre cuenca y subcuencas")
+    if outside > 0.01:
+        aviso(f"limits.json: subcuencas sobresalen {outside:.2f} km² de la cuenca")
+    print(f"  limits: cuenca {data.get('area_km2')} km² · subcuencas {len(subs)}")
+    return data
+
+
+def check_topology():
+    cuenca_data = cargar_json(WEB_DATA / "cuenca.geojson")
+    subs_data = cargar_json(WEB_DATA / "subcuencas.geojson")
+    if not cuenca_data or not subs_data:
+        return
+    basin = geom_of(cuenca_data["features"][0])
+    if not basin.is_valid:
+        error(f"cuenca.geojson: inválida: {explain_validity(basin)}")
+    declared = (cuenca_data["features"][0].get("properties") or {}).get("area_km2")
+    measured = geodesic_km2(basin)
+    if not isinstance(declared, (int, float)) or abs(measured - float(declared)) / measured > BASIN_AREA_TOLERANCE:
+        error(f"cuenca.geojson: área declarada {declared} vs medida {measured:.2f} km²")
+
+    subs = []
+    total = 0.0
+    for feature in subs_data.get("features", []):
+        geom = geom_of(feature)
+        props = feature.get("properties") or {}
+        name = props.get("nombre", "?")
+        if not geom.is_valid:
+            error(f"subcuencas.geojson: {name} inválida: {explain_validity(geom)}")
+        area = geodesic_km2(geom)
+        total += area
+        declared_sub = props.get("area_km2")
+        if not isinstance(declared_sub, (int, float)) or abs(area - float(declared_sub)) / area > BASIN_AREA_TOLERANCE:
+            error(f"subcuencas.geojson: {name} declara {declared_sub} km²; mide {area:.2f} km²")
+        subs.append(make_valid(geom))
+
+    if abs(total - measured) / measured > BASIN_AREA_TOLERANCE:
+        error(f"subcuencas: suma {total:.2f} km² vs cuenca {measured:.2f} km²")
+    union = unary_union(subs)
+    gap = transform(TO_UTM.transform, basin.difference(union)).area / 1e6
+    outside = transform(TO_UTM.transform, union.difference(basin)).area / 1e6
+    if gap > GAP_WARN_KM2:
+        error(f"subcuencas: hueco de {gap:.2f} km² dentro de la cuenca")
+    elif gap > 0.01:
+        aviso(f"subcuencas: slivers de simplificación de {gap:.2f} km²")
+    if outside > 0.01:
+        aviso(f"subcuencas: superficie fuera de la cuenca {outside:.2f} km²")
+    print(f"  topología: cuenca {measured:.1f} km² · subcuencas {total:.1f} km² · hueco {gap:.2f} km²")
+
+
+def check_rivers():
+    cuenca = cargar_json(WEB_DATA / "cuenca.geojson")
+    riv = cargar_json(WEB_DATA / "red_hidrica.geojson")
+    if not cuenca or not riv:
+        return
+    basin = make_valid(geom_of(cuenca["features"][0]))
+    total = 0.0
+    outside = 0.0
+    bad = 0
+    for feature in riv.get("features", []):
+        geom = geom_of(feature)
+        if geom.geom_type != "LineString":
+            error("red_hidrica.geojson: se esperaban LineString")
+            continue
+        if not geom.is_valid or not geom.is_simple:
+            error("red_hidrica.geojson: línea inválida o autointersectada")
+        total += geom.length
+        out = geom.difference(basin).length
+        outside += out
+        if out > RIVER_TOLERANCE_DEG:
+            bad += 1
+    if bad:
+        error(f"red_hidrica.geojson: {bad} líneas fuera de la cuenca")
+    share = outside / total if total else 0
+    if share > 0.0001:
+        error(f"red_hidrica.geojson: {share * 100:.3f} % de la red queda fuera de la cuenca")
+    print(f"  red hídrica: {len(riv.get('features', []))} tramos · fuera {outside * 111:.0f} m")
+
+
+def check_places():
+    cuenca = cargar_json(WEB_DATA / "cuenca.geojson")
+    lugares = cargar_json(WEB_DATA / "lugares.geojson")
+    if not cuenca or not lugares:
+        return
+    basin = make_valid(geom_of(cuenca["features"][0]))
+    for feature in lugares.get("features", []):
+        props = feature.get("properties") or {}
+        point = geom_of(feature)
+        if point.geom_type != "Point":
+            error("lugares.geojson: se esperaban puntos")
+            continue
+        inside = basin.covers(point)
+        if not inside and not props.get("fuera_cuenca"):
+            error(f"lugares.geojson: {props.get('nombre')} queda fuera de la cuenca sin marca")
+    print(f"  lugares: {len(lugares.get('features', []))} puntos")
+
+
 def check_flood():
     path = WEB_DATA / "flood_2017.geojson"
     data = cargar_json(path)
@@ -188,10 +393,16 @@ def check_flood():
         if props.get("fuente") != "copernicus-ems-emsr199":
             error(f"flood_2017.geojson: fuente inesperada '{props.get('fuente')}'")
         if props.get("esquematico") is not False:
-            error(f"flood_2017.geojson: la mancha no debe marcarse como esquemática")
+            error("flood_2017.geojson: la mancha no debe marcarse como esquemática")
         area = props.get("area_km2")
+        geom = geom_of(feature)
+        if not geom.is_valid:
+            error(f"flood_2017.geojson: geometría inválida en {props.get('aoi')}")
+        measured = utm_km2(geom)
         if not isinstance(area, (int, float)) or area <= 0:
             error(f"flood_2017.geojson: área inválida en {props.get('aoi', '?')}")
+        elif abs(measured - float(area)) / float(area) > 0.01:
+            error(f"flood_2017.geojson: área declarada {area} vs medida {measured:.1f} km²")
         else:
             total += float(area)
     if not 500 <= total <= 600:
@@ -212,6 +423,8 @@ def check_obras():
         error(f"obras.geojson: se esperaban 2 elementos; hay {len(features)}")
         return
     tipos = set()
+    poechos = None
+    canal = None
     for feature in features:
         props = feature.get("properties") or {}
         if props.get("fuente") != "obras-esquematicas":
@@ -221,19 +434,39 @@ def check_obras():
         if not props.get("nota"):
             error("obras.geojson: falta la nota de límite")
         tipos.add(props.get("tipo"))
+        geom = geom_of(feature)
+        if props.get("tipo") == "represa":
+            if geom.geom_type != "Point":
+                error("obras.geojson: Poechos debe ser un punto de referencia")
+            else:
+                poechos = (geom.x, geom.y)
+        if props.get("tipo") == "canal":
+            if geom.geom_type != "LineString":
+                error("obras.geojson: el canal debe ser una línea esquemática")
+            else:
+                canal = geom
     if tipos != {"represa", "canal"}:
         error(f"obras.geojson: tipos inesperados {sorted(tipos)}")
-    print(f"  obras: {len(features)} elementos esquemáticos")
+    if poechos and haversine_km(poechos, POECHOS) > 2:
+        error("obras.geojson: Poechos está a más de 2 km del dique documentado")
+    if canal:
+        ends = [canal.coords[0], canal.coords[-1]]
+        if haversine_km(tuple(ends[0]), POECHOS) > 2 or haversine_km(tuple(ends[-1]), CURUMUY) > 3:
+            error("obras.geojson: el canal esquemático no empieza en Poechos y termina en Curumuy")
+    print(f"  obras: {len(features)} referencias esquemáticas")
 
 
 def check_cortes():
     cortes = cargar_json(WEB_DATA / "cortes.geojson")
     perfiles = cargar_json(WEB_DATA / "cortes_perfiles.json")
+    cuenca = cargar_json(WEB_DATA / "cuenca.geojson")
+    network = cargar_json(RAW / "network.json")
     if not cortes or not perfiles:
         return
+    basin = make_valid(geom_of(cuenca["features"][0])) if cuenca else None
     ids = {f.get("properties", {}).get("id") for f in cortes.get("features", [])}
     perfiles_data = perfiles.get("perfiles") or {}
-    for campo in ["resolucion_fuente_m", "resolucion_malla_m"]:
+    for campo in ["resolucion_fuente_m", "resolucion_efectiva_m", "resolucion_malla_m"]:
         if not perfiles.get(campo):
             error(f"cortes_perfiles.json: falta '{campo}'")
     faltan = ids - set(perfiles_data)
@@ -242,6 +475,25 @@ def check_cortes():
         error(f"cortes sin perfil: {sorted(faltan)}")
     if sobran:
         error(f"perfiles sin corte: {sorted(sobran)}")
+
+    rivers = network.get("rivers", []) if network else []
+    effective = float(perfiles.get("resolucion_efectiva_m") or 0)
+    for feature in cortes.get("features", []):
+        props = feature.get("properties") or {}
+        geom = geom_of(feature)
+        if basin is not None and not basin.covers(geom):
+            error(f"corte {props.get('id')}: no está dentro de la cuenca")
+        if not any(
+            LineString(r["coords"]).intersects(geom)
+            for r in rivers
+            if r.get("upland", 0) >= 500 and len(r.get("coords", [])) >= 2
+        ):
+            error(f"corte {props.get('id')}: no cruza la red hídrica")
+        coords = list(geom.coords)
+        measured = haversine_km(coords[0], coords[-1])
+        if abs(float(props.get("longitud_km", 0)) - measured) > 1:
+            error(f"corte {props.get('id')}: longitud declarada {props.get('longitud_km')} vs {measured:.1f} km")
+
     for fid, perfil in perfiles_data.items():
         dist = perfil.get("dist_km") or []
         elev = perfil.get("elev_m") or []
@@ -258,7 +510,14 @@ def check_cortes():
             error(f"perfil {fid}: falta paso_perfil_m")
         elif abs(paso - float(declarado)) > max(1.0, paso * 0.02):
             error(f"perfil {fid}: paso declarado {declarado} m; real {paso:.1f} m")
-    print(f"  cortes: {len(ids)} · perfiles: {len(perfiles_data)}")
+        if effective and paso < effective * PROFILE_STEP_TOLERANCE:
+            error(f"perfil {fid}: paso {paso:.1f} m < resolución efectiva {effective:.0f} m")
+        declared_len = perfil.get("longitud_km")
+        if declared_len is not None and abs(float(declared_len) - dist[-1]) > 0.05:
+            error(f"perfil {fid}: longitud declarada {declared_len} vs perfil {dist[-1]}")
+        if perfil.get("elev_min_m") is None or perfil.get("elev_max_m") is None:
+            error(f"perfil {fid}: faltan cotas")
+    print(f"  cortes: {len(ids)} · perfiles: {len(perfiles_data)} · resolución efectiva {effective:.0f} m")
 
 
 def check_grid():
@@ -271,13 +530,25 @@ def check_grid():
     real = bin_path.stat().st_size
     if esperado != real:
         error(f"dem_grid.bin: {real} bytes; se esperaban {esperado} para {meta.get('width')}×{meta.get('height')} Int16")
-    if len(meta.get("bbox") or []) != 4:
+    bbox = meta.get("bbox") or []
+    if len(bbox) != 4:
         error("dem_grid.meta.json: bbox inválido")
-    print(f"  dem_grid: {real / 1e3:.0f} kB")
+    else:
+        west, south, east, north = bbox
+        lon_res = 111_320 * abs(east - west) * math.cos(math.radians((south + north) / 2)) / max(meta.get("width", 1), 1)
+        lat_res = 110_540 * abs(north - south) / max(meta.get("height", 1), 1)
+        declared = meta.get("resolution_m_aprox")
+        if not declared or abs(float(declared) - max(lon_res, lat_res)) / max(lon_res, lat_res) > 0.10:
+            error(f"dem_grid.meta.json: resolución declarada {declared} vs calculada {max(lon_res, lat_res):.0f} m")
+        if meta.get("row_order") != "north-to-south":
+            error("dem_grid.meta.json: row_order debe ser north-to-south")
+        if meta.get("dtype") != "int16" or meta.get("byte_order") != "little":
+            error("dem_grid.meta.json: dtype/byte_order inesperados")
+    print(f"  dem_grid: {real / 1e3:.0f} kB · {meta.get('width')}×{meta.get('height')}")
 
 
 def check_glb(path: Path) -> None:
-    """Comprueba cabecera, versión y extensión Draco del GLB publicado."""
+    """Valida cabecera, chunks, bufferViews, accessors, meshes y extensiones."""
     data = path.read_bytes()
     if len(data) < 20 or data[:4] != b"glTF":
         error(f"{path.relative_to(ROOT)} no es un GLB válido")
@@ -286,18 +557,71 @@ def check_glb(path: Path) -> None:
     if version != 2:
         error(f"{path.relative_to(ROOT)}: versión glTF {version}; se esperaba 2")
         return
-    chunk_len = int.from_bytes(data[12:16], "little")
-    if data[16:20] != b"JSON" or 20 + chunk_len > len(data):
-        error(f"{path.relative_to(ROOT)}: bloque JSON inválido")
+    total = int.from_bytes(data[8:12], "little")
+    if total != len(data):
+        error(f"{path.relative_to(ROOT)}: longitud de cabecera {total} != {len(data)}")
+    off = 12
+    chunks = []
+    while off + 8 <= len(data):
+        length, kind = struct.unpack_from("<II", data, off)
+        off += 8
+        if off + length > len(data):
+            error(f"{path.relative_to(ROOT)}: chunk fuera de límites")
+            return
+        chunks.append((kind, data[off:off + length]))
+        off += length
+    if off != len(data):
+        error(f"{path.relative_to(ROOT)}: bytes sobrantes tras los chunks")
+    json_chunk = next((c[1] for c in chunks if c[0] == 0x4E4F534A), None)
+    bin_chunk = next((c[1] for c in chunks if c[0] == 0x004E4942), None)
+    if json_chunk is None:
+        error(f"{path.relative_to(ROOT)}: falta el chunk JSON")
         return
     try:
-        gltf = json.loads(data[20:20 + chunk_len].decode("utf-8"))
+        gltf = json.loads(json_chunk.decode("utf-8").rstrip(" \x00"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         error(f"{path.relative_to(ROOT)}: JSON inválido ({exc})")
         return
+
+    buffers = gltf.get("buffers") or []
+    if buffers and bin_chunk is not None and int(buffers[0].get("byteLength", 0)) > len(bin_chunk):
+        error(f"{path.name}: buffer mayor que el chunk BIN")
+    views = gltf.get("bufferViews") or []
+    for i, view in enumerate(views):
+        if view.get("buffer", 0) != 0:
+            error(f"{path.name}: bufferView {i} apunta a otro buffer")
+        if int(view.get("byteOffset", 0)) + int(view.get("byteLength", 0)) > len(bin_chunk or b""):
+            error(f"{path.name}: bufferView {i} fuera del BIN")
+    components = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}
+    types = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT2": 4, "MAT3": 9, "MAT4": 16}
+    for i, accessor in enumerate(gltf.get("accessors") or []):
+        view_index = accessor.get("bufferView")
+        if view_index is not None and not 0 <= int(view_index) < len(views):
+            error(f"{path.name}: accessor {i} con bufferView inexistente")
+            continue
+        size = int(accessor.get("count", 0)) * components.get(accessor.get("componentType"), 0) * types.get(accessor.get("type"), 0)
+        if view_index is not None and size:
+            view = views[int(view_index)]
+            if int(accessor.get("byteOffset", 0)) + size > int(view.get("byteLength", 0)):
+                error(f"{path.name}: accessor {i} fuera del bufferView")
+    for i, mesh in enumerate(gltf.get("meshes") or []):
+        for primitive in mesh.get("primitives") or []:
+            for accessor in (primitive.get("attributes") or {}).values():
+                if not 0 <= int(accessor) < len(gltf.get("accessors") or []):
+                    error(f"{path.name}: mesh {i} con accessor inexistente")
+            draco = (primitive.get("extensions") or {}).get("KHR_draco_mesh_compression")
+            if draco and not 0 <= int(draco.get("bufferView", -1)) < len(views):
+                error(f"{path.name}: Draco con bufferView inexistente")
     extensiones = set(gltf.get("extensionsUsed") or []) | set(gltf.get("extensionsRequired") or [])
     if "KHR_draco_mesh_compression" not in extensiones:
         aviso(f"{path.name} no declara compresión Draco; el visor seguirá funcionando")
+    names = [str(node.get("name", "")) for node in gltf.get("nodes") or []]
+    if any("Naciente" in name for name in names):
+        aviso(
+            "piura.glb todavía contiene el rótulo «Naciente ~2 700 m»; "
+            "el visor lo oculta, pero debe retirarse en la próxima exportación"
+        )
+    print(f"  GLB: {len(gltf.get('nodes', []))} nodos · {len(views)} bufferViews · {len(gltf.get('meshes', []))} mallas")
 
 
 def check_model():
@@ -314,6 +638,20 @@ def check_model():
     print(f"  modelo: {mb:.1f} MB")
 
 
+def check_sync():
+    # Estas imágenes se generan solo para la web; relieve_info.json es metadata
+    # interna del ETL y no se publica.
+    web_only = {"flood_2017.jpg", "relieve.jpg", "relieve_info.json"}
+    for path in sorted(WEB_DATA.glob("*")):
+        if path.name in web_only:
+            continue
+        twin = PROCESSED / path.name
+        if not twin.exists():
+            aviso(f"{path.name}: no existe la copia en data/processed")
+        elif twin.read_bytes() != path.read_bytes():
+            error(f"{path.name}: data/processed y web/public/data difieren")
+
+
 def check_presupuesto():
     pesos = [p.stat().st_size for p in WEB_DATA.glob("*") if p.name not in {"dem_grid.bin"}]
     total = sum(pesos)
@@ -326,13 +664,19 @@ def main() -> int:
     print("validando datos del atlas")
     ids = check_sources()
     check_licencias(ids)
+    check_page_sources(ids)
     check_citation()
+    check_raw_limits()
     check_layer_fuentes(ids)
+    check_topology()
+    check_rivers()
+    check_places()
     check_flood()
     check_obras()
     check_cortes()
     check_grid()
     check_model()
+    check_sync()
     check_presupuesto()
 
     if avisos:

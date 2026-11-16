@@ -79,16 +79,30 @@ out tags geom;
     raise SystemExit(f"Overpass no respondió: {last_error}")
 
 
-def ring_area_km2(ring) -> float:
+def ring_area_km2(ring, holes=()) -> float:
     if len(ring) < 4:
         return 0.0
-    lat0 = sum(p[1] for p in ring) / len(ring)
-    kx = 111.32 * math.cos(math.radians(lat0))
-    ky = 110.54
-    area = 0.0
-    for (x1, y1), (x2, y2) in zip(ring, ring[1:]):
-        area += (x1 * kx) * (y2 * ky) - (x2 * kx) * (y1 * ky)
-    return abs(area) / 2.0
+
+    def signed_area(points) -> float:
+        lat0 = sum(p[1] for p in points) / len(points)
+        kx = 111.32 * math.cos(math.radians(lat0))
+        ky = 110.54
+        area = 0.0
+        for (x1, y1), (x2, y2) in zip(points, points[1:]):
+            area += (x1 * kx) * (y2 * ky) - (x2 * kx) * (y1 * ky)
+        return abs(area) / 2.0
+
+    return max(0.0, signed_area(ring) - sum(signed_area(hole) for hole in holes if len(hole) >= 4))
+
+
+def point_in_ring(x, y, ring) -> bool:
+    inside = False
+    for i in range(len(ring)):
+        x1, y1 = ring[i - 1]
+        x2, y2 = ring[i]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1 + 1e-12) + x1:
+            inside = not inside
+    return inside
 
 
 def way_ring(element):
@@ -129,17 +143,30 @@ def assemble_rings(lines):
 
 
 def relation_rings(element):
+    """Devuelve anillos exteriores con sus huecos interiores.
+
+    Antes se descartaban los miembros `inner` de las relaciones OSM. Ahora se
+    ensamblan y se asignan al exterior que los contiene.
+    """
     members = element.get("members") or []
-    lines = []
+    outer_lines: list[list[list[float]]] = []
+    inner_lines: list[list[list[float]]] = []
     for member in members:
-        if member.get("role") not in {"outer", ""}:
+        role = member.get("role")
+        if role not in {"outer", "inner", ""}:
             continue
         geometry = member.get("geometry") or []
         line = [[round(p["lon"], 6), round(p["lat"], 6)] for p in geometry if "lon" in p and "lat" in p]
         if len(line) < 2:
             return []
-        lines.append(line)
-    return assemble_rings(lines)
+        (inner_lines if role == "inner" else outer_lines).append(line)
+    outers = assemble_rings(outer_lines)
+    inners = assemble_rings(inner_lines)
+    result = []
+    for outer in outers:
+        holes = [hole for hole in inners if hole and point_in_ring(hole[0][0], hole[0][1], outer)]
+        result.append({"ring": outer, "holes": holes})
+    return result
 
 
 def is_intermittent(tags) -> bool:
@@ -157,9 +184,11 @@ def parse_bodies(data, min_area_km2, max_area_km2):
         if rings is None:
             rings = relation_rings(element)
         else:
-            rings = [rings]
-        for ring in rings:
-            area = round(ring_area_km2(ring), 1)
+            rings = [{"ring": rings, "holes": []}]
+        for item in rings:
+            ring = item["ring"]
+            holes = item.get("holes") or []
+            area = round(ring_area_km2(ring, holes), 1)
             if area < min_area_km2 or area > max_area_km2:
                 continue
             bodies.append(
@@ -168,6 +197,7 @@ def parse_bodies(data, min_area_km2, max_area_km2):
                     "intermittent": is_intermittent(tags),
                     "area_km2": area,
                     "ring": ring,
+                    "holes": holes,
                 }
             )
     bodies.sort(key=lambda b: (-b["area_km2"], b["name"]))
