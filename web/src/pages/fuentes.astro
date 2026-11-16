@@ -1,0 +1,78 @@
+---
+import Base from "../layouts/Base.astro";
+import fs from "node:fs";
+import yaml from "js-yaml";
+
+const file = new URL("../../../data/sources.yml", import.meta.url);
+const data = yaml.load(fs.readFileSync(file, "utf8")) as {
+  fuentes: Array<{
+    id: string;
+    titulo: string;
+    institucion: string;
+    url: string | null;
+    escala: string | null;
+    licencia: string;
+    estado: string;
+    notas?: string;
+  }>;
+};
+
+const estado = (e: string) =>
+  e === "disponible" ? ["ok", "disponible"] : e === "por_solicitar" ? ["pending", "por solicitar"] : ["warn", "por verificar"];
+
+const grupos = [
+  { titulo: "Límites, relieve y red", ids: ["ana-subcuencas", "copernicus-dem-30", "hydrorivers"] },
+  { titulo: "Agua", ids: ["osm-agua", "senamhi-aforos", "senamhi-pisco", "pechp-poechos", "ana-infraestructura"] },
+  { titulo: "Inundaciones y riesgo", ids: ["cenepred-riesgo", "enfen-informes", "sentinel-1-2017"] },
+  { titulo: "Estudios", ids: ["ingemmet-geodinamica"] },
+];
+
+const byId = new Map(data.fuentes.map((f) => [f.id, f]));
+---
+
+<Base title="Fuentes" current="fuentes">
+  <main>
+    <p class="eyebrow">Trazabilidad</p>
+    <h1>De dónde sale cada dato</h1>
+    <p class="lead">
+      Toda capa del atlas apunta a una fuente con institución, escala, fecha y licencia.
+      Si un dato no está confirmado, figura como pendiente y no se publica.
+    </p>
+
+    {grupos.map((g) => (
+      <section>
+        <h2>{g.titulo}</h2>
+        <table>
+          <thead>
+            <tr><th>Fuente</th><th>Institución</th><th>Escala</th><th>Licencia</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            {g.ids.map((id) => {
+              const f = byId.get(id);
+              if (!f) return null;
+              const [cls, label] = estado(f.estado);
+              return (
+                <tr>
+                  <td>
+                    {f.url ? <a href={f.url} target="_blank" rel="noopener">{f.titulo}</a> : f.titulo}
+                    {f.notas && <div class="small muted">{f.notas}</div>}
+                  </td>
+                  <td>{f.institucion}</td>
+                  <td>{f.escala ?? "—"}</td>
+                  <td>{f.licencia}</td>
+                  <td><span class={`badge ${cls}`}>{label}</span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+    ))}
+
+    <div class="note">
+      <strong>Las fuentes pendientes no se dibujan.</strong> SENAMHI, PECHP y CENEPRED
+      aparecen aquí porque son necesarias, no porque ya tengamos el dato. La solicitud
+      formal está descrita en <code>docs/07-solicitudes.md</code>.
+    </div>
+  </main>
+</Base>

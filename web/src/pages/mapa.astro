@@ -1,0 +1,180 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Mapa de la cuenca" current="mapa">
+  <main class="wide">
+    <div class="map-shell">
+      <div id="map" role="application" aria-label="Mapa interactivo de la cuenca del río Piura"></div>
+
+      <aside class="map-panel" aria-label="Capas y fuentes">
+        <h2>Capas</h2>
+        <label><input type="checkbox" data-layer="cuenca" checked />
+          <span class="swatch" style="background:#6b2e26"></span> Cuenca (ANA)</label>
+        <label><input type="checkbox" data-layer="subcuencas" checked />
+          <span class="swatch" style="background:#8a7f6a"></span> Subcuencas</label>
+        <label><input type="checkbox" data-layer="rios" checked />
+          <span class="swatch" style="background:#134f7a"></span> Red hídrica</label>
+        <label><input type="checkbox" data-layer="agua" checked />
+          <span class="swatch" style="background:#2f6f8a"></span> Lagunas y salinas</label>
+        <label><input type="checkbox" data-layer="lugares" checked />
+          <span class="swatch" style="background:#b4552f"></span> Ciudades</label>
+        <hr />
+        <p class="src">Base: Copernicus DEM 30 m. Límites: ANA 1:100 000. Red: HydroSHEDS.
+           Agua y lugares: OpenStreetMap.</p>
+      </aside>
+
+      <div id="ficha" aria-live="polite">
+        <h3>Haz clic en el mapa</h3>
+        <p class="muted">Cada elemento muestra su dato y su fuente.</p>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+  import maplibregl from "maplibre-gl";
+  import "maplibre-gl/dist/maplibre-gl.css";
+
+  const BBOX: [number, number, number, number] = [-81.45, -6.25, -79.30, -4.55];
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style: {
+      version: 8,
+      sources: {},
+      layers: [{ id: "bg", type: "background", paint: { "background-color": "#cdd6d6" } }],
+    },
+    bounds: BBOX,
+    fitBoundsOptions: { padding: 30 },
+    attributionControl: false,
+    maxZoom: 14,
+    minZoom: 6,
+  });
+
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+
+  const get = (url: string) => fetch(url).then((r) => r.json());
+
+  map.on("load", async () => {
+    const [cuenca, subcuencas, rios, agua, lugares] = await Promise.all([
+      get("/data/cuenca.geojson"),
+      get("/data/subcuencas.geojson"),
+      get("/data/red_hidrica.geojson"),
+      get("/data/agua.geojson"),
+      get("/data/lugares.geojson"),
+    ]);
+
+    map.addSource("cuenca", { type: "geojson", data: cuenca });
+    map.addSource("subcuencas", { type: "geojson", data: subcuencas });
+    map.addSource("rios", { type: "geojson", data: rios });
+    map.addSource("agua", { type: "geojson", data: agua });
+
+    map.addLayer({
+      id: "cuenca-fill",
+      type: "fill",
+      source: "cuenca",
+      paint: { "fill-color": "#e9dfc4", "fill-opacity": 0.05 },
+    });
+    map.addLayer({
+      id: "cuenca-line",
+      type: "line",
+      source: "cuenca",
+      paint: { "line-color": "#6b2e26", "line-width": 2.4, "line-opacity": 0.95 },
+    });
+    map.addLayer({
+      id: "subcuencas-line",
+      type: "line",
+      source: "subcuencas",
+      paint: { "line-color": "#8a7f6a", "line-width": 1, "line-dasharray": [3, 2], "line-opacity": 0.85 },
+    });
+    map.addLayer({
+      id: "agua-fill",
+      type: "fill",
+      source: "agua",
+      paint: { "fill-color": "#2f6f8a", "fill-opacity": 0.9 },
+    });
+    map.addLayer({
+      id: "rios-line",
+      type: "line",
+      source: "rios",
+      paint: {
+        "line-color": "#134f7a",
+        "line-opacity": 0.9,
+        "line-width": [
+          "interpolate", ["linear"], ["get", "aporte_km2"],
+          150, 0.8, 800, 1.6, 3000, 2.8, 9000, 4.5,
+        ],
+      },
+    });
+
+    // El relieve va debajo de todo: se inserta antes de la primera capa vectorial.
+    map.addSource("relieve", {
+      type: "image",
+      url: "/data/relieve.jpg",
+      coordinates: [
+        [-81.45, -4.55],
+        [-79.30, -4.55],
+        [-79.30, -6.25],
+        [-81.45, -6.25],
+      ],
+    });
+    map.addLayer({ id: "relieve", type: "raster", source: "relieve", paint: { "raster-opacity": 1 } });
+    map.moveLayer("relieve", "cuenca-fill");
+
+    // Ciudades como marcadores HTML: no requieren glifos ni teselas externas.
+    const markers: maplibregl.Marker[] = [];
+    for (const f of lugares.features) {
+      const el = document.createElement("div");
+      el.className = "city";
+      el.innerHTML = `<span class="dot"></span>${f.properties.nombre}`;
+      markers.push(
+        new maplibregl.Marker({ element: el, anchor: "left", offset: [5, 0] })
+          .setLngLat(f.geometry.coordinates)
+          .addTo(map),
+      );
+    }
+
+    const ficha = document.getElementById("ficha");
+    const show = (html: string) => { if (ficha) ficha.innerHTML = html; };
+
+    map.on("click", (e) => {
+      const hits = map.queryRenderedFeatures(e.point, {
+        layers: ["subcuencas-line", "agua-fill", "cuenca-line", "rios-line"],
+      });
+      if (!hits.length) {
+        show('<h3>Sin elemento</h3><p class="muted">Haz clic sobre una capa.</p>');
+        return;
+      }
+      const p = hits[0].properties || {};
+      if (p.nombre && p.area_km2) {
+        show(`<h3>${p.nombre}</h3><p>Área: <strong>${Math.round(p.area_km2).toLocaleString("es-PE")} km²</strong></p>
+              <p class="muted">Fuente: ${p.fuente === "ana-subcuencas" ? "ANA, 1:100 000" : "OpenStreetMap"}</p>`);
+      } else if (p.aporte_km2) {
+        show(`<h3>Tramo de río</h3><p>Área aportante: <strong>${Math.round(p.aporte_km2).toLocaleString("es-PE")} km²</strong></p>
+              <p class="muted">Fuente: HydroRIVERS</p>`);
+      } else if (p.nombre) {
+        show(`<h3>${p.nombre}</h3><p class="muted">Fuente: OpenStreetMap</p>`);
+      } else {
+        show('<h3>Cuenca del río Piura</h3><p>11 022 km²</p><p class="muted">Fuente: ANA, 1:100 000</p>');
+      }
+    });
+
+    document.querySelectorAll<HTMLInputElement>("[data-layer]").forEach((input) => {
+      input.addEventListener("change", () => {
+        const layer = input.dataset.layer!;
+        if (layer === "lugares") {
+          markers.forEach((m) => { m.getElement().style.display = input.checked ? "" : "none"; });
+          return;
+        }
+        const ids =
+          layer === "cuenca" ? ["cuenca-fill", "cuenca-line"]
+          : layer === "subcuencas" ? ["subcuencas-line"]
+          : layer === "rios" ? ["rios-line"]
+          : ["agua-fill"];
+        ids.forEach((id) => map.setLayoutProperty(id, "visibility", input.checked ? "visible" : "none"));
+      });
+    });
+  });
+</script>

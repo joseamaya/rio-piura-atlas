@@ -1,0 +1,65 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Atlas de la cuenca del río Piura" current="inicio">
+  <main>
+    <p class="eyebrow">Atlas documentado · Piura, Perú</p>
+    <h1>El río que no llega al mar</h1>
+    <p class="lead">
+      La cuenca del río Piura drena 11 022 km² de Andes y desierto. En un año normal
+      el agua muere en la Laguna Ramón; solo cuando El Niño aprieta, el río atraviesa
+      el desierto y alcanza la bahía de Sechura. Este atlas reúne lo que se sabe, con
+      la fuente de cada dato a la vista.
+    </p>
+
+    <div class="cards">
+      <a class="card" href="/mapa">
+        <span class="tag">Explorar</span>
+        <h3>Mapa de la cuenca</h3>
+        <p>Relieve real, subcuencas oficiales, red hídrica, obras y cuerpos de agua.</p>
+      </a>
+      <a class="card" href="/maqueta">
+        <span class="tag">3D</span>
+        <h3>Maqueta</h3>
+        <p>La cuenca como bloque recortado, con exageración vertical declarada.</p>
+      </a>
+      <a class="card" href="/escenarios">
+        <span class="tag">Historia</span>
+        <h3>Escenarios</h3>
+        <p>Qué se documentó de 1983, 1998 y 2017. Documentado, no pronosticado.</p>
+      </a>
+      <a class="card" href="/fuentes">
+        <span class="tag">Trazabilidad</span>
+        <h3>Fuentes</h3>
+        <p>Cada capa con su institución, escala, fecha y licencia.</p>
+      </a>
+    </div>
+
+    <h2>Qué es y qué no es</h2>
+    <p>
+      Es un <strong>atlas</strong>: explica el territorio y muestra lo que está
+      documentado. No es un sistema de alerta, no pronostica, no calcula manchas de
+      inundación nuevas y no reemplaza a SENAMHI, ANA, INDECI ni al ENFEN.
+    </p>
+
+    <div class="note">
+      <strong>Regla del proyecto:</strong> lo que no tiene fuente, no se dibuja. Lo que
+      es interpretación, se marca como tal. Si un dato no existe públicamente, se dice.
+    </div>
+
+    <h2>Tres cosas que se ven en el mapa</h2>
+    <p>
+      <strong>1.</strong> La cuenca tiene nueve subcuencas oficiales y una pendiente que
+      se desploma: 8,7 ‰ de media, pero 0,4 ‰ en los últimos 130 km.
+    </p>
+    <p>
+      <strong>2.</strong> El área de descarga (Ramón, Ñapique, La Niña, Las Salinas) queda
+      fuera del polígono oficial de cuenca: es la zona donde el río termina sin mar.
+    </p>
+    <p>
+      <strong>3.</strong> El caudal permanente no es natural: llega por el trasvase desde
+      la cuenca del Chira, desde la represa de Poechos.
+    </p>
+  </main>
+</Base>

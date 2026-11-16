@@ -1,0 +1,68 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Escenarios" current="escenarios">
+  <main>
+    <p class="eyebrow">Historia documentada</p>
+    <h1>Cuándo el río sí llegó al mar</h1>
+    <p class="lead">
+      Estos no son pronósticos. Son tres eventos documentados que cambiaron el cauce y
+      la forma de mirar la cuenca.
+    </p>
+
+    <div class="note">
+      <strong>«Escenario documentado» no es «pronóstico».</strong> Cada capa de esta
+      sección se digitaliza de una fuente (mapa oficial, imagen satelital, informe) y
+      llevará su fecha y su método. Mientras no exista esa capa, el escenario se cuenta
+      con texto y fuente, no con una mancha inventada.
+    </div>
+
+    <h2>1891 · el río cambia de desembocadura</h2>
+    <p>
+      El Piura desembocaba cerca de Sechura hasta 1891. Las crecidas de ese año lo
+      llevaron hacia el desierto y terminó en el entonces lago Ramón. Desde entonces,
+      el cauce solo volvió a su trazado antiguo en episodios extraordinarios.
+    </p>
+    <p class="small muted">Fuente: Wikipedia (Río Piura) y Autoridad de Cuenca Chira-Piura.</p>
+
+    <h2>1983 · el Mega-Niño</h2>
+    <p>
+      Una de las crecidas más grandes registradas. El río recuperó su cauce antiguo y
+      llegó al mar. La descarga anual de ese año se midió en miles de millones de metros
+      cúbicos, muy por encima de la media.
+    </p>
+    <p class="small muted">Fuente: ENFEN; estudios hidrológicos de la cuenca.</p>
+
+    <h2>1998 · El Niño extraordinario</h2>
+    <p>
+      Lluvias intensas y desbordes en el Bajo Piura. El evento dejó obra destruida y
+      marcó la discusión sobre defensas ribereñas que todavía hoy continúa.
+    </p>
+    <p class="small muted">Fuente: ENFEN; Plan de Defensas Ribereñas.</p>
+
+    <h2>2017 · El Niño costero</h2>
+    <p>
+      El evento más documentado y el más útil para un atlas: existen imágenes
+      satelitales, mapas de emergencia y registros de daño. Es el escenario que se
+      reconstruirá primero, con Sentinel-1 y las cartografías oficiales.
+    </p>
+    <p class="small muted">Fuente: ENFEN, CENEPRED, UNOSAT / Copernicus EMS (por verificar).</p>
+
+    <h2>Estado de esta sección</h2>
+    <table>
+      <thead><tr><th>Pieza</th><th>Estado</th><th>Qué falta</th></tr></thead>
+      <tbody>
+        <tr><td>Mancha 2017</td><td><span class="badge warn">por construir</span></td><td>Sentinel-1 de marzo 2017 + contraste con mapas oficiales</td></tr>
+        <tr><td>Mancha 1998 y 1983</td><td><span class="badge pending">sin dato</span></td><td>cartografía oficial o informes con geometría</td></tr>
+        <tr><td>Caudales y niveles</td><td><span class="badge pending">por solicitar</span></td><td>series de SENAMHI</td></tr>
+        <tr><td>Obras y diques</td><td><span class="badge pending">por solicitar</span></td><td>inventario de ANA / PECHP</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top: 28px;">
+      Mientras tanto, el <a href="/mapa">mapa</a> y la <a href="/maqueta">maqueta</a>
+      muestran lo que sí está verificado: la forma de la cuenca, su red y sus límites.
+    </p>
+  </main>
+</Base>

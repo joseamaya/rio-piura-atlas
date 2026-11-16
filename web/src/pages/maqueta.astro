@@ -1,0 +1,104 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Maqueta 3D" current="maqueta">
+  <main class="wide">
+    <div class="map-shell">
+      <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura"></div>
+
+      <aside class="map-panel" aria-label="Información de la maqueta">
+        <h2>Cuenca del río Piura</h2>
+        <p class="src">
+          Bloque recortado al polígono oficial de la ANA. El relieve está exagerado
+          <strong>×7</strong> para que se lea: no es una escala real.
+        </p>
+        <hr />
+        <p class="src"><strong>Arrastra</strong> para girar · <strong>rueda</strong> para acercar · <strong>doble clic</strong> para reiniciar.</p>
+        <hr />
+        <p class="src">
+          Relieve: Copernicus DEM 30 m · Límites: ANA 1:100 000 · Red: HydroSHEDS.
+        </p>
+      </aside>
+    </div>
+    <noscript>
+      <p style="padding: 20px;">La maqueta necesita JavaScript. El <a href="/mapa">mapa</a> funciona igual.</p>
+    </noscript>
+  </main>
+</Base>
+
+<script>
+  import * as THREE from "three";
+  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+  import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+  const container = document.getElementById("scene")!;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color("#cdd6d6");
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 100, 3_000_000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  container.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.maxPolarAngle = Math.PI * 0.49;
+
+  scene.add(new THREE.HemisphereLight(0xe8f0f5, 0x8a7f63, 1.1));
+  const sun = new THREE.DirectionalLight(0xfff4e0, 2.4);
+  sun.position.set(-1, 1.4, 0.8);
+  scene.add(sun);
+
+  let model: THREE.Object3D | null = null;
+  let home = new THREE.Vector3();
+
+  function frame(object: THREE.Object3D) {
+    const box = new THREE.Box3().setFromObject(object);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    home.copy(center);
+
+    const dist = Math.max(size.x, size.z) * 1.15;
+    camera.position.set(center.x - dist * 0.55, center.y + dist * 0.62, center.z + dist * 0.85);
+    camera.lookAt(center);
+    camera.near = dist / 500;
+    camera.far = dist * 40;
+    camera.updateProjectionMatrix();
+
+    controls.target.copy(center);
+    controls.update();
+  }
+
+  function resize() {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+
+  window.addEventListener("resize", resize);
+
+  new GLTFLoader().load("/models/piura-cuenca.glb", (gltf) => {
+    model = gltf.scene;
+    scene.add(model);
+    frame(model);
+    resize();
+    animate();
+  });
+
+  renderer.domElement.addEventListener("dblclick", () => {
+    if (model) frame(model);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+</script>

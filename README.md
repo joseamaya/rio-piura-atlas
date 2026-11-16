@@ -3,9 +3,9 @@
 Atlas interactivo, documentado y citable de la cuenca del río Piura: qué es, cómo
 funciona, dónde se desborda y qué se construyó para contenerlo.
 
-> **Estado:** fase 0 (alcance y auditoría de fuentes). Todavía no hay aplicación web
-> ni datos publicados. Este repositorio contiene, por ahora, el plan, el catálogo de
-> fuentes y la estructura de datos.
+> **Estado:** fase 1 en curso. El sitio ya funciona con las capas verificadas
+> (cuenca, subcuencas, red, agua, relieve y maqueta 3D). Faltan las capas que dependen
+> de datos por solicitar: caudales, obras y manchas de inundación.
 
 ## Para quién
 
@@ -45,6 +45,32 @@ etl/                  scripts de descarga y transformación
 web/                  sitio del atlas (a construir en fase 1)
 LICENSES/             licencias de datos y de contenido
 ```
+
+## Cómo ejecutarlo
+
+```bash
+# capas (requiere el DEM del laboratorio de modelos)
+python3 etl/build_layers.py
+
+# sitio
+cd web
+npm install
+npm run dev        # http://localhost:4321
+npm run build      # estático en web/dist
+```
+
+El sitio pesa menos de 2 MB en la primera carga: relieve 490 kB, capas vectoriales
+~200 kB y el modelo 3D 6,3 MB que solo se descarga al abrir la maqueta.
+
+## Qué hay hoy
+
+| Página | Contenido |
+|---|---|
+| `/` | qué es el atlas y qué no es |
+| `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, lagunas y ciudades |
+| `/maqueta` | bloque 3D recortado a la cuenca (Three.js) |
+| `/escenarios` | los eventos documentados y lo que falta |
+| `/fuentes` | catálogo generado desde `data/sources.yml` |
 
 ## Cómo citar
 

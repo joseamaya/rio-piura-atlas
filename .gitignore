@@ -12,6 +12,7 @@ dist/
 
 # Datos pesados (se publican como release, no en Git)
 data/raw/*
+!data/raw/*.json
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep

@@ -1,0 +1,17 @@
+{
+  "name": "rio-piura-atlas",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.6.1",
+    "js-yaml": "^4.1.0",
+    "maplibre-gl": "^4.7.1",
+    "three": "^0.170.0"
+  }
+}

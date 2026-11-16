@@ -1,0 +1,49 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  current?: string;
+}
+const { title, current } = Astro.props;
+const nav = [
+  { href: "/", label: "Inicio", key: "inicio" },
+  { href: "/mapa", label: "Mapa", key: "mapa" },
+  { href: "/maqueta", label: "Maqueta 3D", key: "maqueta" },
+  { href: "/escenarios", label: "Escenarios", key: "escenarios" },
+  { href: "/fuentes", label: "Fuentes", key: "fuentes" },
+];
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Río Piura Atlas</title>
+    <meta name="description" content="Atlas documentado de la cuenca del río Piura: mapa, relieve 3D y escenarios históricos." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f7f4ea'/%3E%3Cpath d='M6 22c6-2 6-8 12-10s8 2 8 2' stroke='%231f6f8b' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="inner">
+        <a class="brand" href="/">Río Piura <span>Atlas</span></a>
+        <nav class="main" aria-label="Navegación principal">
+          {nav.map((item) => (
+            <a href={item.href} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <slot />
+
+    <footer class="site">
+      <div class="inner">
+        <span>Atlas de la cuenca del río Piura · versión 0.1.0 · CC BY 4.0</span>
+        <span>Datos: ANA, Copernicus, HydroSHEDS, OpenStreetMap. <a href="/fuentes">Ver fuentes</a></span>
+        <span><strong>No es un sistema de alerta ni un pronóstico.</strong></span>
+      </div>
+    </footer>
+  </body>
+</html>
