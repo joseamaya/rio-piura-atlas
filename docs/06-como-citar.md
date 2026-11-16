@@ -4,7 +4,8 @@
 
 Al cerrar cada fase se publica una versión con etiqueta (`v0.1.0`, `v1.0.0`) y un
 identificador persistente en Zenodo. Mientras no exista, se cita el repositorio con
-la fecha de consulta.
+la fecha de consulta. El archivo [`CITATION.cff`](../CITATION.cff) contiene los
+metadatos de la versión actual y sirve para que GitHub y Zenodo los muestren.
 
 ### Texto
 

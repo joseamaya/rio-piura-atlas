@@ -12,6 +12,7 @@ público» y se abre una tarea en `docs/07-solicitudes.md`.
 2. Declarar en `docs/03-metodologia.md` cómo se transformó el dato.
 3. Registrar la licencia en `LICENSES/DATOS.md`.
 4. Verificar el área o la cifra contra la fuente original.
+5. Ejecutar `python3 etl/check_data.py` y las pruebas del ETL antes de publicar.
 
 ## Estilo
 

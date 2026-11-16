@@ -4,8 +4,9 @@ Atlas interactivo, documentado y citable de la cuenca del río Piura: qué es, c
 funciona, dónde se desborda y qué se construyó para contenerlo.
 
 > **Estado:** fase 1 en curso. El sitio ya funciona con las capas verificadas
-> (cuenca, subcuencas, red, agua, relieve y maqueta 3D). Faltan las capas que dependen
-> de datos por solicitar: caudales, obras y manchas de inundación.
+> (cuenca, subcuencas, red, agua, relieve, cortes transversales y maqueta 3D).
+> Faltan las capas que dependen de datos por solicitar: caudales, obras y manchas de
+> inundación.
 
 ## Para quién
 
@@ -38,19 +39,31 @@ fuente, no se dibuja; lo que es interpretación, se marca como tal.
 ```
 docs/                 por qué y cómo (empezar por 01-alcance.md)
 docs/00-plan-fase-0.md  plan de trabajo inmediato
+docs/08-pendientes.md   estado y pendientes de la fase 1
 data/sources.yml      registro maestro de fuentes
 data/raw/             datos tal como llegan (inmutables)
 data/processed/       datos derivados, reproducibles
-etl/                  scripts de descarga y transformación
-web/                  sitio del atlas (a construir en fase 1)
+etl/                  descargas, transformación, validación y pruebas
+web/                  sitio del atlas (Astro + MapLibre + Three.js)
+.github/workflows/    CI: build del sitio y validación de datos
 LICENSES/             licencias de datos y de contenido
 ```
 
 ## Cómo ejecutarlo
 
 ```bash
+# dependencias del ETL
+python3 -m pip install -r etl/requirements.txt
+
+# datos crudos (opcional: reconstruye data/raw/)
+python3 etl/download_ana.py --force
+python3 etl/download_hydrorivers.py --force
+python3 etl/download_osm_water.py --force
+
 # capas (requiere el DEM del laboratorio de modelos)
 python3 etl/build_layers.py
+python3 etl/build_cortes.py
+python3 etl/check_data.py
 
 # sitio
 cd web
@@ -60,22 +73,31 @@ npm run build      # estático en web/dist
 ```
 
 El sitio pesa menos de 2 MB en la primera carga: relieve 490 kB, capas vectoriales
-~200 kB y el modelo 3D 6,3 MB que solo se descarga al abrir la maqueta.
+~200 kB y el modelo 3D 6,3 MB que solo se descarga al abrir la maqueta. La malla de
+elevación para cortes (~443 kB) se descarga solo al dibujar un corte.
+
+## Calidad
+
+- `python3 etl/check_data.py` valida fuentes, capas, cortes, malla de elevación y
+  presupuesto de datos.
+- `python3 -m unittest discover -s etl/tests -v` prueba la geometría del ETL.
+- GitHub Actions compila el sitio y ejecuta ambas comprobaciones en cada push.
+- Auditoría automática WCAG A/AA con axe: sin violaciones en las páginas actuales.
 
 ## Qué hay hoy
 
 | Página | Contenido |
 |---|---|
 | `/` | qué es el atlas y qué no es |
-| `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, lagunas y ciudades |
+| `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, cortes transversales, lagunas y ciudades |
 | `/maqueta` | bloque 3D recortado a la cuenca (Three.js) |
 | `/escenarios` | los eventos documentados y lo que falta |
-| `/fuentes` | catálogo generado desde `data/sources.yml` |
+| `/fuentes` | catálogo generado desde `data/sources.yml`, con enlaces por capa |
 
 ## Cómo citar
 
-Ver [`docs/06-como-citar.md`](docs/06-como-citar.md). Versión citable pendiente de
-publicación (Zenodo) al cerrar la fase 1.
+Ver [`docs/06-como-citar.md`](docs/06-como-citar.md) y [`CITATION.cff`](CITATION.cff).
+Versión citable pendiente de publicación (Zenodo) al cerrar la fase 1.
 
 ## Licencias
 

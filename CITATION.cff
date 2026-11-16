@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "Si usas este atlas, cita esta versión."
+title: "Atlas de la cuenca del río Piura"
+abstract: >-
+  Atlas interactivo, documentado y citable de la cuenca del río Piura: límites
+  oficiales, red hídrica, relieve, cortes transversales y escenarios históricos.
+  No es un sistema de alerta ni un modelo hidráulico.
+type: software
+authors:
+  - name: "Río Piura Atlas"
+version: "0.1.0"
+date-released: "2026-11-16"
+license: CC-BY-4.0
+keywords:
+  - Piura
+  - hidrografía
+  - atlas
+  - Perú
+  - cuenca
+  - El Niño

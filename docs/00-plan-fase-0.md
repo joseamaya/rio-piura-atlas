@@ -8,25 +8,26 @@ lista de fuentes con estado real.
 
 ## Semana 1 · Alcance y audiencia
 
-- [ ] Cerrar las preguntas que responde el atlas (`01-alcance.md`).
+- [x] Cerrar las preguntas que responde el atlas (`01-alcance.md`).
 - [ ] Definir los tres públicos y una prueba de lectura con una persona de cada uno.
-- [ ] Acordar qué **no** se hará (alerta, modelamiento propio).
-- [ ] Fijar criterios de éxito medibles.
+- [x] Acordar qué **no** se hará (alerta, modelamiento propio).
+- [x] Fijar criterios de éxito medibles.
 
 ## Semana 2 · Auditoría de fuentes
 
-- [ ] Completar `data/sources.yml` con todas las fuentes candidatas.
-- [ ] Verificar cuáles son descargables, con qué licencia y a qué escala.
-- [ ] Separar lo que existe de lo que hay que pedir.
+- [x] Completar `data/sources.yml` con todas las fuentes candidatas.
+- [x] Verificar cuáles son descargables, con qué licencia y a qué escala.
+- [x] Separar lo que existe de lo que hay que pedir.
 - [ ] Enviar las solicitudes (`07-solicitudes.md`) y registrar expedientes.
-- [ ] Anotar contradicciones entre fuentes (áreas, longitudes, cotas).
+- [x] Anotar contradicciones entre fuentes (áreas, longitudes, cotas).
 
 ## Semana 3 · Prototipo de datos
 
-- [ ] Integrar en `data/processed/` las capas ya disponibles: cuenca, subcuencas,
-      red, relieve, obras conocidas.
-- [ ] Medir el peso y la viabilidad técnica (COG, PMTiles).
-- [ ] Probar un corte transversal sobre el DEM y documentar sus límites.
+- [x] Integrar en `data/processed/` las capas ya disponibles: cuenca, subcuencas,
+      red, relieve y cortes.
+- [ ] Integrar las obras conocidas (pendiente del inventario de ANA / PECHP).
+- [x] Medir el peso y la viabilidad técnica (COG, PMTiles).
+- [x] Probar un corte transversal sobre el DEM y documentar sus límites.
 - [ ] Reconstruir la mancha de 2017 con Sentinel-1/2, si el resultado es defendible.
 
 ## Semana 4 · Decisión y publicación
@@ -34,7 +35,7 @@ lista de fuentes con estado real.
 - [ ] Revisar el prototipo con alguien externo (docente, periodista o técnico).
 - [ ] Decidir si se pasa a fase 1 y con qué alcance.
 - [ ] Publicar `v0.1.0` del repositorio (solo documentación y datos de prueba).
-- [ ] Escribir la lista de pendientes para la fase 1.
+- [x] Escribir la lista de pendientes para la fase 1 (`08-pendientes.md`).
 
 ## Puertas de decisión
 
