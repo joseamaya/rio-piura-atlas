@@ -21,3 +21,6 @@ data/processed/*
 .DS_Store
 Thumbs.db
 *.log
+
+# Skills locales de agentes (se restauran con `npx skills install`)
+.agents/skills/
