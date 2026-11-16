@@ -78,15 +78,17 @@ y el decodificador Draco ~250 kB; solo se descargan al abrir `/maqueta`.
 
 - Contraste mínimo AA.
 - Enlace «Saltar al contenido» y foco visible en todos los controles.
-- Navegación por teclado en mapa, capas, fichas y maqueta (flechas, +/− y Home).
+- Navegación por teclado en mapa, capas, fichas y maqueta (flechas, +/− y Home);
+  `Escape` cierra el panel de corte y devuelve el foco al botón que lo abrió.
 - Texto alternativo y resumen para el mapa y la maqueta.
 - Los escenarios se pueden leer como tabla, no solo como mapa.
 - El perfil del corte se ofrece como gráfico SVG con etiqueta accesible.
 - Respeta `prefers-reduced-motion`.
 - `npm run check` (Astro/TypeScript), `npm run build`, `npm run check:links`
   (enlaces y anclas internas), `npm run check:a11y` (axe WCAG A/AA en Chrome
-  headless) y `npm run test:e2e` (Playwright, escritorio y móvil). `npm run verify`
-  encadena la secuencia completa.
+  headless) y `npm run test:e2e` (Playwright: dibujo de perfil, capas, ficha de
+  cuenca, teclado, fallo de red, móvil y maqueta). `npm run verify` encadena la
+  secuencia completa.
 - Auditoría automática WCAG A/AA con axe: sin violaciones en las cinco páginas, el
   404 y los visores en móvil.
 

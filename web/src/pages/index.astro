@@ -23,7 +23,7 @@ import { withBase } from "../lib/url";
       <a class="card" href={withBase("/mapa")}>
         <span class="tag">Explorar</span>
         <h3>Mapa de la cuenca</h3>
-        <p>Relieve real, subcuencas oficiales, red hídrica, inundación de 2017, obras esquemáticas y cortes transversales.</p>
+        <p>Relieve real, subcuencas oficiales, red hídrica, inundación de 2017, referencias de obras y cortes transversales.</p>
       </a>
       <a class="card" href={withBase("/maqueta")}>
         <span class="tag">3D</span>
@@ -33,7 +33,7 @@ import { withBase } from "../lib/url";
       <a class="card" href={withBase("/escenarios")}>
         <span class="tag">Historia</span>
         <h3>Escenarios</h3>
-        <p>Qué se documentó de 1983, 1998 y 2017. Documentado, no pronosticado.</p>
+        <p>Qué se documentó de 1891, 1983, 1998 y 2017, con una nota sobre 2023. Documentado, no pronosticado.</p>
       </a>
       <a class="card" href={withBase("/fuentes")}>
         <span class="tag">Trazabilidad</span>
@@ -66,7 +66,8 @@ import { withBase } from "../lib/url";
     </p>
     <p>
       <strong>3.</strong> El caudal permanente no es natural: llega por el trasvase desde
-      la cuenca del Chira, desde la represa de Poechos.
+      la cuenca del Chira, desde la represa de Poechos
+      (<a href={withBase("/fuentes#pechp-infraestructura")}>PECHP</a>).
     </p>
   </main>
 </Base>

@@ -43,6 +43,7 @@ fuente, no se dibuja; lo que es interpretación, se marca como tal.
 docs/                 por qué y cómo (empezar por 01-alcance.md)
 docs/00-plan-fase-0.md  plan de trabajo inmediato
 docs/08-pendientes.md   estado y pendientes de la fase 1
+docs/09-auditoria-estabilizacion.md  auditoría, evidencias y límites
 data/sources.yml      registro maestro de fuentes
 data/raw/             datos tal como llegan (inmutables)
 data/processed/       datos derivados, reproducibles
@@ -91,16 +92,18 @@ solo se descarga al abrir esa página.
 
 ## Calidad
 
-- `python3 etl/check_data.py` valida fuentes, topología (validez, huecos, solapamientos,
-  líneas fuera de cuenca), áreas geodésicas, cortes, resolución efectiva, malla de
-  elevación, GLB y presupuesto de datos.
-- `python3 -m unittest discover -s etl/tests -v` prueba la geometría del ETL.
+- `python3 etl/check_data.py` valida fuentes, **solapamientos por par de subcuencas,
+  superficie fuera por subcuenca, huecos por componente y agujeros interiores**, áreas
+  geodésicas, cortes, resolución efectiva, malla de elevación, GLB y presupuesto de
+  datos. Las tolerancias están justificadas a escala 1:100 000.
+- `python3 -m unittest discover -s etl/tests -v` ejecuta 38 pruebas de geometría,
+  topología sintética y contrato de datos publicados.
 - En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas),
   `npm run check:a11y` (axe WCAG A/AA en Chrome headless) y `npm run test:e2e`
-  (Playwright: mapa, móvil, fallo de red y maqueta). `npm run verify` ejecuta la
-  secuencia completa.
-- GitHub Actions compila el sitio, valida datos y ejecuta las tres comprobaciones web
-  en cada push.
+  (Playwright: mapa, dibujo de perfil, capas, ficha, teclado, fallo de red, móvil y
+  maqueta). `npm run verify` ejecuta la secuencia completa.
+- GitHub Actions compila el sitio, valida datos y ejecuta las comprobaciones web en
+  cada push.
 
 ## Qué hay hoy
 

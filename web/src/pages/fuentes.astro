@@ -17,11 +17,24 @@ const data = yaml.load(fs.readFileSync(file, "utf8")) as {
     metodo?: string;
     grupo?: string;
     notas?: string;
+    documento?: string | null;
+    pagina?: string | null;
+    consultado?: string | null;
+    certeza?: string;
+    tipo?: string;
   }>;
 };
 
 const estado = (e: string) =>
   e === "disponible" ? ["ok", "disponible"] : e === "por_solicitar" ? ["pending", "por solicitar"] : ["warn", "por verificar"];
+
+const certeza = (c: string | undefined) => {
+  if (c === "medido") return ["ok", "dato medido"];
+  if (c === "derivado") return ["ok", "derivado"];
+  if (c === "documentado") return ["ok", "documentado"];
+  if (c === "interpretacion") return ["warn", "interpretación"];
+  return ["pending", "por verificar"];
+};
 
 const orden = ["Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"];
 const grupos = orden
@@ -41,8 +54,18 @@ if (resto.length > 0) grupos.push({ titulo: "Otras fuentes", fuentes: resto });
     <p class="eyebrow">Trazabilidad</p>
     <h1>De dónde sale cada dato</h1>
     <p class="lead">
-      Toda capa del atlas apunta a una fuente con institución, escala, fecha y licencia.
-      Si un dato no está confirmado, figura como pendiente y no se publica.
+      Toda capa del atlas apunta a una fuente con institución, escala, fecha —cuando
+      existe— y licencia. Si un dato no está confirmado, figura como pendiente y no se
+      publica.
+    </p>
+
+    <p class="small muted">
+      Certidumbre:
+      <span class="badge ok">dato medido</span>
+      <span class="badge ok">derivado</span>
+      <span class="badge ok">documentado</span>
+      <span class="badge warn">interpretación</span>
+      <span class="badge pending">por verificar</span>
     </p>
 
     {grupos.map((g) => (
@@ -55,19 +78,28 @@ if (resto.length > 0) grupos.push({ titulo: "Otras fuentes", fuentes: resto });
           <tbody>
             {g.fuentes.map((f) => {
               const [cls, label] = estado(f.estado);
+              const [ccls, clabel] = certeza(f.certeza);
               return (
                 <tr id={f.id}>
                   <td>
                     {f.url ? <a href={f.url} target="_blank" rel="noopener">{f.titulo}</a> : f.titulo}
+                    {f.documento && <div class="small muted">{f.documento}</div>}
                     <div class="small muted">
-                      {f.fecha ?? "sin fecha"} · {f.metodo ?? "método no declarado"}
+                      {f.fecha ?? "sin fecha"}
+                      {f.consultado ? ` · consultado ${f.consultado}` : ""}
+                      {f.pagina ? ` · p. ${f.pagina}` : ""}
+                      {" · "}
+                      {f.metodo ?? "método no declarado"}
                     </div>
                     {f.notas && <div class="small muted">{f.notas}</div>}
                   </td>
                   <td>{f.institucion}</td>
                   <td>{f.escala ?? "—"}</td>
                   <td>{f.licencia}</td>
-                  <td><span class={`badge ${cls}`}>{label}</span></td>
+                  <td>
+                    <span class={`badge ${cls}`}>{label}</span>{" "}
+                    <span class={`badge ${ccls}`}>{clabel}</span>
+                  </td>
                 </tr>
               );
             })}

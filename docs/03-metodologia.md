@@ -26,6 +26,28 @@ reinterpretación. Si se compara con otra delimitación (HydroBASINS, estudios
 hidrológicos), la diferencia se documenta en la ficha. En la maqueta 3D las
 subcuencas aparecen solo como rótulos; sus límites se consultan en el mapa 2D.
 
+La cuenca y las nueve subcuencas se simplifican por separado y después se
+**reconcilian como una partición topológica**: se polygoniza el grafo de límites y
+cada cara se asigna a la subcuenca con mayor solapamiento; los huecos sin
+solapamiento se asignan a la más cercana. No se crea superficie nueva y el área
+total se conserva. El método y los cambios de área quedan en
+`data/raw/limits.json → reconciliacion`.
+
+Umbrales de control, en EPSG:32717 (UTM 17S, el sistema de trabajo de ANA):
+
+| Control | Error | Aviso | Justificación |
+|---|---:|---:|---|
+| Solapamiento por par | 0,01 km² | 0,001 km² | A 1:100 000, 1 mm² en el papel = 0,01 km² |
+| Hueco por componente | 0,01 km² | 0,001 km² | Ibídem; 0,001 km² = 0,1 mm² |
+| Hueco total | >0,01 % de la cuenca | >0,001 % | Evita que muchos slivers pequeños pasen inadvertidos |
+| Fuera de cuenca por subcuenca | 0,01 km² | 0,001 km² | Ibídem |
+| Suma de áreas | 0,5 % | — | Comprobación secundaria, no sustituye la geometría |
+
+No se usa EPSG:32718 para medir: el servicio declara 32717 y el polígono está en
+la zona 17S. 32718 es el sistema en el que ANA calculó `Shape_Area`, no el de la
+geometría publicada. Si una subcuenca trae un agujero interior, la reconciliación
+se detiene para revisión manual; no se rellena en silencio.
+
 ### Relieve
 Copernicus DEM GLO-30 como producto de origen, remuestreado a una **malla de trabajo
 de ~143 × 134 m**. El atlas no presenta perfiles a 30 m: la malla no tiene ese detalle.
@@ -68,17 +90,44 @@ Cada escenario muestra un rótulo permanente: **«escenario documentado, no pron
 La mancha publicada es el **vector oficial de Copernicus EMSR199**, no una
 reconstrucción propia. Se usan dos áreas de interés:
 
-- **AOI10 Piura**: Piura, Catacaos y La Unión. Radarsat-2 (26/03) y Cosmo-SkyMed
-  (30/03).
-- **AOI11 Parachique**: llanura baja y desierto adyacente. Radarsat-2 (26/03).
+- **AOI10 Piura**: Piura, Catacaos y La Unión. Atributos del vector: Radarsat
+  Ultra-Fine Beam (26/03/2017) y Cosmo-SkyMed 3-15m Stripmap (30/03/2017).
+- **AOI11 Parachique**: llanura baja y desierto adyacente. Radarsat Ultra-Fine Beam
+  (26/03/2017).
 
 Se conserva la clase `Flooded Area`, se disuelve, se descartan fragmentos menores de
-0,5 ha y se simplifica a 25 m. El área publicada es la del vector simplificado
-(≈555 km² en total); la suma de los polígonos originales es ≈554 km². La capa cubre
-la llanura baja y el desierto adyacente, **no toda la cuenca**: en la sierra el evento
-se expresó como crecidas y deslizamientos, no como una mancha continua. No es un
-modelo hidráulico ni una predicción. El AOI12 Piura North se descartó porque sus
-registros no traen fecha ni sensor.
+0,5 ha y se simplifica a 25 m. La capa publica la **unión de las observaciones por
+fecha**, no una mancha simultánea: AOI10 suma 80,8 km² del 26/03 y 73,0 km² del
+30/03, con una unión simplificada de 96,5 km²; AOI11 pasa de 457,4 km² originales a
+459,0 km² simplificados. El total publicado es ≈555 km². La capa cubre la llanura
+baja y el desierto adyacente, **no toda la cuenca**: en la sierra el evento se expresó
+como crecidas y deslizamientos, no como una mancha continua. No es un modelo
+hidráulico ni una predicción. No se publica una clase `Potential Flooded Area`
+porque el vector no la trae; la extensión total del evento no se publica.
+
+El PDF v2 de AOI10 declara Sentinel-1A, pero el DBF del mismo producto declara
+Radarsat y Cosmo-SkyMed. El atlas usa los atributos del vector y deja la
+discrepancia visible. El AOI12 Piura North se descartó porque sus registros no
+traen fecha ni sensor.
+
+### Escenarios históricos
+Cada afirmación se clasifica como dato medido, documento, interpretación o pendiente:
+
+- **1891.** SIAR registra la salida al mar antes de 1891, el cambio a la laguna San
+  Ramón desde ese año y la reocupación del cauce antiguo en 1983 (p. 5 y 7). Una tesis
+  de la PUCP, que cita a Huertas (1999) y Rocha (2014), respalda el mecanismo de
+  crecidas y avulsión. El detalle del mecanismo se marca como interpretación histórica.
+- **1983.** 3 200 m³/s el 21 de abril de 1983 en Puente Sánchez Cerro (SIAR 200 p. 15;
+  SIAR 204 p. 49). La duración diaria del episodio no se localizó; no se afirma.
+- **1998.** 4 424 m³/s (SIAR 204 p. 27 y 49). SIAR 200 consigna el 12 de marzo en la
+  introducción (p. 1) y el 16 de marzo en el análisis de niveles (p. 15); la fecha
+  exacta queda como discrepancia. El evento duró 161 días. La laguna La Niña se formó
+  en 1998; IMARPE estima 2 326 km² en 1998 y 2 172 km² en 2017 con MODIS-Aqua de
+  500 m (Escudero & Xu, 2019).
+- **2017.** La geometría es el vector oficial EMSR199, no una reconstrucción propia.
+- **2023.** La laguna La Niña volvió a desbordar en marzo; lo documentan Andina y
+  Landsat 9. No hay informe hidrológico de SENAMHI/ANA en el catálogo, así que no se
+  publica una cifra de área o volumen para 2023.
 
 ### Obras hidráulicas
 Poechos se dibuja como **punto en el dique** documentado por el PECHP, no como un
@@ -92,8 +141,10 @@ en el diorama es un recurso visual, no el ancho real.
 
 - Toda capa pasa por revisión de otra persona antes de publicarse.
 - Se comprueba: validez Shapely, autointersecciones, agujeros, MultiPolygon,
-  solapamientos y huecos entre subcuencas, líneas fuera de cuenca, coherencia de
-  áreas geodésicas y correspondencia entre perfil y resolución efectiva del DEM.
+  **solapamientos por par**, **superficie fuera de la cuenca por subcuenca**,
+  **huecos por componente** y su unión, líneas fuera de cuenca, coherencia de áreas
+  geodésicas y correspondencia entre perfil y resolución efectiva del DEM. La suma de
+  áreas es solo una comprobación secundaria; no sustituye la topología.
 - Los desacuerdos entre fuentes se dejan visibles en la ficha, no se promedian.
 - La mancha de 2017 conserva la clase `Flooded Area`, se revisa contra la máscara de
   mar y declara su cobertura; las obras se validan por su marca `esquematico: true`.

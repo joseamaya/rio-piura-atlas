@@ -9,9 +9,12 @@ tiene fuente, no se dibuja**.
 ## Implementado
 
 - Capas base: cuenca ANA, 8 subcuencas oficiales + Bajo Piura derivado, red
-  HydroRIVERS recortada, lagunas y salinas OSM.
+  HydroRIVERS v1.0 recortada, lagunas y salinas OSM.
+- Partición de subcuencas **reconciliada topológicamente**: 0 solapamientos,
+  0 superficie fuera y 0 huecos por encima del umbral de 0,01 km². El método y los
+  cambios de área están en `data/raw/limits.json → reconciliacion`.
 - Mancha oficial de la inundación de marzo de 2017 (Copernicus EMSR199, AOI10 y
-  AOI11), con fecha, sensores, cobertura y método declarados.
+  AOI11), con observaciones por fecha, sensor, área original y área simplificada.
 - Referencia de Poechos como punto en el dique y del canal Daniel Escobar como recta
   de referencia en el mapa 2D; no se dibujan el vaso, bocatomas ni diques sin geometría.
 - Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,6 MB).
@@ -22,7 +25,11 @@ tiene fuente, no se dibuja**.
 - ETL reproducible para capas y cortes.
 - Scripts de descarga para ANA, HydroRIVERS, cuerpos de agua OSM y Copernicus
   EMSR199.
-- Validación de datos (`etl/check_data.py`) y pruebas de geometría.
+- Validación de datos (`etl/check_data.py`) con auditoría por par de subcuencas,
+  superficie fuera por subcuenca, huecos por componente y agujeros interiores;
+  38 pruebas de Python y pruebas Playwright de mapa, móvil, fallo de red y maqueta.
+- Catálogo de fuentes con `certeza` y `tipo`: distingue dato medido, derivado,
+  documentado, interpretación y pendiente de verificación.
 - CI que compila el sitio y valida datos en cada push.
 - Accesibilidad: enlace de salto, foco visible, texto alternativo del mapa y la
   maqueta, movimiento reducido y auditoría automática WCAG A/AA con axe en CI
@@ -49,12 +56,14 @@ tiene fuente, no se dibuja**.
 
 | Dato | Entidad | Uso |
 |---|---|---|
-| Caudales y niveles | SENAMHI | hidrogramas, régimen, crecidas |
+| Caudales y niveles diarios | SENAMHI | hidrogramas, duración y fecha exacta de 1998 |
 | Precipitación PISCO | SENAMHI | contexto climático |
 | Cartografía de inundación 1983/1998 | ANA | manchas históricas |
 | Bocatomas y diques | ANA / PECHP | capa de obras completa |
 | Operación de Poechos | PECHP | trasvase y regulación |
 | Escenarios de riesgo | CENEPRED / SIGRID | exposición |
+| Informe hidrológico de La Niña 2023 | SENAMHI / ANA | área y volumen del evento |
+| Informe ENFEN concreto | ENFEN | edición exacta de 1982-83, 1997-98 o 2017 |
 
 Mientras no lleguen, esas capas se muestran como «sin dato público» y no se dibujan.
 
@@ -66,23 +75,29 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   cifra medida y conserva la oficial como referencia.
 - **Bajo Piura.** La capa oficial de subcuencas no publica «Bajo Piura» como polígono
   independiente. El atlas lo calcula como el resto de la cuenca **antes** de simplificar
-  y luego simplifica una sola vez; su área medida es **4 752,8 km²**. El método está
-  declarado en `data/raw/limits.json`. La unión deja slivers de simplificación de
-  ~1,48 km² (176 fragmentos, el mayor de 0,05 km²); no se rellenan con geometría
-  inventada y `check_data.py` los reporta como aviso, no como error.
-- **Red hídrica.** HydroRIVERS incluye tramos que sobresalen de la ventana y de la
+  y lo atribuye a `bajo-piura-derivado`, no a ANA. Su área medida es **4 752,9 km²**.
+  La reconciliación topológica eliminó 0,7828 km² de solapamientos, 1,4725 km² de
+  huecos y 0,6747 km² de superficie fuera de la cuenca; no se crea superficie nueva.
+  El método, las 374 caras y los cambios de área por subcuenca están en
+  `data/raw/limits.json → reconciliacion`. El resultado tiene 0 solapamientos,
+  0 superficie fuera y 0 huecos por encima de 0,01 km².
+- **Red hídrica.** HydroRIVERS v1.0 incluye tramos que sobresalen de la ventana y de la
   cuenca. `build_layers.py` usa intersección geométrica exacta con el polígono ANA;
-  ningún tramo publicado queda fuera (solo el redondeo de 5 decimales, <2 m).
+  ningún tramo publicado queda fuera (solo el redondeo de 6 decimales, <0,2 m).
 - **Poechos y canal Daniel Escobar.** Poechos se publica como **punto en el dique**
   (4°40′07″S, 80°30′13″W, PECHP), no como vaso inventado. El canal es una **recta de
   referencia** Poechos–Curumuy, no su eje oficial; el PECHP documenta 54 km y 70 m³/s.
   No hay geometría oficial publicada del vaso ni del eje: no se dibujan como si lo fueran.
 - **Inundación de 2017.** La mancha es el vector oficial de Copernicus EMSR199
-  (AOI10 + AOI11), no una reconstrucción propia. Usa Radarsat-2 y Cosmo-SkyMed, no
-  Sentinel-1. Cubre la llanura baja y el desierto adyacente, no toda la cuenca; el
-  área publicada (≈555 km²) es la del vector simplificado, no una estimación
-  hidráulica. El AOI12 Piura North se descartó por falta de fecha y sensor en sus
-  registros.
+  (AOI10 + AOI11), no una reconstrucción propia. Los atributos del vector declaran
+  Radarsat Ultra-Fine Beam (26/03) y Cosmo-SkyMed (30/03) para AOI10, y Radarsat
+  (26/03) para AOI11; el PDF v2 declara Sentinel-1A y esa discrepancia se deja visible.
+  La capa publica la **unión de las observaciones**, no una mancha simultánea: AOI10
+  pasa de 80,8 + 73,0 km² por fecha a 96,5 km² de unión simplificada; AOI11 pasa de
+  457,4 a 459,0 km². Cubre la llanura baja y el desierto adyacente, no toda la cuenca;
+  el total (≈555 km²) no es una estimación hidráulica ni una extensión simultánea. No
+  se publica una clase potencial porque el vector no la trae. El AOI12 Piura North se
+  descartó por falta de fecha y sensor en sus registros.
 - **Color del terreno.** La maqueta usa una rampa hipsométrica: el verde indica
   altitud, no cobertura vegetal.
 - **Lagunas.** Los polígonos son de OSM; Ramón y Las Salinas figuran como
@@ -93,9 +108,22 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   3 019 m. «Reserva Nacional Illescas» se conserva como referencia de lugar, no como
   límite oficial; el área protegida no está dibujada. Poechos se rotula en el dique
   real y el canal en su punto medio de referencia.
-- **ENFEN, Sentinel-1 y UNOSAT.** ENFEN aporta el relato; Sentinel-1 y UNOSAT se usan
-  como contraste. La geometría publicada de 2017 es el vector oficial de Copernicus
-  EMSR199. Las manchas de 1983 y 1998 siguen sin geometría pública localizada.
+- **1998: fecha del pico.** SIAR 200 consigna el 12 de marzo en la introducción (p. 1)
+  y el 16 de marzo en el análisis de niveles (p. 15). El atlas mantiene la cifra de
+  4 424 m³/s y marca la fecha como discrepancia; no elige una sin una fuente adicional.
+- **1983: duración.** El pico de 3 200 m³/s del 21 de abril está documentado (SIAR 200
+  p. 15; SIAR 204 p. 49), pero no se localizó una duración diaria del episodio.
+- **1891: mecanismo.** SIAR registra el cambio de embocadura (p. 5 y 7); el detalle de
+  crecidas y avulsión se apoya en una tesis de la PUCP y se marca como interpretación
+  histórica, no como medición.
+- **2023: La Niña.** Andina y NASA documentan el desborde y la afectación de la
+  carretera. No hay informe hidrológico de SENAMHI/ANA en el catálogo; no se publica
+  área ni volumen para 2023.
+- **ENFEN, Sentinel-1 y UNOSAT.** ENFEN se usa solo como contexto: falta identificar la
+  edición concreta de sus informes. Sentinel-1 no es la fuente del vector publicado; el
+  vector EMSR199 se basa en Radarsat/Cosmo según sus atributos. UNOSAT se usa como
+  contraste, no como geometría. Las manchas de 1983 y 1998 siguen sin geometría pública
+  localizada.
 
 ## Criterios para cerrar la fase 1
 

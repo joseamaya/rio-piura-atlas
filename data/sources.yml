@@ -1,12 +1,28 @@
 # Registro maestro de fuentes.
 # Cada elemento publicado en el atlas debe referenciar un id de esta lista.
+#
+# Estados:
+#   disponible      el dato o documento se puede consultar y usar
+#   por_solicitar   existe, pero requiere una solicitud institucional
+#   por_verificar   citado, pero no se localizó el documento exacto
+#
+# Certidumbre de la fuente:
+#   medido           serie, imagen o geometría medida por la institución
+#   derivado         producto calculado (modelo, red hidrográfica, DEM)
+#   documentado      informe, tesis o nota de prensa con referencia verificable
+#   interpretacion   geometría elaborada por el atlas
+#   por_verificar    falta confirmar el documento o el dato
+#
+# Tipo:
+#   dataset | documento | prensa | elaboracion_propia
 
 meta:
   proyecto: rio-piura-atlas
   actualizado: "2026-11-16"
   notas: >
-    Estado: disponible | por_solicitar | por_verificar.
-    La licencia se refiere al dato original, no a este repositorio.
+    La licencia se refiere al dato original, no a este repositorio. «fecha» es
+    la fecha del documento o del producto; «consultado» es la fecha de consulta
+    del atlas. Si no se conoce la fecha del documento, se deja null.
 
 fuentes:
   - id: ana-subcuencas
@@ -17,12 +33,36 @@ fuentes:
     escala: "1:100000"
     licencia: dato público
     estado: disponible
-    metodo: descarga GeoJSON desde el servicio
+    metodo: descarga GeoJSON desde el servicio; simplificación y reconciliación topológica
     grupo: Límites, relieve y red
+    certeza: medido
+    tipo: dataset
+    documento: Unidades Hidrográficas Pfafstetter, R.M. N.° 033-2008-AG
+    consultado: "2026-11-16"
     notas: >
-      R.M. N.° 033-2008-AG. Cuenca medida: 10 938,4 km² geodésicos. ANA publica
-      11 021,8 km² en Shape_Area, calculado en EPSG:32718 (UTM 18S), fuera de la
-      zona 17S del polígono. Ocho subcuencas oficiales; Bajo Piura es derivada.
+      Cuenca medida: 10 938,4 km² geodésicos. ANA publica 11 021,8 km² en
+      Shape_Area; la capa declara sourceSpatialReference EPSG:32718 (UTM 18S)
+      aunque el servicio trabaja en EPSG:32717. Ocho subcuencas oficiales;
+      Bajo Piura es derivada y se atribuye a «bajo-piura-derivado».
+
+  - id: bajo-piura-derivado
+    titulo: Bajo Piura — subcuenca derivada
+    institucion: Río Piura Atlas (elaboración propia a partir de ANA)
+    url: null
+    fecha: null
+    escala: "1:100000"
+    licencia: CC BY 4.0
+    estado: disponible
+    metodo: cuenca ANA menos las ocho subcuencas publicadas, antes de simplificar; reconciliación topológica
+    grupo: Límites, relieve y red
+    certeza: derivado
+    tipo: elaboracion_propia
+    documento: Bajo Piura como resto de la cuenca ANA
+    consultado: "2026-11-16"
+    notas: >
+      No es una subcuenca oficial de ANA. La geometría se calcula y se reconcilia
+      en el ETL; se atribuye al atlas, no a la institución. El área oficial de
+      referencia se conserva en area_fuente_km2.
 
   - id: copernicus-dem-30
     titulo: Copernicus DEM GLO-30 (tiles Terrarium)
@@ -34,20 +74,32 @@ fuentes:
     estado: disponible
     metodo: descarga de teselas Terrarium z11 y remuestreo a malla local
     grupo: Límites, relieve y red
+    certeza: derivado
+    tipo: dataset
+    documento: Copernicus DEM GLO-30
+    consultado: "2026-11-16"
     notas: >
       Usado para relieve, sombreado, cortes y malla de elevación. La malla de
       trabajo del atlas es de ~143 × 134 m; no se publican perfiles a 30 m.
 
   - id: hydrorivers
-    titulo: HydroRIVERS v10.0
-    institucion: WWF / HydroSHEDS
+    titulo: HydroRIVERS v1.0 (archivos v10)
+    institucion: HydroSHEDS / WWF
     url: https://www.hydrosheds.org/products/hydrorivers
     fecha: "2020-01-01"
-    escala: ~500 m
+    escala: ~500 m (resolución de origen 15 arc-segundos)
     licencia: CC BY 4.0
     estado: disponible
-    metodo: recorte y filtrado por área aportante
+    metodo: recorte con intersección exacta y filtrado por área aportante
     grupo: Límites, relieve y red
+    certeza: derivado
+    tipo: dataset
+    documento: HydroRIVERS Technical Documentation v10
+    consultado: "2026-11-16"
+    notas: >
+      HydroRIVERS es un producto de red fluvial derivado de HydroSHEDS;
+      HydroSHEDS es el programa de datos base, no el dataset de ríos. Los
+      archivos se distribuyen como v10 y la versión del producto es 1.0.
 
   - id: ign-cartas
     titulo: Cartas nacionales del IGN
@@ -59,44 +111,59 @@ fuentes:
     estado: por_verificar
     metodo: descarga y contraste
     grupo: Límites, relieve y red
+    certeza: por_verificar
+    tipo: dataset
+    documento: Cartas nacionales 1:100 000 y 1:25 000
     notas: Toponimia y contraste de límites; no se copia al repositorio.
 
   - id: osm-agua
     titulo: Cuerpos de agua (natural=water)
     institucion: OpenStreetMap contributors
     url: https://www.openstreetmap.org/
-    fecha: "2026-11-16"
+    fecha: null
     escala: variable
     licencia: ODbL 1.0
     estado: disponible
-    metodo: consulta Overpass
+    metodo: consulta Overpass; simplificación conservando agujeros
     grupo: Agua
-    notas: Laguna Ramón, Ñapique, La Niña, Las Salinas.
+    certeza: documentado
+    tipo: dataset
+    documento: Consulta Overpass natural=water del 2026-11-16
+    consultado: "2026-11-16"
+    notas: Laguna Ramón, Ñapique, La Niña, Las Salinas. La fecha es la de consulta.
 
   - id: osm-lugares
     titulo: Coordenadas de ciudades del valle
     institucion: OpenStreetMap contributors
     url: https://www.openstreetmap.org/
-    fecha: "2026-11-16"
+    fecha: null
     escala: punto
     licencia: ODbL 1.0
     estado: disponible
     metodo: consulta de nodos de localidad OSM y contraste con cartas nacionales
     grupo: Límites, relieve y red
+    certeza: documentado
+    tipo: dataset
+    documento: Nodos de localidad OSM consultados el 2026-11-16
+    consultado: "2026-11-16"
     notas: >
       Coordenadas de nodos de localidad (no centroides de distrito), aproximadas;
       no sustituyen cartografía oficial. Paita se marca fuera de la cuenca.
 
   - id: obras-esquematicas
-    titulo: Poechos y canal Daniel Escobar — trazado esquemático
+    titulo: Poechos y canal Daniel Escobar — referencia esquemática
     institucion: Río Piura Atlas (elaboración propia)
     url: null
-    fecha: "2026-11-16"
+    fecha: null
     escala: aproximada
     licencia: CC BY 4.0
     estado: disponible
     metodo: punto del dique y recta de referencia Poechos–Curumuy
     grupo: Agua
+    certeza: interpretacion
+    tipo: elaboracion_propia
+    documento: Trazo de referencia Poechos–Curumuy
+    consultado: "2026-11-16"
     notas: >
       Poechos se publica como punto en el dique, no como embalse: no hay geometría
       oficial del vaso. El canal es una recta de referencia, no el eje oficial; el
@@ -112,6 +179,9 @@ fuentes:
     estado: por_solicitar
     metodo: solicitud de acceso a la información pública
     grupo: Agua
+    certeza: por_verificar
+    tipo: dataset
+    documento: Series de caudales y niveles de las estaciones del valle
     notas: Puente Sánchez Cerro, Tambogrande, Chulucanas. Ver docs/07-solicitudes.md.
 
   - id: senamhi-pisco
@@ -124,6 +194,10 @@ fuentes:
     estado: por_solicitar
     metodo: registro y descarga
     grupo: Agua
+    certeza: por_verificar
+    tipo: dataset
+    documento: PISCO v2.1 — precipitación grillada
+    notas: Requiere registro institucional.
 
   - id: pechp-poechos
     titulo: Operación de la represa de Poechos y trasvase
@@ -135,17 +209,25 @@ fuentes:
     estado: por_solicitar
     metodo: solicitud institucional
     grupo: Agua
+    certeza: por_verificar
+    tipo: dataset
+    documento: Operación de Poechos y trasvase
+    notas: Caudales derivados y reglas de operación.
 
   - id: pechp-infraestructura
     titulo: PECHP — Poechos y canal Daniel Escobar (fichas públicas)
     institucion: Proyecto Especial Chira-Piura
     url: https://www.gob.pe/23915-proyecto-especial-chira-piura-resena-historica
-    fecha: "2026-11-13"
+    fecha: null
     escala: punto / obra
     licencia: documento público (citación)
     estado: disponible
     metodo: consulta de fichas institucionales
     grupo: Agua
+    certeza: documentado
+    tipo: documento
+    documento: Fichas públicas del PECHP sobre Poechos y el canal Daniel Escobar
+    consultado: "2026-11-13"
     notas: >
       Dique de Poechos 4°40′07″S, 80°30′13″W. Canal Daniel Escobar: 54 km y
       70 m³/s, desde el dique hasta Curumuy. No publica el eje del canal ni la
@@ -161,6 +243,10 @@ fuentes:
     estado: por_solicitar
     metodo: solicitud de acceso a la información pública
     grupo: Agua
+    certeza: por_verificar
+    tipo: dataset
+    documento: Inventario de infraestructura hidráulica
+    notas: Bocatomas, diques y canales.
 
   - id: cenepred-riesgo
     titulo: Escenarios de riesgo por inundación — Piura
@@ -172,6 +258,10 @@ fuentes:
     estado: por_verificar
     metodo: descarga y solicitud
     grupo: Inundaciones y riesgo
+    certeza: por_verificar
+    tipo: dataset
+    documento: Escenarios de riesgo por inundación — Piura
+    notas: No se usa como geometría publicada.
 
   - id: enfen-informes
     titulo: Informes técnicos ENFEN (1982-83, 1997-98, 2017)
@@ -180,10 +270,15 @@ fuentes:
     fecha: null
     escala: cuenca
     licencia: documento público
-    estado: disponible
-    metodo: descarga directa
+    estado: por_verificar
+    metodo: consulta de contexto; falta identificar la edición concreta
     grupo: Inundaciones y riesgo
-    notas: Base para el relato histórico de El Niño.
+    certeza: por_verificar
+    tipo: documento
+    documento: Informe técnico ENFEN (edición pendiente de identificar)
+    notas: >
+      Se usa solo como contexto general. Las cifras de 1983, 1998 y 2017 se
+      citan desde SIAR, IMARPE o Copernicus, no desde esta ficha genérica.
 
   - id: copernicus-ems-emsr199
     titulo: Delineación de la inundación de marzo de 2017 (EMSR199, AOI10 y AOI11)
@@ -193,89 +288,172 @@ fuentes:
     escala: "1:76000–1:80000"
     licencia: reutilización de la Comisión Europea con atribución
     estado: disponible
-    metodo: descarga de vectores oficiales; disolución, filtrado y simplificación
+    metodo: descarga de vectores oficiales; unión de observaciones por fecha, disolución, filtrado y simplificación
     grupo: Inundaciones y riesgo
+    certeza: medido
+    tipo: dataset
+    documento: EMSR199 10PIURA v2 y 11PARACHIQUE v1 — Delineation Overview
+    pagina: Producto 10PIURA v2 / 11PARACHIQUE v1
+    consultado: "2026-11-16"
     notas: >
-      AOI10 Piura: Radarsat-2 (26/03) y Cosmo-SkyMed (30/03). AOI11 Parachique:
-      solo Radarsat-2 (26/03). Cubre la llanura baja y el desierto adyacente, no
-      toda la cuenca. DOI de la activación: 10.2905/JRC.GKDVN10.
+      Atributos del vector: AOI10, Radarsat Ultra-Fine Beam (26/03) y
+      Cosmo-SkyMed 3-15m Stripmap (30/03); AOI11, Radarsat (26/03). El PDF v2
+      declara Sentinel-1A, en contradicción con el DBF; se usan los atributos
+      del vector y se advierte en la ficha. La capa publica solo «Flooded
+      Area» y es la unión de fechas, no una mancha simultánea. DOI de la
+      activación: 10.2905/JRC.GKDVN10.
 
   - id: sentinel-1-2017
     titulo: Imágenes Sentinel-1 de marzo de 2017
     institucion: Copernicus / ESA
     url: https://dataspace.copernicus.eu/
-    fecha: "2017-03-01"
+    fecha: "2017-03"
     escala: 10 m
     licencia: libre con atribución
     estado: disponible
     metodo: descarga y contraste
     grupo: Inundaciones y riesgo
+    certeza: documentado
+    tipo: dataset
+    documento: Imágenes Sentinel-1 de marzo de 2017
+    consultado: "2026-11-16"
     notas: >
-      Se usa como contraste; la geometría publicada es el vector oficial de
-      Copernicus EMSR199. No se deriva una mancha propia con umbral.
+      No se usa para la geometría publicada: el vector EMSR199 se basa en
+      Radarsat/Cosmo-SkyMed según sus atributos. Se conserva como referencia de
+      teledetección; no se deriva una mancha propia con umbral.
 
   - id: unosat-copernicus-ems
     titulo: UNOSAT / Copernicus EMS — inundación de marzo de 2017
     institucion: UNITAR / ESA
-    url: https://emergency.copernicus.eu/
-    fecha: "2017-03-01"
+    url: https://reliefweb.int/attachments/c86cb3d1-2bd0-354d-961b-1a639ac560cd/Peru_22Marzo_2017%E2%80%93_Departamentos_de_Piura_y_Lamba.pdf
+    fecha: "2017-03-22"
     escala: variable
-    licencia: libre con atribución
-    estado: por_verificar
+    licencia: libre con atribución; verificar términos del producto
+    estado: disponible
     metodo: descarga y contraste visual
     grupo: Inundaciones y riesgo
-    notas: Producto de referencia para contrastar; no se usa como geometría publicada.
+    certeza: documentado
+    tipo: documento
+    documento: "UNOSAT — Efectos del Niño Costero: inundaciones en Piura y Lambayeque"
+    consultado: "2026-11-16"
+    notas: >
+      Producto de referencia para contrastar; no se usa como geometría publicada.
+      Sus imágenes son Sentinel-1 y su lectura de La Niña es contextual.
 
   - id: arcc-plan-inundaciones
     titulo: Plan de Control de Inundaciones Río Piura (2018)
     institucion: ARCC / Autoridad Nacional del Agua
     url: null
-    fecha: "2018-01-01"
+    fecha: null
     escala: "1:10000"
     licencia: por definir
     estado: por_solicitar
     metodo: solicitud de acceso a la información pública
     grupo: Inundaciones y riesgo
-    notas: Obras, diagnóstico y defensas ribereñas.
+    certeza: por_verificar
+    tipo: documento
+    documento: Plan de Control de Inundaciones Río Piura (2018)
+    notas: Obras, diagnóstico y defensas ribereñas. Fecha exacta pendiente.
 
   - id: ingemmet-geodinamica
     titulo: Estudio geodinámico de la cuenca del río Piura
     institucion: INGEMMET
     url: https://hdl.handle.net/20.500.12543/32
-    fecha: "1994-01-01"
+    fecha: null
     escala: "1:100000"
     licencia: documento público
     estado: disponible
     metodo: descarga directa
     grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    documento: Estudio geodinámico de la cuenca del río Piura (1994)
+    consultado: "2026-11-16"
+    notas: Geomorfología y procesos; no se usa para las cifras hidrológicas.
 
   - id: siar-piura
-    titulo: SIAR Piura — hidrología de la cuenca
-    institucion: SENAMHI / Gobierno Regional Piura
+    titulo: SIAR Piura — hidrología de la cuenca (Apéndice D)
+    institucion: Proyecto PNUD / CTAR Piura (repositorio SIAR Piura)
     url: https://siar.regionpiura.gob.pe/documentos/normativa/204.pdf
-    fecha: null
+    fecha: "2000-05"
     escala: cuenca
-    licencia: dato público
+    licencia: documento público; citar
     estado: disponible
-    metodo: consulta de documentos técnicos
+    metodo: consulta de documento técnico
     grupo: Estudios
+    certeza: medido
+    tipo: documento
+    documento: Estudio para el Tratamiento Integral del Río Piura — Apéndice D, Información Hidrológica y del Modelo Hidrológico
+    pagina: "13, 27, 49"
+    consultado: "2026-11-16"
     notas: >
-      Apéndice D de hidrología: cuenca, pendientes, cauce y descargas de 1983/1998.
-      Complemento: documentos/200.pdf (evaluación hidrológica 1998).
+      Serie de caudales máximos instantáneos de Puente Sánchez Cerro: 3 200 m³/s
+      en 1983 y 4 424 m³/s en 1998 (p. 49). La descarga total de 1983 y 1998
+      supera hasta doce veces la media anual (p. 13). El pico de 1998 aparece
+      sin fecha diaria en este documento; la discrepancia 12/16 de marzo está
+      en siar-evaluacion-200.
+
+  - id: siar-evaluacion-200
+    titulo: SIAR Piura — evaluación hidrológica y erosión-sedimentación
+    institucion: SIAR Piura / Gobierno Regional Piura
+    url: https://siar.regionpiura.gob.pe/documentos/normativa/200.pdf
+    fecha: null
+    escala: cuenca / tramo urbano
+    licencia: documento público; citar
+    estado: disponible
+    metodo: consulta de documento técnico
+    grupo: Estudios
+    certeza: medido
+    tipo: documento
+    documento: Evaluación hidrológica y erosión-sedimentación del Río Piura
+    pagina: "1, 15"
+    consultado: "2026-11-16"
+    notas: >
+      p. 1: 4 424 m³/s el 12 de marzo de 1998, 161 días de evento y 13,5 MMC
+      de escorrentía. p. 15: 3 200 m³/s el 21 de abril de 1983 y 4 424 m³/s el
+      16 de marzo de 1998. La discrepancia de fecha (12 vs 16 de marzo) se deja
+      visible; no se elige una sin fuente adicional.
 
   - id: siar-cambios-cauce
     titulo: SIAR Piura — cambios de la embocadura del río Piura
-    institucion: Gobierno Regional Piura
+    institucion: SIAR Piura / Gobierno Regional Piura
     url: https://siar.regionpiura.gob.pe/documentos/repositorio/1392.pdf
     fecha: null
     escala: cuenca / valle
-    licencia: dato público
+    licencia: documento público; citar
     estado: disponible
     metodo: consulta de presentación técnica
     grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    documento: Cambios de la embocadura del río Piura
+    pagina: "5, 7, 8"
+    consultado: "2026-11-16"
     notas: >
-      «Cambios de la embocadura del cauce principal: al mar antes de 1891 y en
-      1983; a laguna San Ramón desde 1891».
+      p. 5: «al mar antes de 1891 y en 1983; a laguna San Ramón desde 1891».
+      p. 7: en 1982/83 hubo «cambio de la embocadura al mar por reocupación del
+      cauce antiguo». p. 8: en 1997/98 se activaron cauces temporales y lagunas.
+      Es una síntesis técnica, no una serie medida.
+
+  - id: pucp-1891
+    titulo: Modelamiento hidrológico e hidráulico de inundaciones en Piura
+    institucion: Pontificia Universidad Católica del Perú
+    url: http://hdl.handle.net/20.500.12404/18304
+    fecha: null
+    escala: cuenca / tramo urbano
+    licencia: uso académico con atribución
+    estado: disponible
+    metodo: consulta de tesis; cita a Huertas (1999) y Rocha (2014)
+    grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    documento: Tesis de modelamiento hidrológico e hidráulico para el análisis de inundaciones en la ciudad de Piura
+    consultado: "2026-11-16"
+    notas: >
+      Contraste académico para 1891: antes de ese año el río era devuelto
+      artificialmente a su lecho originario; las crecidas de 1891 cambiaron el
+      lecho principal hacia el sureste, hacia el lago San Ramón. No se copian
+      figuras. Fecha de la tesis pendiente de confirmar.
 
   - id: udep-estudios
     titulo: Universidad de Piura — estudios de agua e inundaciones
@@ -287,9 +465,12 @@ fuentes:
     estado: por_verificar
     metodo: consulta bibliográfica
     grupo: Estudios
+    certeza: por_verificar
+    tipo: documento
+    documento: Estudios de agua e inundaciones (documento pendiente de identificar)
     notas: >
-      Contraste técnico (p. ej. picos de 3 200 y 4 424 m³/s); no se reutilizan
-      figuras sin permiso.
+      Contraste técnico; no se usa para las cifras de 1983/1998. No se
+      reutilizan figuras sin permiso.
 
   - id: sernanp-illescas
     titulo: SERNANP — Reserva Nacional Illescas
@@ -301,9 +482,70 @@ fuentes:
     estado: disponible
     metodo: consulta de expediente de categorización
     grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    documento: Expediente de categorización de la Zona Reservada Illescas
+    consultado: "2026-11-16"
     notas: >
       Área protegida de 36 550,70 ha; centro aproximado 5°58′S, 81°05′O.
       No se usa como límite dibujado.
+
+  - id: imarpe-la-nina-2019
+    titulo: Formación y evolución de la laguna La Niña 2017 (IMARPE)
+    institucion: Instituto del Mar del Perú
+    url: https://revistas.imarpe.gob.pe/index.php/boletin/article/view/15
+    fecha: "2019-06-03"
+    escala: laguna / desierto
+    licencia: documento público; citar
+    estado: disponible
+    metodo: artículo científico; imágenes MODIS-Aqua de 500 m
+    grupo: Estudios
+    certeza: medido
+    tipo: documento
+    documento: Escudero L. & Xu H. (2019). Formación y evolución de la laguna La Niña 2017. Bol. Inst. Mar Perú 34(1):105-114
+    pagina: "105-114"
+    consultado: "2026-11-16"
+    notas: >
+      La laguna se formó en 1998 y reapareció en 2017. Área máxima estimada:
+      2 326 km² en 1998 y 2 172 km² en 2017. La cifra es una estimación con
+      MODIS-Aqua de 500 m, no un levantamiento.
+
+  - id: andina-la-nina-2023
+    titulo: Agencia Andina — desborde de la laguna La Niña en 2023
+    institucion: Agencia Peruana de Noticias Andina
+    url: https://andina.pe/agencia/noticia-emergencia-lluvias-piden-priorizar-obras-rio-piura-ante-desborde-laguna-nina-933709.aspx
+    fecha: "2023-03-22"
+    escala: punto / carretera
+    licencia: prensa institucional; citar
+    estado: disponible
+    metodo: consulta de nota de prensa
+    grupo: Estudios
+    certeza: documentado
+    tipo: prensa
+    documento: "Emergencia por lluvias: piden priorizar obras en río Piura ante desborde de laguna La Niña"
+    consultado: "2026-11-16"
+    notas: >
+      Documenta el desborde de marzo de 2023 y la destrucción de 120 m de la
+      carretera Bayóvar–Chiclayo. No es un informe hidrológico ni cuantifica
+      el volumen; se usa solo para la reactivación de La Niña.
+
+  - id: nasa-la-nina-2023
+    titulo: NASA Earth Observatory — Warming Water and Downpours in Peru
+    institucion: NASA Earth Observatory
+    url: https://earthobservatory.nasa.gov/images/151183/warming-water-and-downpours-in-peru
+    fecha: "2023-04-10"
+    escala: laguna / desierto
+    licencia: documento público; citar
+    estado: disponible
+    metodo: imágenes Landsat 9 del 24/02/2023 y 12/03/2023
+    grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    documento: Warming Water and Downpours in Peru
+    consultado: "2026-11-16"
+    notas: >
+      Muestra La Niña antes y durante las lluvias de 2023 y el desborde del
+      23/03/2023. Es teledetección, no un aforo.
 
   - id: banco-mundial-gfdrr
     titulo: Banco Mundial / GFDRR — análisis de la inundación de 2017
@@ -315,4 +557,7 @@ fuentes:
     estado: por_verificar
     metodo: consulta y descarga
     grupo: Estudios
-    notas: Análisis de riesgo y daños.
+    certeza: por_verificar
+    tipo: documento
+    documento: Análisis de la inundación de 2017 (documento pendiente)
+    notas: Análisis de riesgo y daños. No se usa como geometría publicada.

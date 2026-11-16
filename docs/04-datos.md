@@ -11,7 +11,11 @@ data/
 
 `raw/` es inmutable: si una fuente se actualiza, se guarda como versión nueva.
 `processed/` se puede borrar y regenerar. `limits.json` conserva `ring`/`holes` y,
-si la fuente trae varios polígonos, `polygons`; los agujeros no se descartan.
+si la fuente trae varios polígonos, `polygons`; los agujeros no se descartan. También
+guarda un bloque `reconciliacion` con el CRS métrico, las caras del grafo de límites,
+los slivers asignados, los solapamientos eliminados y los cambios de área por
+subcuenca. La cuenca y las subcuencas comparten la rejilla de 1e-6° (~0,11 m) para
+que el redondeo no abra slivers en el borde.
 
 Los archivos crudos se pueden reconstruir con `etl/download_ana.py`,
 `etl/download_hydrorivers.py`, `etl/download_osm_water.py` y
@@ -21,9 +25,11 @@ productos derivados sean coherentes.
 
 La mancha de 2017 se construye en dos pasos: `download_emsr199.py` guarda los ZIP
 oficiales en `data/raw/emsr199/` (ignorados por Git) y `build_layers.py` publica una
-versión simplificada en `web/public/data/flood_2017.geojson`. Las obras esquemáticas
-(Poechos y canal Daniel Escobar) se generan en `build_layers.py` desde `water.json` y
-el eje manual del canal; no se descargan de ANA/PECHP.
+versión simplificada en `web/public/data/flood_2017.geojson`. Cada AOI conserva
+`observaciones` por fecha y sensor (`src_date` y `source_nam` del DBF), además del
+área original y el área simplificada. Las obras esquemáticas (Poechos y canal Daniel
+Escobar) se generan en `build_layers.py` desde `water.json` y el eje manual del canal;
+no se descargan de ANA/PECHP.
 
 ## Formatos
 
@@ -51,8 +57,16 @@ Cada entrada:
   estado: disponible        # disponible | por_solicitar | por_verificar
   metodo: descarga directa
   grupo: Límites, relieve y red
+  certeza: medido           # medido | derivado | documentado | interpretacion | por_verificar
+  tipo: dataset             # dataset | documento | prensa | elaboracion_propia
+  documento: Unidades Hidrográficas Pfafstetter, R.M. 033-2008-AG
+  consultado: "2026-11-16"
   notas: R.M. 033-2008-AG
 ```
+
+`documento`, `pagina` y `consultado` son opcionales. `pagina` solo se usa cuando hay
+un `documento` concreto. Una fuente de `tipo: elaboracion_propia` debe atribuirse a
+«Río Piura Atlas» y no puede declararse `certeza: medido`.
 
 Todo elemento publicado debe referenciar un `id` existente en este archivo.
 

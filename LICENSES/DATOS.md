@@ -5,9 +5,10 @@ licencia de su fuente original.
 
 | id | Fuente | Licencia | ¿Se puede redistribuir? |
 |---|---|---|---|
-| `ana-subcuencas` | ANA — Unidades Hidrográficas 1:100 000 | dato público, sin restricciones | sí, citando |
+| `ana-subcuencas` | ANA — Unidades Hidrográficas 1:100 000 | dato público; verificar términos de reutilización | sí, citando |
+| `bajo-piura-derivado` | Río Piura Atlas — Bajo Piura derivado de ANA | CC BY 4.0 | sí, citando; es derivado, no una subcuenca oficial |
 | `copernicus-dem-30` | Copernicus DEM GLO-30 | libre con atribución (© ESA / Airbus) | sí, citando |
-| `hydrorivers` | HydroRIVERS (WWF/HydroSHEDS) | CC BY 4.0 | sí, citando |
+| `hydrorivers` | HydroRIVERS v1.0 (WWF/HydroSHEDS) | CC BY 4.0 | sí, citando |
 | `ign-cartas` | IGN — cartas nacionales | uso con atribución | citar; no copiar sin confirmar |
 | `osm-agua` | OpenStreetMap | ODbL 1.0 | sí, con atribución y compartir igual |
 | `osm-lugares` | OpenStreetMap | ODbL 1.0 | sí, con atribución y compartir igual |
@@ -17,8 +18,13 @@ licencia de su fuente original.
 | `ingemmet-geodinamica` | INGEMMET | documento público | citar |
 | `sentinel-1-2017` | Copernicus / ESA | libre con atribución | sí, citando |
 | `unosat-copernicus-ems` | UNOSAT / Copernicus EMS | libre con atribución | citar; verificar términos del producto |
-| `siar-piura` | SIAR Piura / SENAMHI | dato público | citar |
-| `siar-cambios-cauce` | SIAR Piura / Gobierno Regional Piura | dato público | citar |
+| `siar-piura` | SIAR Piura / CTAR Piura — Apéndice D | documento público | citar |
+| `siar-evaluacion-200` | SIAR Piura — evaluación hidrológica | documento público | citar |
+| `siar-cambios-cauce` | SIAR Piura / Gobierno Regional Piura | documento público | citar |
+| `pucp-1891` | PUCP — tesis de modelamiento | uso académico con atribución | citar; no reutilizar figuras |
+| `imarpe-la-nina-2019` | IMARPE — Escudero & Xu (2019) | documento público | citar |
+| `andina-la-nina-2023` | Agencia Andina | prensa institucional | citar |
+| `nasa-la-nina-2023` | NASA Earth Observatory | documento público | citar |
 | `sernanp-illescas` | SERNANP | documento público | citar; no se copia el polígono |
 | `senamhi-*` | SENAMHI | por definir | **no** hasta confirmar |
 | `pechp-poechos` | PECHP | por definir | **no** hasta confirmar |

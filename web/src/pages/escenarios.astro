@@ -6,69 +6,115 @@ import { withBase } from "../lib/url";
 <Base
   title="Escenarios"
   current="escenarios"
-  description="Eventos históricos documentados de la cuenca del río Piura: 1891, 1983, 1998 y 2017. Escenarios documentados, no pronósticos."
+  description="Eventos históricos documentados de la cuenca del río Piura: 1891, 1983, 1998 y 2017, con una nota sobre la laguna La Niña en 2023. Escenarios documentados, no pronósticos."
 >
   <main id="main">
     <p class="eyebrow">Historia documentada</p>
     <h1>Cuándo el río sí llegó al mar</h1>
     <p class="lead">
       Estos no son pronósticos. 1891 y 1983 documentan la salida al mar; 1998 y 2017
-      documentan inundaciones y cambios en el Bajo Piura. Cuatro episodios, no una
-      serie homogénea.
+      documentan inundaciones y cambios en el Bajo Piura. Cuatro episodios principales
+      y una nota sobre la laguna La Niña en 2023, que no cambió la desembocadura.
+    </p>
+
+    <p class="small muted">
+      <span class="badge ok">dato medido</span>
+      <span class="badge ok">documentado</span>
+      <span class="badge warn">interpretación</span>
+      <span class="badge pending">por verificar</span>
     </p>
 
     <div class="note">
       <strong>«Escenario documentado» no es «pronóstico».</strong> Cada capa de esta
       sección se digitaliza de una fuente (mapa oficial, imagen satelital, informe) y
-      llevará su fecha y su método. Mientras no exista esa capa, el escenario se cuenta
+      lleva su fecha y su método. Mientras no exista esa capa, el escenario se cuenta
       con texto y fuente, no con una mancha inventada.
     </div>
 
     <h2>1891 · el río cambia de desembocadura</h2>
     <p>
-      El Piura desembocaba cerca de Sechura antes de 1891. Las crecidas de ese año lo
-      llevaron hacia el desierto y consolidaron su salida hacia la laguna San Ramón.
-      El cauce antiguo no desapareció: quedó como vía de evacuación de grandes avenidas.
-      En 1983 volvió a conectar con el mar por ese corredor.
+      Antes de 1891 el Piura desembocaba en el mar, en el litoral de Sechura. La
+      síntesis técnica de SIAR registra el cambio: desde 1891 el cauce principal se
+      dirige a la laguna San Ramón y el antiguo corredor hacia el mar queda como vía
+      de evacuación de grandes avenidas. En 1983 el río volvió a conectar con el mar
+      por ese corredor.
+      <span class="badge ok">documentado</span>
+    </p>
+    <p class="small muted">
+      El detalle del mecanismo —crecidas, avulsión y sedimentación— se apoya en una
+      tesis de la PUCP que cita a Huertas (1999) y Rocha (2014); se marca como
+      <span class="badge warn">interpretación histórica</span>, no como una medición.
     </p>
     <p class="small muted">
       Fuente: <a href={withBase("/fuentes#siar-cambios-cauce")}>SIAR Piura, cambios de la
-      embocadura</a>. Contraste: <a href={withBase("/fuentes#enfen-informes")}>ENFEN</a>.
+      embocadura</a>, p. 5 y 7. Contraste:
+      <a href={withBase("/fuentes#pucp-1891")}>tesis PUCP</a>.
     </p>
 
     <h2>1983 · el Mega-Niño</h2>
     <p>
-      Una de las crecidas más grandes registradas. El río recuperó su cauce antiguo y
-      llegó al mar. El caudal máximo registrado en Puente Sánchez Cerro fue de
-      <strong>3 200 m³/s</strong>; la descarga total de 1983 y 1998 superó hasta doce
-      veces la media anual.
+      El 21 de abril de 1983 la estación Puente Sánchez Cerro registró un caudal
+      máximo instantáneo de <strong>3 200 m³/s</strong>. El río reocupó el cauce
+      antiguo y volvió a conectar con el mar.
+      <span class="badge ok">dato medido</span>
+      <span class="badge ok">documentado</span>
+    </p>
+    <p>
+      La descarga total de 1983 y 1998 superó hasta doce veces la media anual. No se
+      localizó una duración diaria del episodio de 1983 en las fuentes consultadas;
+      no se afirma.
     </p>
     <p class="small muted">
-      Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR Piura, Apéndice D de
-      hidrología</a>; <a href={withBase("/fuentes#udep-estudios")}>UDEP</a> para el
-      contraste hidráulico.
+      Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR, Apéndice D</a>, p. 13 y
+      49 (serie de caudales); <a href={withBase("/fuentes#siar-evaluacion-200")}>SIAR,
+      evaluación hidrológica</a>, p. 15 (21/04/1983). Cauce:
+      <a href={withBase("/fuentes#siar-cambios-cauce")}>SIAR, cambios de la
+      embocadura</a>, p. 7.
     </p>
 
     <h2>1998 · El Niño extraordinario</h2>
     <p>
-      Lluvias intensas y desbordes en el Bajo Piura. El caudal máximo registrado fue de
-      <strong>4 424 m³/s</strong> (12 de marzo de 1998) y el evento dejó obra destruida.
-      También formó la laguna La Niña, que volvió a activarse en 2017 y 2023. La
-      discusión sobre defensas ribereñas continúa hasta hoy.
+      El caudal máximo registrado fue de <strong>4 424 m³/s</strong> (1998). El
+      documento de SIAR consigna el <strong>12 de marzo</strong> en la introducción y
+      el <strong>16 de marzo</strong> en el análisis de niveles; la fecha exacta queda
+      marcada como discrepancia de la fuente, no se elige una sin más evidencia.
+      <span class="badge ok">dato medido</span>
+      <span class="badge pending">fecha por verificar</span>
+    </p>
+    <p>
+      El evento duró 161 días. También se formó la laguna La Niña: IMARPE estima un
+      área máxima de <strong>2 326 km²</strong> en 1998, frente a 2 172 km² en 2017,
+      con imágenes MODIS-Aqua de 500 m. La laguna volvió a activarse en 2017 y 2023.
+      <span class="badge ok">documentado</span>
     </p>
     <p class="small muted">
-      Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR Piura, evaluación
-      hidrológica 1998</a>; <a href={withBase("/fuentes#enfen-informes")}>ENFEN</a>.
+      Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR, Apéndice D</a>, p. 27 y
+      49; <a href={withBase("/fuentes#siar-evaluacion-200")}>SIAR, evaluación
+      hidrológica</a>, p. 1 y 15; <a href={withBase("/fuentes#imarpe-la-nina-2019")}>IMARPE,
+      Escudero &amp; Xu (2019)</a>.
     </p>
 
     <h2>2017 · El Niño costero</h2>
     <p>
       El evento con mejor cobertura geoespacial disponible. La mancha que ves no es una
       reconstrucción propia: es el vector oficial de Copernicus EMSR199. AOI10 (Piura,
-      Catacaos y La Unión) combina Radarsat-2 del 26/03 y Cosmo-SkyMed del 30/03; AOI11
-      (Parachique) usa Radarsat-2 del 26/03. Cubre la llanura baja y el desierto
-      adyacente, no toda la cuenca. La capa no demuestra por sí sola que el río
-      llegara al océano en 2017.
+      Catacaos y La Unión) combina Radarsat Ultra-Fine Beam del 26/03 y Cosmo-SkyMed
+      del 30/03; AOI11 (Parachique) usa Radarsat del 26/03.
+      <span class="badge ok">dato medido</span>
+    </p>
+    <p>
+      La capa publica la <strong>unión de las observaciones</strong>, no una mancha
+      simultánea. En AOI10, el vector original suma 80,8 km² del 26/03 y 73,0 km² del
+      30/03; la unión simplificada es 96,5 km². En AOI11, el vector original mide
+      457,4 km² y la versión simplificada 459,0 km².
+      <span class="badge warn">advertencia metodológica</span>
+    </p>
+    <p class="small muted">
+      El PDF v2 del producto declara Sentinel-1A, pero los atributos del vector
+      declaran Radarsat y Cosmo-SkyMed. El atlas usa los atributos del vector y deja
+      la discrepancia visible. Solo se publica la clase <code>Flooded Area</code>
+      (observada); el vector no trae una clase potencial y la extensión total del
+      evento no se publica.
     </p>
     <figure class="flood-figure">
       <img
@@ -79,36 +125,86 @@ import { withBase } from "../lib/url";
         loading="lazy"
       />
       <figcaption>
-        Inundación observada entre el 26 y el 30 de marzo de 2017 (AOI10 y AOI11 de
-        Copernicus EMSR199). El área azul es el vector oficial simplificado; no es un
-        modelo hidráulico ni una predicción. Fuente:
+        Inundación observada en marzo de 2017 (AOI10 y AOI11 de Copernicus EMSR199).
+        El área azul es el vector oficial simplificado; no es un modelo hidráulico ni
+        una predicción. Fuente:
         <a href={withBase("/fuentes#copernicus-ems-emsr199")}>© European Union,
         Copernicus EMS</a>. <a href={withBase("/mapa?capa=inundacion")}>Ver la capa en
         el mapa</a>.
       </figcaption>
     </figure>
     <p class="small muted">
-      Fuente: <a href={withBase("/fuentes#enfen-informes")}>ENFEN</a>;
-      <a href={withBase("/fuentes#copernicus-ems-emsr199")}>Copernicus EMSR199</a>.
-      UNOSAT / Copernicus EMS figura como referencia de contraste, no se usa para la
-      geometría publicada.
+      Fuente: <a href={withBase("/fuentes#copernicus-ems-emsr199")}>Copernicus
+      EMSR199</a>, productos 10PIURA v2 y 11PARACHIQUE v1. La capa no demuestra por
+      sí sola que el río llegara al océano en 2017.
     </p>
+
+    <div class="note">
+      <h2>2023 · la laguna, no la desembocadura</h2>
+      <p>
+        En marzo de 2023 la laguna La Niña volvió a activarse y desbordó; el agua
+        destruyó un tramo de la carretera Bayóvar–Chiclayo. Lo documentan una nota de
+        la Agencia Andina y las imágenes Landsat 9 de NASA Earth Observatory.
+        <span class="badge ok">documentado</span>
+      </p>
+      <p class="small muted">
+        No hay en el catálogo un informe hidrológico de SENAMHI/ANA que cuantifique el
+        volumen o el área de 2023. Por eso no se publica una cifra:
+        <span class="badge pending">por verificar</span>. La reactivación de la laguna
+        no equivale a una nueva salida del río al mar.
+      </p>
+      <p class="small muted">
+        Fuente: <a href={withBase("/fuentes#andina-la-nina-2023")}>Agencia Andina,
+        22/03/2023</a>; <a href={withBase("/fuentes#nasa-la-nina-2023")}>NASA Earth
+        Observatory, 10/04/2023</a>.
+      </p>
+    </div>
 
     <h2>Estado de esta sección</h2>
     <table>
       <thead><tr><th>Pieza</th><th>Estado</th><th>Qué falta</th></tr></thead>
       <tbody>
-        <tr><td>Mancha 2017</td><td><span class="badge ok">disponible</span></td><td>Copernicus EMSR199, AOI10 y AOI11; 26–30 mar 2017</td></tr>
-        <tr><td>Mancha 1998 y 1983</td><td><span class="badge pending">sin dato</span></td><td>cartografía oficial o informes con geometría</td></tr>
-        <tr><td>Caudales y niveles</td><td><span class="badge pending">por solicitar</span></td><td>series de SENAMHI</td></tr>
-        <tr><td>Poechos y canal</td><td><span class="badge warn">referencia</span></td><td>punto del dique; el canal no tiene eje oficial publicado</td></tr>
-        <tr><td>Bocatomas y diques</td><td><span class="badge pending">por solicitar</span></td><td>inventario de ANA / PECHP</td></tr>
+        <tr>
+          <td>Mancha 2017</td>
+          <td><span class="badge ok">disponible</span></td>
+          <td>Copernicus EMSR199, AOI10 y AOI11; unión de observaciones del 26 y 30 mar 2017</td>
+        </tr>
+        <tr>
+          <td>Mancha 1998 y 1983</td>
+          <td><span class="badge pending">sin dato</span></td>
+          <td>cartografía oficial o informes con geometría</td>
+        </tr>
+        <tr>
+          <td>Caudales y niveles</td>
+          <td><span class="badge warn">parcial</span></td>
+          <td>SIAR 204/200 para los picos; series diarias de SENAMHI por solicitar</td>
+        </tr>
+        <tr>
+          <td>Fecha del pico de 1998</td>
+          <td><span class="badge pending">discrepancia</span></td>
+          <td>SIAR 200 dice 12 y 16 de marzo en dos pasajes</td>
+        </tr>
+        <tr>
+          <td>Poechos y canal</td>
+          <td><span class="badge warn">referencia</span></td>
+          <td>punto del dique; el canal no tiene eje oficial publicado</td>
+        </tr>
+        <tr>
+          <td>Bocatomas y diques</td>
+          <td><span class="badge pending">por solicitar</span></td>
+          <td>inventario de ANA / PECHP</td>
+        </tr>
+        <tr>
+          <td>La Niña 2023</td>
+          <td><span class="badge ok">documentado</span></td>
+          <td>prensa institucional y Landsat; falta informe hidrológico</td>
+        </tr>
       </tbody>
     </table>
 
     <p style="margin-top: 28px;">
       El <a href={withBase("/mapa")}>mapa</a> muestra la cuenca, la mancha de 2017 y las
-      obras esquemáticas; la <a href={withBase("/maqueta")}>maqueta</a> muestra el
+      obras de referencia; la <a href={withBase("/maqueta")}>maqueta</a> muestra el
       diorama. Las geometrías esquemáticas están marcadas y no se presentan como datos
       oficiales.
     </p>

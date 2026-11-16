@@ -14,8 +14,9 @@ debe:
 etl/
 ├── download_<fuente>.py    # trae el dato a raw/
 ├── build_<producto>.py     # transforma raw/ en processed/
+├── topology.py             # auditoría y reconciliación de la partición
 ├── check_data.py           # valida fuentes, capas y archivos publicados
-├── tests/                  # pruebas de geometría y muestreo
+├── tests/                  # geometría, topología y contrato de datos
 └── requirements.txt
 ```
 
@@ -42,7 +43,8 @@ modifican `data/processed/`.
 
 `build_layers.py` convierte los JSON crudos (cuenca, subcuencas, red, agua) en
 GeoJSON simplificado, recorta la red con intersección exacta, genera las referencias
-de Poechos y del canal, la mancha de 2017 y el relieve sombreado para la web.
+de Poechos y del canal, la mancha de 2017 (con observaciones por fecha y sensor) y el
+relieve sombreado para la web.
 
 ```bash
 python3 etl/build_layers.py
@@ -84,9 +86,16 @@ python3 etl/check_data.py
 python3 -m unittest discover -s etl/tests -v
 ```
 
-`check_data.py` verifica fuentes, validez y topología de las capas, áreas
-geodésicas, líneas fuera de cuenca, perfiles y su resolución efectiva, malla de
-elevación, estructura del GLB y presupuesto de datos. No necesita DEM ni conexión.
+`check_data.py` verifica fuentes, validez y topología de las capas, **solapamientos
+por par de subcuencas, superficie fuera por subcuenca, huecos por componente y
+agujeros interiores**, áreas geodésicas, líneas fuera de cuenca, perfiles y su
+resolución efectiva, malla de elevación, estructura del GLB y presupuesto de datos.
+No necesita DEM ni conexión.
+
+`topology.py` concentra la auditoría y la reconciliación. `download_ana.py` la usa
+para repartir los slivers de simplificación entre subcuencas sin crear superficie
+nueva; si una subcuenca trae un agujero interior, el proceso se detiene para revisión
+manual.
 
 Los scripts del laboratorio (`../blender/projects/piura/scripts/`) resolvieron el
 DEM y la textura del diorama; este ETL reutiliza esos productos. Los límites y la
