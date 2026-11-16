@@ -26,7 +26,8 @@ solo si aparece dato y socio institucional.
 ## Dentro del alcance
 
 - Mapa base con relieve real y límites oficiales.
-- Red hídrica, subcuencas y obras (diques, bocatomas, canal, represa).
+- Red hídrica, subcuencas y obras mayores (represa y canal como geometría
+  esquemática; diques y bocatomas solo si hay dato público).
 - Cortes transversales calculados del DEM, con la fuente declarada.
 - Escenarios **históricos** de inundación documentados.
 - Fichas de fuente navegables desde cada capa.

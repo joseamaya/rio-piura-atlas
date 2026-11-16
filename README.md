@@ -6,9 +6,10 @@ funciona, dónde se desborda y qué se construyó para contenerlo.
 > **Sitio publicado:** <https://joseamaya.github.io/rio-piura-atlas/>
 >
 > **Estado:** fase 1 en curso. El sitio ya funciona con las capas verificadas
-> (cuenca, subcuencas, red, agua, relieve, cortes transversales y maqueta 3D).
-> Faltan las capas que dependen de datos por solicitar: caudales, obras y manchas de
-> inundación.
+> (cuenca, subcuencas, red, agua, relieve, cortes transversales y maqueta 3D), la
+> mancha oficial de la inundación de 2017 y las obras esquemáticas de Poechos y el
+> canal Daniel Escobar. Faltan las capas que dependen de datos por solicitar:
+> caudales, bocatomas/diques y las manchas de 1983 y 1998.
 
 ## Para quién
 
@@ -17,10 +18,10 @@ necesite explicar o entender el río Piura sin ser especialista.
 
 ## Qué es
 
-- Un **atlas**: mapa 2D/3D de la cuenca, sus subcuencas, su red hídrica, sus obras y
-  sus cortes, con la fuente de cada capa a la vista.
-- Un **visor de escenarios**: capas de inundación **históricas y documentadas**
-  (1983, 1998, 2017), no pronósticos.
+- Un **atlas**: mapa 2D/3D de la cuenca, sus subcuencas, su red hídrica, sus obras
+  esquemáticas y sus cortes, con la fuente de cada capa a la vista.
+- Un **visor de escenarios**: la mancha oficial de la inundación de 2017 y el relato
+  documentado de 1983 y 1998. No es un pronóstico.
 
 ## Qué NO es
 
@@ -61,6 +62,7 @@ python3 -m pip install -r etl/requirements.txt
 python3 etl/download_ana.py --force
 python3 etl/download_hydrorivers.py --force
 python3 etl/download_osm_water.py --force
+python3 etl/download_emsr199.py --force
 
 # capas (requiere el DEM del laboratorio de modelos)
 python3 etl/build_layers.py
@@ -82,9 +84,10 @@ en GitHub Pages.
 
 El presupuesto se mide por página. La portada y las páginas de texto no cargan
 librerías 3D. `/mapa` añade MapLibre (~220 kB comprimidos) y las capas vectoriales
-(~630 kB); la malla de elevación para cortes (~443 kB) solo se descarga al dibujar
-un corte. `/maqueta` es la excepción declarada: 1,7 MB de GLB, ~250 kB de decodificador
-Draco y Three.js; solo se descarga al abrir esa página.
+(~650 kB iniciales); la mancha de 2017 (~518 kB) se carga solo al activar esa capa,
+y la malla de elevación para cortes (~443 kB) solo al dibujar un corte. `/maqueta`
+es la excepción declarada: 1,7 MB de GLB, ~250 kB de decodificador Draco y Three.js;
+solo se descarga al abrir esa página.
 
 ## Calidad
 
@@ -102,15 +105,15 @@ Draco y Three.js; solo se descarga al abrir esa página.
 | Página | Contenido |
 |---|---|
 | `/` | qué es el atlas y qué no es |
-| `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, cortes transversales, lagunas y ciudades |
+| `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, inundación 2017, obras esquemáticas, cortes transversales, lagunas y ciudades |
 | `/maqueta` | la cuenca, el desierto y el mar en un bloque 3D (Three.js + Draco) |
-| `/escenarios` | los eventos documentados y lo que falta |
+| `/escenarios` | los eventos documentados, la mancha de 2017 y lo que falta |
 | `/fuentes` | catálogo generado desde `data/sources.yml`, con enlaces por capa |
 
 ## Cómo citar
 
 Ver [`docs/06-como-citar.md`](docs/06-como-citar.md) y [`CITATION.cff`](CITATION.cff).
-Versión citable pendiente de publicación (Zenodo) al cerrar la fase 1.
+Versión 0.2.0; DOI pendiente de publicación del release en Zenodo.
 
 ## Licencias
 

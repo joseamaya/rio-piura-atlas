@@ -2,14 +2,19 @@
 
 ## Versión citable
 
-Al cerrar cada fase se publica una versión con etiqueta (`v0.1.0`, `v1.0.0`) y un
-identificador persistente en Zenodo. Mientras no exista, se cita el repositorio con
-la fecha de consulta. El archivo [`CITATION.cff`](../CITATION.cff) contiene los
-metadatos de la versión actual y sirve para que GitHub y Zenodo los muestren.
+Al cerrar cada fase se publica una versión con etiqueta (`v0.1.0`, `v0.2.0`,
+`v1.0.0`) y un identificador persistente en Zenodo. Mientras no exista, se cita el
+repositorio con la fecha de consulta. El archivo [`CITATION.cff`](../CITATION.cff)
+contiene los metadatos de la versión actual y sirve para que GitHub y Zenodo los
+muestren.
+
+La versión **0.2.0** añade la mancha oficial de la inundación de 2017 (Copernicus
+EMSR199) y las obras esquemáticas. El DOI de esta versión queda pendiente de la
+publicación del release en Zenodo.
 
 ### Texto
 
-> Río Piura Atlas (2026). *Atlas de la cuenca del río Piura*. Versión 0.1.0.
+> Río Piura Atlas (2026). *Atlas de la cuenca del río Piura*. Versión 0.2.0.
 > https://github.com/joseamaya/rio-piura-atlas
 > Sitio: https://joseamaya.github.io/rio-piura-atlas/
 
@@ -20,7 +25,7 @@ metadatos de la versión actual y sirve para que GitHub y Zenodo los muestren.
   title  = {Atlas de la cuenca del río Piura},
   author = {{Río Piura Atlas}},
   year   = {2026},
-  note   = {Versión 0.1.0},
+  note   = {Versión 0.2.0},
   url    = {https://github.com/joseamaya/rio-piura-atlas}
 }
 ```

@@ -22,6 +22,7 @@ ANA, INDECI ni al ENFEN.
 
 ```bash
 # capas y relieve (necesita el DEM del laboratorio; ver PIURA_DEM)
+python3 etl/download_emsr199.py   # vectores oficiales de la inundación de 2017
 python3 etl/build_layers.py
 python3 etl/build_cortes.py
 

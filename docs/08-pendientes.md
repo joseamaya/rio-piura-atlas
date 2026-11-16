@@ -9,12 +9,18 @@ tiene fuente, no se dibuja**.
 ## Implementado
 
 - Capas base: cuenca ANA, 9 subcuencas, red HydroRIVERS, lagunas y salinas OSM.
+- Mancha oficial de la inundación de marzo de 2017 (Copernicus EMSR199, AOI10 y
+  AOI11), con fecha, sensores, cobertura y método declarados.
+- Capa esquemática de Poechos y del canal Daniel Escobar en el mapa 2D, marcada como
+  interpretación; no se dibujan bocatomas ni diques sin geometría.
 - Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,7 MB).
 - Cortes transversales de referencia (5) y corte dibujado por el visitante.
 - Catálogo de fuentes generado desde `data/sources.yml`, con enlaces por capa.
-- Escenarios históricos como texto documentado; sin manchas inventadas.
+- Escenarios históricos documentados; la mancha de 2017 usa un vector oficial y
+  1983/1998 siguen como texto. Sin manchas inventadas.
 - ETL reproducible para capas y cortes.
-- Scripts de descarga para ANA, HydroRIVERS y cuerpos de agua OSM.
+- Scripts de descarga para ANA, HydroRIVERS, cuerpos de agua OSM y Copernicus
+  EMSR199.
 - Validación de datos (`etl/check_data.py`) y pruebas de geometría.
 - CI que compila el sitio y valida datos en cada push.
 - Accesibilidad: enlace de salto, foco visible, texto alternativo del mapa y la
@@ -22,25 +28,20 @@ tiene fuente, no se dibuja**.
   (`npm run check:a11y`), sin violaciones en las cinco páginas y el 404.
 - Comprobación automática de tipos (`astro check`) y de enlaces/anclas internas en CI.
 - Página 404, `robots.txt` y metadatos Open Graph/Twitter.
-- `CITATION.cff` con los metadatos de la versión 0.1.0.
+- `CITATION.cff` con los metadatos de la versión 0.2.0.
 - Sitio publicado en GitHub Pages (`https://joseamaya.github.io/rio-piura-atlas/`)
   con despliegue automático desde `main` y comprobaciones previas de tipos, enlaces
   y accesibilidad.
 
 ## Desbloqueado
 
-1. **Capa de obras hidráulicas.** Poechos, canal Daniel Escobar, bocatomas y diques.
-   Se puede empezar con ubicaciones públicas y marcar como interpretación lo que no
-   tenga geometría oficial. El inventario completo sigue en ANA / PECHP.
-2. **Mancha 2017 con Sentinel-1.** Descargar escenas de marzo de 2017, aplicar umbral
-   de agua, contrastar con UNOSAT / Copernicus EMS y documentar el método.
-3. **Dominio propio (opcional).** Sustituir `joseamaya.github.io` por un dominio
+1. **Dominio propio (opcional).** Sustituir `joseamaya.github.io` por un dominio
    definitivo y actualizar `SITE_URL`.
-4. **DOI Zenodo.** El tag `v0.1.0` ya existe; falta publicarlo y añadir el DOI a
-   `CITATION.cff` y `docs/06-como-citar.md`.
-5. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
+2. **DOI Zenodo.** El tag `v0.1.0` es anterior al diorama actual; publicar `v0.2.0`
+   sobre esta versión y añadir el DOI a `CITATION.cff` y `docs/06-como-citar.md`.
+3. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
    falta teclado real, lector de pantalla y prueba con los tres públicos.
-6. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales.
+4. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales.
 
 ## Bloqueado por solicitudes
 
@@ -48,8 +49,8 @@ tiene fuente, no se dibuja**.
 |---|---|---|
 | Caudales y niveles | SENAMHI | hidrogramas, régimen, crecidas |
 | Precipitación PISCO | SENAMHI | contexto climático |
-| Cartografía de inundación 1983/1998/2017 | ANA | manchas históricas |
-| Inventario de infraestructura | ANA | capa de obras |
+| Cartografía de inundación 1983/1998 | ANA | manchas históricas |
+| Bocatomas y diques | ANA / PECHP | capa de obras completa |
 | Operación de Poechos | PECHP | trasvase y regulación |
 | Escenarios de riesgo | CENEPRED / SIGRID | exposición |
 
@@ -66,9 +67,16 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 - **Red hídrica.** HydroRIVERS incluye tramos que sobresalen levemente de la ventana
   del atlas. `build_layers.py` los recorta a la cuenca y el script de descarga usa un
   margen de 0,05° para no cortar tramos en el borde.
-- **Poechos.** La represa figura como polígono manual de 9 puntos en `water.json` y
-  se dibuja como **geometría esquemática** en la maqueta, no como levantamiento.
-  Falta una fuente y una licencia confirmadas para su geometría.
+- **Poechos y canal Daniel Escobar.** Se dibujan en la maqueta y en el mapa 2D como
+  **geometría esquemática**: un polígono manual de 9 puntos y un eje de 4 puntos.
+  No son levantamientos ni provienen de ANA/PECHP. Las bocatomas y los diques no se
+  dibujan porque no hay geometría pública.
+- **Inundación de 2017.** La mancha es el vector oficial de Copernicus EMSR199
+  (AOI10 + AOI11), no una reconstrucción propia. Usa Radarsat-2 y Cosmo-SkyMed, no
+  Sentinel-1. Cubre la llanura baja y el desierto adyacente, no toda la cuenca; el
+  área publicada (≈555 km²) es la del vector simplificado, no una estimación
+  hidráulica. El AOI12 Piura North se descartó por falta de fecha y sensor en sus
+  registros.
 - **Color del terreno.** La maqueta usa una rampa hipsométrica: el verde indica
   altitud, no cobertura vegetal.
 - **Lagunas.** Los polígonos son de OSM; Ramón y Las Salinas figuran como
@@ -78,14 +86,18 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   (1 933 m; máximo de ventana 3 019 m) y «Reserva Illescas» no dibuja el área
   protegida. Corregirlos o retirarlos en una próxima exportación; el GLB actual no se
   toca.
-- **ENFEN y Sentinel-1.** Están disponibles como documentos o imágenes, pero no como
-  capas geográficas listas para publicar. Por eso no hay mancha de inundación todavía.
+- **ENFEN, Sentinel-1 y UNOSAT.** ENFEN aporta el relato; Sentinel-1 y UNOSAT se usan
+  como contraste. La geometría publicada de 2017 es el vector oficial de Copernicus
+  EMSR199. Las manchas de 1983 y 1998 siguen sin geometría pública localizada.
 
 ## Criterios para cerrar la fase 1
 
 - Una persona sin formación técnica entiende, en menos de 10 minutos, por qué el río
   no llega al mar.
 - Toda capa visible tiene fuente consultable en dos clics.
+- La mancha de 2017 declara fuente, fecha, sensores, cobertura y método; las obras
+  esquemáticas están marcadas como interpretación.
 - El sitio funciona en móvil y con conexión lenta: portada y páginas de texto
-  por debajo de 1 MB; `/maqueta` es la excepción declarada por el GLB.
+  por debajo de 1 MB; `/maqueta` es la excepción declarada por el GLB y la mancha de
+  2017 se carga a demanda en `/mapa`.
 - Existe una versión etiquetada y citable.

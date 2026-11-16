@@ -43,8 +43,9 @@ Ciudadano. Conviene registrar la solicitud con número de expediente.
 >
 > Yo, [NOMBRE], con DNI [NÚMERO], solicito:
 >
-> 1. Cartografía de inundaciones históricas de 1983, 1998 y 2017 en formato
->    shapefile o GeoPackage, con metadatos.
+> 1. Cartografía de inundaciones históricas de 1983 y 1998 en formato shapefile o
+>    GeoPackage, con metadatos. (La de 2017 se trabaja con el vector público de
+>    Copernicus EMSR199.)
 > 2. Inventario de infraestructura hidráulica (diques, bocatomas, canal Daniel
 >    Escobar, represa de Poechos) con coordenadas y año de construcción.
 > 3. Estudios de batimetría del cauce disponibles, con fecha de levantamiento.
@@ -57,7 +58,7 @@ Ciudadano. Conviene registrar la solicitud con número de expediente.
 | # | Entidad | Pedido | Fecha | Expediente | Estado | Respuesta |
 |---|---|---|---|---|---|---|
 | 1 | SENAMHI | caudales diarios | — | — | pendiente | — |
-| 2 | ANA | cartografía de inundación | — | — | pendiente | — |
+| 2 | ANA | cartografía de inundación 1983/1998 | — | — | pendiente | — |
 | 3 | PECHP | operación de Poechos | — | — | pendiente | — |
 | 4 | CENEPRED | escenarios de riesgo | — | — | pendiente | — |
 

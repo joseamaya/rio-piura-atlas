@@ -25,10 +25,11 @@ lista de fuentes con estado real.
 
 - [x] Integrar en `data/processed/` las capas ya disponibles: cuenca, subcuencas,
       red, relieve y cortes.
-- [ ] Integrar las obras conocidas (pendiente del inventario de ANA / PECHP).
+- [ ] Integrar el inventario completo de obras (Poechos y canal ya están como
+      esquemáticos; faltan bocatomas y diques de ANA / PECHP).
 - [x] Medir el peso y la viabilidad técnica (COG, PMTiles).
 - [x] Probar un corte transversal sobre el DEM y documentar sus límites.
-- [ ] Reconstruir la mancha de 2017 con Sentinel-1/2, si el resultado es defendible.
+- [x] Integrar la mancha de 2017 con el vector oficial de Copernicus EMSR199.
 
 ## Semana 4 · Decisión y publicación
 
