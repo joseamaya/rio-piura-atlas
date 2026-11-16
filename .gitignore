@@ -9,6 +9,8 @@ venv/
 node_modules/
 dist/
 .astro/
+playwright-report/
+test-results/
 
 # Datos pesados (se publican como release, no en Git)
 data/raw/*

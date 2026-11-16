@@ -20,16 +20,18 @@ import { withBase } from "../lib/url";
         punteadas son trazos aproximados de rutas históricas de crecida y no son
         cartografía oficial. Las subcuencas solo aparecen como rótulos; sus límites
         están en el mapa 2D. Arrastra para girar, usa la rueda para acercar y haz doble
-        clic para reiniciar la vista. El <a href={withBase("/mapa")}>mapa 2D</a> añade
+        clic para reiniciar la vista. Con el foco en la maqueta, las flechas giran,
+        + y − acercan y Home reinicia. El <a href={withBase("/mapa")}>mapa 2D</a> añade
         la mancha oficial de 2017 y las obras esquemáticas, con capas consultables.
       </p>
-      <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
+      <div id="scene" role="application" tabindex="0" aria-label="Maqueta 3D interactiva de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
       <p id="scene-status" class="scene-status" role="status" aria-live="polite"></p>
 
-      <aside class="map-panel" aria-label="Información de la maqueta" tabindex="0">
+      <aside class="map-panel scene-panel" aria-label="Información de la maqueta" tabindex="0">
         <h2>La cuenca y su salida al mar</h2>
+        <button id="reset-scene" class="btn-draw scene-reset" type="button">Reiniciar vista</button>
         <p class="src panel-sources">
-          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM 30 m</a> ·
+          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM (malla ~140 m)</a> ·
           Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a> ·
           Red: <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS</a> ·
           Agua: <a href={withBase("/fuentes#osm-agua")}>OSM</a> ·
@@ -62,10 +64,10 @@ import { withBase } from "../lib/url";
             <li>La laguna Ramón es un polígono OSM intermitente y puede estar seca; el agua del modelo es narrativa. Las superficies están a cota simbólica (+25 m).</li>
             <li>Las rutas punteadas son una interpretación del equipo; no hay una capa oficial publicada. El relato está en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
             <li>Las subcuencas solo están rotuladas; sus límites están en el <a href={withBase("/mapa")}>mapa 2D</a>.</li>
-            <li>Los rótulos «Naciente ~2 700 m» y «Reserva Illescas» están por verificar; no deben leerse como cota ni como límite oficial.</li>
-            <li>Poechos y el canal Daniel Escobar son geometría esquemática; los bordes del bloque no son un corte geológico. Están también en el <a href={withBase("/mapa?capa=obras")}>mapa 2D</a>, marcados como esquemáticos.</li>
+            <li>El rótulo de cota «Naciente ~2 700 m» fue retirado: el DEM en esa posición mide ~1 935 m. «Reserva Nacional Illescas» se conserva solo como referencia de lugar, no como límite oficial.</li>
+            <li>Poechos se muestra como punto en el dique; el canal Daniel Escobar es una recta de referencia, no su eje oficial. Los bordes del bloque no son un corte geológico. Están también en el <a href={withBase("/mapa?capa=obras")}>mapa 2D</a>.</li>
             <li>La maqueta no dibuja la inundación de 2017. Esa capa está en el <a href={withBase("/mapa?capa=inundacion")}>mapa 2D</a> y en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
-            <li>Lugares: OSM/IGN; subcuencas: ANA; cuerpos de agua: OSM. Coordenadas aproximadas. Relieve: Copernicus DEM GLO-30 (30 m).</li>
+            <li>Lugares: OSM; subcuencas: ANA; cuerpos de agua: OSM. Coordenadas aproximadas. Relieve: Copernicus GLO-30 remuestreado a ~140 m.</li>
           </ul>
         </details>
       </aside>
@@ -89,7 +91,19 @@ import { withBase } from "../lib/url";
   scene.background = new THREE.Color("#cdd6d6");
 
   const camera = new THREE.PerspectiveCamera(38, 1, 100, 3_000_000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = (() => {
+    try {
+      return new THREE.WebGLRenderer({ antialias: true });
+    } catch (error) {
+      const statusEl = document.getElementById("scene-status");
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent =
+          "Este navegador no pudo iniciar WebGL. Usa el mapa 2D para consultar las capas.";
+      }
+      throw error;
+    }
+  })();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   // Mismo revelado que el render de origen (Blender usa AgX).
   renderer.toneMapping = THREE.AgXToneMapping;
@@ -100,6 +114,8 @@ import { withBase } from "../lib/url";
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.maxPolarAngle = Math.PI * 0.49;
+  // Flechas y +/- funcionan cuando el contenedor tiene el foco.
+  controls.listenToKeyEvents(container);
 
   // Sol en la misma posición que la escena de Blender (46°, -42°), con relleno frío.
   scene.add(new THREE.HemisphereLight(0xc8d8e2, 0x8a7f63, 0.45));
@@ -235,6 +251,11 @@ import { withBase } from "../lib/url";
       // mientras se recorre.
       const found: THREE.Object3D[] = [];
       root.traverse((child) => {
+        // Rótulo retirado: la cota 2 700 m no coincide con el DEM en esa posición.
+        if (child.name.includes("Naciente")) {
+          child.visible = false;
+          return;
+        }
         if (child.name.startsWith("GEO-Etiqueta")) found.push(child);
       });
       const pivots = new Map<string, LabelPivot>();
@@ -275,8 +296,16 @@ import { withBase } from "../lib/url";
     },
   );
 
-  renderer.domElement.addEventListener("dblclick", () => {
+  const resetView = () => {
     if (model) frame(model);
+  };
+  renderer.domElement.addEventListener("dblclick", resetView);
+  document.getElementById("reset-scene")?.addEventListener("click", resetView);
+  container.addEventListener("keydown", (event) => {
+    if (event.key === "Home" || event.key === "0") {
+      event.preventDefault();
+      resetView();
+    }
   });
 
   function faceCamera() {

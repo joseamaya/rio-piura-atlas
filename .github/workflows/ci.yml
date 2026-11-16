@@ -36,6 +36,7 @@ jobs:
       - run: npm run check:a11y
         env:
           CHROME_PATH: /usr/bin/google-chrome
+      - run: npm run test:e2e
       - name: Preparar artefacto de Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3

@@ -12,8 +12,9 @@ import { withBase } from "../lib/url";
     <p class="eyebrow">Historia documentada</p>
     <h1>Cuándo el río sí llegó al mar</h1>
     <p class="lead">
-      Estos no son pronósticos. Son cuatro episodios documentados que cambiaron el
-      cauce y la forma de mirar la cuenca.
+      Estos no son pronósticos. 1891 y 1983 documentan la salida al mar; 1998 y 2017
+      documentan inundaciones y cambios en el Bajo Piura. Cuatro episodios, no una
+      serie homogénea.
     </p>
 
     <div class="note">
@@ -25,33 +26,49 @@ import { withBase } from "../lib/url";
 
     <h2>1891 · el río cambia de desembocadura</h2>
     <p>
-      El Piura desembocaba cerca de Sechura hasta 1891. Las crecidas de ese año lo
-      llevaron hacia el desierto y terminó en el entonces lago Ramón. Desde entonces,
-      el cauce solo volvió a su trazado antiguo en episodios extraordinarios.
+      El Piura desembocaba cerca de Sechura antes de 1891. Las crecidas de ese año lo
+      llevaron hacia el desierto y consolidaron su salida hacia la laguna San Ramón.
+      El cauce antiguo no desapareció: quedó como vía de evacuación de grandes avenidas.
+      En 1983 volvió a conectar con el mar por ese corredor.
     </p>
-    <p class="small muted">Fuente: Wikipedia (Río Piura) y Autoridad de Cuenca Chira-Piura.</p>
+    <p class="small muted">
+      Fuente: <a href={withBase("/fuentes#siar-cambios-cauce")}>SIAR Piura, cambios de la
+      embocadura</a>. Contraste: <a href={withBase("/fuentes#enfen-informes")}>ENFEN</a>.
+    </p>
 
     <h2>1983 · el Mega-Niño</h2>
     <p>
       Una de las crecidas más grandes registradas. El río recuperó su cauce antiguo y
-      llegó al mar. La descarga anual de ese año se midió en miles de millones de metros
-      cúbicos, muy por encima de la media.
+      llegó al mar. El caudal máximo registrado en Puente Sánchez Cerro fue de
+      <strong>3 200 m³/s</strong>; la descarga total de 1983 y 1998 superó hasta doce
+      veces la media anual.
     </p>
-    <p class="small muted">Fuente: ENFEN; estudios hidrológicos de la cuenca.</p>
+    <p class="small muted">
+      Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR Piura, Apéndice D de
+      hidrología</a>; <a href={withBase("/fuentes#udep-estudios")}>UDEP</a> para el
+      contraste hidráulico.
+    </p>
 
     <h2>1998 · El Niño extraordinario</h2>
     <p>
-      Lluvias intensas y desbordes en el Bajo Piura. El evento dejó obra destruida y
-      marcó la discusión sobre defensas ribereñas que todavía hoy continúa.
+      Lluvias intensas y desbordes en el Bajo Piura. El caudal máximo registrado fue de
+      <strong>4 424 m³/s</strong> (12 de marzo de 1998) y el evento dejó obra destruida.
+      También formó la laguna La Niña, que volvió a activarse en 2017 y 2023. La
+      discusión sobre defensas ribereñas continúa hasta hoy.
     </p>
-    <p class="small muted">Fuente: ENFEN; Plan de Defensas Ribereñas.</p>
+    <p class="small muted">
+      Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR Piura, evaluación
+      hidrológica 1998</a>; <a href={withBase("/fuentes#enfen-informes")}>ENFEN</a>.
+    </p>
 
     <h2>2017 · El Niño costero</h2>
     <p>
-      El evento más documentado y el más útil para un atlas. La mancha que ves no es
-      una reconstrucción propia: es el vector oficial de Copernicus EMSR199, levantado
-      con Radarsat-2 y Cosmo-SkyMed entre el 26 y el 30 de marzo de 2017. Cubre la
-      llanura baja y el desierto adyacente, no toda la cuenca.
+      El evento con mejor cobertura geoespacial disponible. La mancha que ves no es una
+      reconstrucción propia: es el vector oficial de Copernicus EMSR199. AOI10 (Piura,
+      Catacaos y La Unión) combina Radarsat-2 del 26/03 y Cosmo-SkyMed del 30/03; AOI11
+      (Parachique) usa Radarsat-2 del 26/03. Cubre la llanura baja y el desierto
+      adyacente, no toda la cuenca. La capa no demuestra por sí sola que el río
+      llegara al océano en 2017.
     </p>
     <figure class="flood-figure">
       <img
@@ -70,7 +87,12 @@ import { withBase } from "../lib/url";
         el mapa</a>.
       </figcaption>
     </figure>
-    <p class="small muted">Fuente: ENFEN; Copernicus EMSR199; UNOSAT / Copernicus EMS (contraste).</p>
+    <p class="small muted">
+      Fuente: <a href={withBase("/fuentes#enfen-informes")}>ENFEN</a>;
+      <a href={withBase("/fuentes#copernicus-ems-emsr199")}>Copernicus EMSR199</a>.
+      UNOSAT / Copernicus EMS figura como referencia de contraste, no se usa para la
+      geometría publicada.
+    </p>
 
     <h2>Estado de esta sección</h2>
     <table>
@@ -79,7 +101,7 @@ import { withBase } from "../lib/url";
         <tr><td>Mancha 2017</td><td><span class="badge ok">disponible</span></td><td>Copernicus EMSR199, AOI10 y AOI11; 26–30 mar 2017</td></tr>
         <tr><td>Mancha 1998 y 1983</td><td><span class="badge pending">sin dato</span></td><td>cartografía oficial o informes con geometría</td></tr>
         <tr><td>Caudales y niveles</td><td><span class="badge pending">por solicitar</span></td><td>series de SENAMHI</td></tr>
-        <tr><td>Poechos y canal</td><td><span class="badge warn">esquemático</span></td><td>trazado manual; no es un levantamiento</td></tr>
+        <tr><td>Poechos y canal</td><td><span class="badge warn">referencia</span></td><td>punto del dique; el canal no tiene eje oficial publicado</td></tr>
         <tr><td>Bocatomas y diques</td><td><span class="badge pending">por solicitar</span></td><td>inventario de ANA / PECHP</td></tr>
       </tbody>
     </table>

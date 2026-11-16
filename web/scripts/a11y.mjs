@@ -30,9 +30,17 @@ const MIME = {
   ".glb": "model/gltf-binary",
 };
 
-const pages = ["/", "/mapa/", "/maqueta/", "/escenarios/", "/fuentes/", "/404.html"].map(
-  (route) => `${base}${route}`,
-);
+const routes = ["/", "/mapa/", "/maqueta/", "/escenarios/", "/fuentes/", "/404.html"];
+const pages = routes.map((route) => ({
+  route: `${base}${route}`,
+  label: route,
+  width: 1280,
+  height: 900,
+}));
+// Los dos visores son los que cambian de composición en móvil.
+for (const route of ["/mapa/", "/maqueta/"]) {
+  pages.push({ route: `${base}${route}`, label: `${route} (móvil)`, width: 390, height: 844 });
+}
 
 function chromePath() {
   const candidates = [
@@ -122,10 +130,10 @@ const browser = await launchBrowser();
 
 const violations = [];
 try {
-  for (const route of pages) {
+  for (const target of pages) {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 900 });
-    await page.goto(`${origin}${route}`, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    await page.setViewport({ width: target.width, height: target.height });
+    await page.goto(`${origin}${target.route}`, { waitUntil: "domcontentloaded", timeout: 45_000 });
     // Da tiempo a que el DOM dinámico (panel de cortes, capas) se monte.
     await new Promise((resolve) => setTimeout(resolve, 500));
     await page.addScriptTag({ content: axeSource });
@@ -136,10 +144,10 @@ try {
       }),
     );
     for (const violation of result.violations) {
-      violations.push({ route, violation });
+      violations.push({ route: target.label, violation });
     }
     console.log(
-      `${route}: ${result.violations.length} violación(es), ${result.passes.length} reglas correctas`,
+      `${target.label}: ${result.violations.length} violación(es), ${result.passes.length} reglas correctas`,
     );
     await page.close();
   }

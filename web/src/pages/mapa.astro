@@ -15,7 +15,8 @@ import { withBase } from "../lib/url";
         cuenca, subcuencas, red hídrica, lagunas, inundación de 2017, obras
         esquemáticas, cortes transversales y ciudades. La mancha de 2017 es el
         vector oficial de Copernicus EMSR199 y cubre la llanura baja, no toda la
-        cuenca. Las obras son un trazado esquemático. Haz clic sobre una capa para
+        cuenca. Las obras son referencias esquemáticas (punto del dique y recta del
+        canal). Haz clic sobre una capa para
         ver su dato y su fuente. Usa el botón «Dibujar un corte» y marca dos puntos
         para calcular un perfil de elevación. La información de cada capa está
         disponible en la página de fuentes.
@@ -24,6 +25,10 @@ import { withBase } from "../lib/url";
 
       <aside class="map-panel" aria-label="Capas y fuentes">
         <h2>Capas</h2>
+        <button id="toggle-panel" class="panel-toggle" type="button" aria-expanded="true" aria-controls="layer-panel">
+          Ocultar capas
+        </button>
+        <div id="layer-panel">
         <label><input type="checkbox" data-layer="cuenca" checked />
           <span class="swatch" style="background:#6b2e26"></span> Cuenca (ANA)</label>
         <label><input type="checkbox" data-layer="subcuencas" checked />
@@ -48,13 +53,17 @@ import { withBase } from "../lib/url";
         <p class="src" id="draw-hint" aria-live="polite" style="margin-top:6px;">
           Haz dos clics sobre el mapa para trazar un corte y ver su perfil.
         </p>
+        <p class="src">
+          El trazado libre usa el puntero; los cortes de referencia se abren con teclado
+          desde «Cortes de referencia».
+        </p>
         <details class="cortes-list">
           <summary>Cortes de referencia</summary>
           <div id="cortes-list" role="list"></div>
         </details>
         <hr />
         <p class="src">
-          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM 30 m</a>.
+          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM (malla ~140 m)</a>.
           Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>.
           Red: <a href={withBase("/fuentes#hydrorivers")}>HydroSHEDS</a>.
           Agua: <a href={withBase("/fuentes#osm-agua")}>OpenStreetMap</a>.
@@ -62,6 +71,7 @@ import { withBase } from "../lib/url";
           Obras: <a href={withBase("/fuentes#obras-esquematicas")}>elaboración propia (esquemático)</a>.
           Lugares: <a href={withBase("/fuentes#osm-lugares")}>OpenStreetMap</a>.
         </p>
+        </div>
       </aside>
 
       <div id="ficha" aria-live="polite">
@@ -91,14 +101,18 @@ import { withBase } from "../lib/url";
 
   const mapShell = document.querySelector(".map-shell") as HTMLElement | null;
   const layerPanel = document.querySelector(".map-panel") as HTMLElement | null;
+  const panelToggle = document.getElementById("toggle-panel") as HTMLButtonElement | null;
   const isNarrow = () => (mapShell?.clientWidth ?? window.innerWidth) <= 720;
 
   // El panel de capas tapa parte del mapa: el encuadre debe usar ese hueco,
-  // no un padding simétrico que esconde el oeste de la cuenca.
+  // no un padding simétrico que esconde el oeste de la cuenca. En móvil también
+  // se descuenta la ficha inferior, que antes se comía el sur de la cuenca.
   function mapPadding() {
+    const fichaEl = document.getElementById("ficha");
     if (isNarrow()) {
       const top = layerPanel ? layerPanel.offsetTop + layerPanel.offsetHeight + 16 : 24;
-      return { top, bottom: 24, left: 24, right: 24 };
+      const bottom = (fichaEl?.offsetHeight ?? 0) + 32;
+      return { top, bottom, left: 24, right: 24 };
     }
     const left = layerPanel ? layerPanel.offsetLeft + layerPanel.offsetWidth + 16 : 24;
     return { top: 24, bottom: 24, left, right: 24 };
@@ -106,6 +120,15 @@ import { withBase } from "../lib/url";
 
   function fitBasin() {
     map.fitBounds(BBOX, { padding: mapPadding(), duration: 0 });
+  }
+
+  // En móvil el panel arranca cerrado para que el mapa tenga área útil.
+  if (isNarrow()) {
+    layerPanel?.classList.add("collapsed");
+    if (panelToggle) {
+      panelToggle.textContent = "Mostrar capas";
+      panelToggle.setAttribute("aria-expanded", "false");
+    }
   }
 
   interface Perfil {
@@ -138,7 +161,7 @@ import { withBase } from "../lib/url";
     fitBoundsOptions: { padding: mapPadding() },
     attributionControl: {
       compact: true,
-      customAttribution: `<a href="${withBase("/fuentes#copernicus-dem-30")}">Copernicus DEM GLO-30 © ESA/Airbus</a>`,
+      customAttribution: `<a href="${withBase("/fuentes#copernicus-dem-30")}">Copernicus DEM GLO-30, malla ~140 m © ESA/Airbus</a>`,
     },
     maxZoom: 14,
     minZoom: 6,
@@ -147,8 +170,9 @@ import { withBase } from "../lib/url";
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
 
-  // Reencuadra solo cuando cambia el ancho (escritorio ↔ móvil) o, en móvil,
-  // cuando el panel cambia de alto. Así no se pisa el zoom del visitante.
+  // Reencuadra solo cuando cambia el ancho del contenedor (escritorio ↔ móvil).
+  // No se observa el alto del panel: al cambiar un texto de estado no debe
+  // resetearse el zoom que eligió el visitante.
   let narrowLayout = isNarrow();
   let pendingFit = 0;
   const scheduleFit = () => {
@@ -160,16 +184,30 @@ import { withBase } from "../lib/url";
     if (narrow !== narrowLayout) {
       narrowLayout = narrow;
       scheduleFit();
-    } else if (narrow) {
-      scheduleFit();
     }
   });
   if (mapShell) shellObserver.observe(mapShell);
-  if (layerPanel) shellObserver.observe(layerPanel);
 
-  const get = (url: string) => fetch(url).then((r) => r.json());
-  const safeGet = (url: string) =>
-    get(url).catch(() => ({ type: "FeatureCollection", features: [] }));
+  function setPanelCollapsed(collapsed: boolean) {
+    layerPanel?.classList.toggle("collapsed", collapsed);
+    if (panelToggle) {
+      panelToggle.textContent = collapsed ? "Mostrar capas" : "Ocultar capas";
+      panelToggle.setAttribute("aria-expanded", String(!collapsed));
+    }
+    scheduleFit();
+  }
+
+  panelToggle?.addEventListener("click", () => {
+    setPanelCollapsed(!layerPanel?.classList.contains("collapsed"));
+  });
+
+  async function fetchJson<T = any>(url: string): Promise<T> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}: ${url}`);
+    }
+    return (await response.json()) as T;
+  }
 
   const ficha = document.getElementById("ficha");
   const show = (html: string) => { if (ficha) ficha.innerHTML = html; };
@@ -183,7 +221,7 @@ import { withBase } from "../lib/url";
     if (layerStatus) layerStatus.textContent = "Cargando la mancha de 2017…";
     floodLoading = (async () => {
       try {
-        const data = await get(withBase("/data/flood_2017.geojson"));
+        const data = await fetchJson(withBase("/data/flood_2017.geojson"));
         const source = map.getSource("flood") as maplibregl.GeoJSONSource | undefined;
         if (!source) throw new Error("sin fuente flood");
         source.setData(data);
@@ -230,6 +268,7 @@ import { withBase } from "../lib/url";
   const corteNote = document.getElementById("corte-note")!;
   const drawButton = document.getElementById("draw-corte") as HTMLButtonElement;
   const drawHint = document.getElementById("draw-hint")!;
+  let lastCorteTrigger: HTMLElement | null = null;
 
   let perfiles: Record<string, Perfil> = {};
   let grid: { meta: GridMeta; view: DataView } | null = null;
@@ -281,7 +320,11 @@ import { withBase } from "../lib/url";
     </svg>`;
   }
 
-  function showCorte(perfil: Perfil, opts: { dibujado?: boolean; resolution?: number } = {}) {
+  function showCorte(
+    perfil: Perfil,
+    opts: { dibujado?: boolean; resolution?: number; trigger?: HTMLElement | null } = {},
+  ) {
+    lastCorteTrigger = opts.trigger ?? null;
     panel.hidden = false;
     document.body.classList.add("corte-open");
     corteTitle.textContent = perfil.nombre;
@@ -299,29 +342,35 @@ import { withBase } from "../lib/url";
         paso ? `una muestra cada ${paso} m` : "",
       ].filter(Boolean).join(", ");
       corteNote.textContent =
-        "Corte dibujado sobre una malla derivada del DEM de 30 m" +
+        "Corte dibujado sobre una malla derivada de un DEM de trabajo de ~140 m" +
         (detalle ? ` (${detalle})` : "") +
         ". Sirve para explicar la forma del valle; no sirve para dimensionar obras.";
     } else {
       corteNote.textContent =
-        "Corte de referencia calculado del DEM de 30 m. No sirve para dimensionar obras.";
+        "Corte de referencia calculado del DEM de trabajo (~140 m, derivado de Copernicus GLO-30). No sirve para dimensionar obras.";
     }
   }
 
   function closeCorte() {
     panel.hidden = true;
     document.body.classList.remove("corte-open");
+    const target = lastCorteTrigger ?? document.querySelector<HTMLElement>("#map canvas");
+    lastCorteTrigger = null;
+    target?.focus();
   }
 
   document.getElementById("corte-close")!.addEventListener("click", closeCorte);
 
   async function loadGrid() {
     if (grid) return grid;
-    const [meta, buffer] = await Promise.all([
-      get(withBase("/data/dem_grid.meta.json")) as Promise<GridMeta>,
-      fetch(withBase("/data/dem_grid.bin")).then((r) => r.arrayBuffer()),
+    const [meta, response] = await Promise.all([
+      fetchJson<GridMeta>(withBase("/data/dem_grid.meta.json")),
+      fetch(withBase("/data/dem_grid.bin")),
     ]);
-    grid = { meta, view: new DataView(buffer) };
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}: dem_grid.bin`);
+    }
+    grid = { meta, view: new DataView(await response.arrayBuffer()) };
     return grid;
   }
 
@@ -389,17 +438,40 @@ import { withBase } from "../lib/url";
 
   map.on("load", async () => {
     fitBasin();
+    const failed: string[] = [];
+    const empty = { type: "FeatureCollection" as const, features: [] as any[] };
+    async function optional<T>(url: string, fallback: T): Promise<T> {
+      try {
+        return await fetchJson<T>(url);
+      } catch (error) {
+        console.error(error);
+        failed.push(url.split("/").pop() || url);
+        return fallback;
+      }
+    }
     const [cuenca, subcuencas, rios, agua, lugares, cortes, perfilesData, obras] = await Promise.all([
-      get(withBase("/data/cuenca.geojson")),
-      get(withBase("/data/subcuencas.geojson")),
-      get(withBase("/data/red_hidrica.geojson")),
-      get(withBase("/data/agua.geojson")),
-      get(withBase("/data/lugares.geojson")),
-      get(withBase("/data/cortes.geojson")),
-      get(withBase("/data/cortes_perfiles.json")),
-      safeGet(withBase("/data/obras.geojson")),
+      optional<any>(withBase("/data/cuenca.geojson"), empty),
+      optional<any>(withBase("/data/subcuencas.geojson"), empty),
+      optional<any>(withBase("/data/red_hidrica.geojson"), empty),
+      optional<any>(withBase("/data/agua.geojson"), empty),
+      optional<any>(withBase("/data/lugares.geojson"), empty),
+      optional<any>(withBase("/data/cortes.geojson"), empty),
+      optional<any>(withBase("/data/cortes_perfiles.json"), { perfiles: {} }),
+      optional<any>(withBase("/data/obras.geojson"), empty),
     ]);
+    if (failed.length && layerStatus) {
+      layerStatus.textContent = `No se pudieron cargar: ${failed.join(", ")}. El resto del mapa sigue disponible.`;
+    }
     perfiles = perfilesData.perfiles || {};
+
+    let reliefBbox: [number, number, number, number] = [-81.45, -6.25, -79.30, -4.55];
+    try {
+      const info = await fetchJson<any>(withBase("/data/relieve_info.json"));
+      // El ETL guarda [oeste, norte, este, sur].
+      reliefBbox = [Number(info.bbox[0]), Number(info.bbox[3]), Number(info.bbox[2]), Number(info.bbox[1])];
+    } catch {
+      // Se conserva el BBOX de la ventana del atlas como respaldo.
+    }
 
     const listaCortes = document.getElementById("cortes-list");
     if (listaCortes) {
@@ -410,7 +482,7 @@ import { withBase } from "../lib/url";
         button.dataset.corte = id;
         button.textContent = perfil.nombre;
         button.setAttribute("aria-label", `Ver el perfil de elevación del corte ${perfil.nombre}`);
-        button.addEventListener("click", () => showCorte(perfil));
+        button.addEventListener("click", () => showCorte(perfil, { trigger: button }));
         listaCortes.appendChild(button);
       }
     }
@@ -523,6 +595,19 @@ import { withBase } from "../lib/url";
       },
     });
     map.addLayer({
+      id: "obras-point",
+      type: "circle",
+      source: "obras",
+      filter: ["==", ["geometry-type"], "Point"],
+      layout: { visibility: "none" },
+      paint: {
+        "circle-radius": 6,
+        "circle-color": "#8c5a2b",
+        "circle-stroke-color": "#fffdf7",
+        "circle-stroke-width": 2,
+      },
+    });
+    map.addLayer({
       id: "cortes-line",
       type: "line",
       source: "cortes",
@@ -539,10 +624,10 @@ import { withBase } from "../lib/url";
       type: "image",
       url: withBase("/data/relieve.jpg"),
       coordinates: [
-        [-81.45, -4.55],
-        [-79.30, -4.55],
-        [-79.30, -6.25],
-        [-81.45, -6.25],
+        [reliefBbox[0], reliefBbox[3]],
+        [reliefBbox[2], reliefBbox[3]],
+        [reliefBbox[2], reliefBbox[1]],
+        [reliefBbox[0], reliefBbox[1]],
       ],
     });
     map.addLayer({ id: "relieve", type: "raster", source: "relieve", paint: { "raster-opacity": 1 } });
@@ -561,34 +646,52 @@ import { withBase } from "../lib/url";
     });
 
     // Ciudades como marcadores HTML: no requieren glifos ni teselas externas.
+    // Piura y Castilla están a ~4 km: se colocan a lados opuestos para que no se
+    // tapen entre sí. Cura Mori y La Unión reciben un desplazamiento menor.
+    const cityLayout: Record<string, { anchor: "left" | "right"; offset: [number, number] }> = {
+      Castilla: { anchor: "right", offset: [-6, -4] },
+      Piura: { anchor: "left", offset: [6, -6] },
+      "Cura Mori": { anchor: "right", offset: [-6, -6] },
+      "La Unión": { anchor: "left", offset: [6, 4] },
+      Paita: { anchor: "right", offset: [-6, 0] },
+      Chulucanas: { anchor: "right", offset: [-6, 0] },
+      Morropón: { anchor: "right", offset: [-6, 0] },
+      Salitral: { anchor: "right", offset: [-6, 0] },
+      Canchaque: { anchor: "right", offset: [-6, 0] },
+      Huarmaca: { anchor: "right", offset: [-6, 0] },
+    };
     const markers: maplibregl.Marker[] = [];
     for (const f of lugares.features) {
       const el = document.createElement("div");
       el.className = "city";
+      el.dataset.jerarquia = String(f.properties.jerarquia ?? 3);
       el.innerHTML = `<span class="dot"></span>${f.properties.nombre}`;
+      const layout = cityLayout[f.properties.nombre] || { anchor: "left" as const, offset: [5, 0] as [number, number] };
       markers.push(
-        new maplibregl.Marker({ element: el, anchor: "left", offset: [5, 0] })
+        new maplibregl.Marker({ element: el, anchor: layout.anchor, offset: layout.offset })
           .setLngLat(f.geometry.coordinates)
           .addTo(map),
       );
     }
 
-    // Rótulos de las obras esquemáticas: solo aparecen al activar la capa.
+    // Rótulos de las obras: solo aparecen al activar la capa y si el dato cargó.
     const obraMarkers: maplibregl.Marker[] = [];
     const obrasLugares: Array<[string, [number, number]]> = [
-      ["Poechos (esquemático)", [-80.518, -4.813]],
-      ["Canal Daniel Escobar (esquemático)", [-80.460, -4.930]],
+      ["Poechos (punto del dique)", [-80.5036, -4.6686]],
+      ["Canal Daniel Escobar (referencia)", [-80.575, -4.855]],
     ];
-    for (const [nombre, coords] of obrasLugares) {
-      const el = document.createElement("div");
-      el.className = "city obra";
-      el.style.display = "none";
-      el.innerHTML = `<span class="dot"></span>${nombre}`;
-      obraMarkers.push(
-        new maplibregl.Marker({ element: el, anchor: "left", offset: [5, 0] })
-          .setLngLat(coords)
-          .addTo(map),
-      );
+    if (obras.features?.length) {
+      for (const [nombre, coords] of obrasLugares) {
+        const el = document.createElement("div");
+        el.className = "city obra";
+        el.style.display = "none";
+        el.innerHTML = `<span class="dot"></span>${nombre}`;
+        obraMarkers.push(
+          new maplibregl.Marker({ element: el, anchor: "left", offset: [5, 0] })
+            .setLngLat(coords)
+            .addTo(map),
+        );
+      }
     }
 
     map.on("mouseenter", "cortes-line", () => { map.getCanvas().style.cursor = "pointer"; });
@@ -635,7 +738,7 @@ import { withBase } from "../lib/url";
       const hits = map.queryRenderedFeatures(e.point, {
         layers: [
           "subcuencas-line", "agua-fill", "cuenca-line", "rios-line",
-          "flood-fill", "obras-fill", "obras-line", "cortes-line",
+          "flood-fill", "obras-fill", "obras-line", "obras-point", "cortes-line",
         ],
       });
       if (!hits.length) {
@@ -653,7 +756,7 @@ import { withBase } from "../lib/url";
         }
       }
 
-      const obraHit = hits.find((hit) => hit.layer.id === "obras-fill" || hit.layer.id === "obras-line");
+      const obraHit = hits.find((hit) => ["obras-fill", "obras-line", "obras-point"].includes(hit.layer.id));
       if (obraHit) {
         const p = obraHit.properties || {};
         show(`<h3>${p.nombre}</h3>
@@ -684,7 +787,10 @@ import { withBase } from "../lib/url";
       } else if (p.nombre) {
         show(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">OpenStreetMap</a></p>`);
       } else {
-        show(`<h3>Cuenca del río Piura</h3><p>11 022 km²</p><p class="muted">Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a></p>`);
+        const cuencaProps = cuenca?.features?.[0]?.properties || {};
+        const area = Number(cuencaProps.area_km2 || 10938.4);
+        show(`<h3>Cuenca del río Piura</h3><p>${Math.round(area).toLocaleString("es-PE")} km² medidos</p>
+              <p class="muted">ANA publica 11 022 km² en Shape_Area (EPSG:32718). Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a></p>`);
       }
     });
 
@@ -703,11 +809,11 @@ import { withBase } from "../lib/url";
       const input = document.querySelector<HTMLInputElement>('[data-layer="obras"]');
       if (input) {
         input.checked = true;
-        for (const id of ["obras-fill", "obras-line"]) {
+        for (const id of ["obras-fill", "obras-line", "obras-point"]) {
           map.setLayoutProperty(id, "visibility", "visible");
         }
         obraMarkers.forEach((m) => { m.getElement().style.display = ""; });
-        map.fitBounds([[-80.58, -5.02], [-80.38, -4.77]], {
+        map.fitBounds([[-80.70, -5.08], [-80.42, -4.60]], {
           padding: mapPadding(),
           duration: 0,
         });
@@ -722,6 +828,7 @@ import { withBase } from "../lib/url";
           return;
         }
         if (layer === "flood") {
+          if (!input.checked && layerStatus) layerStatus.textContent = "";
           void setFlood(input.checked);
           return;
         }
@@ -734,7 +841,7 @@ import { withBase } from "../lib/url";
           layer === "cuenca" ? ["cuenca-fill", "cuenca-line"]
           : layer === "subcuencas" ? ["subcuencas-line"]
           : layer === "rios" ? ["rios-line"]
-          : layer === "obras" ? ["obras-fill", "obras-line"]
+          : layer === "obras" ? ["obras-fill", "obras-line", "obras-point"]
           : layer === "cortes" ? ["cortes-line"]
           : ["agua-fill"];
         ids.forEach((id) => map.setLayoutProperty(id, "visibility", input.checked ? "visible" : "none"));
