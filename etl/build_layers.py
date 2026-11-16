@@ -178,7 +178,7 @@ def build_places():
     feats = [
         feature(
             {"type": "Point", "coordinates": [lo, la]},
-            {"nombre": n, "tipo": t, "jerarquia": j, "fuente": "osm-agua"},
+            {"nombre": n, "tipo": t, "jerarquia": j, "fuente": "osm-lugares"},
         )
         for n, lo, la, t, j in LUGARES
     ]

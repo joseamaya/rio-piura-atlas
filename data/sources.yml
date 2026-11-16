@@ -3,7 +3,7 @@
 
 meta:
   proyecto: rio-piura-atlas
-  actualizado: 2026-11-16
+  actualizado: "2026-11-16"
   notas: >
     Estado: disponible | por_solicitar | por_verificar.
     La licencia se refiere al dato original, no a este repositorio.
@@ -13,44 +13,72 @@ fuentes:
     titulo: Unidades Hidrográficas del Perú (Pfafstetter)
     institucion: Autoridad Nacional del Agua
     url: https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_CARACTERIZACI%C3%93N_DEL_TERRITORIO_PIURA/MapServer/18
-    fecha: 2008-01-05
+    fecha: "2008-01-05"
     escala: "1:100000"
     licencia: dato público
     estado: disponible
     metodo: descarga GeoJSON desde el servicio
+    grupo: Límites, relieve y red
     notas: R.M. N.° 033-2008-AG. Cuenca 11 022 km² y 9 subcuencas.
 
   - id: copernicus-dem-30
     titulo: Copernicus DEM GLO-30 (tiles Terrarium)
     institucion: ESA / Airbus (AWS Open Data)
     url: https://registry.opendata.aws/copernicus-dem/
-    fecha: 2021-01-01
+    fecha: "2021-01-01"
     escala: 30 m
     licencia: libre con atribución
     estado: disponible
     metodo: descarga por teselas
-    notas: Usado para relieve, sombreado y cortes.
+    grupo: Límites, relieve y red
+    notas: Usado para relieve, sombreado, cortes y malla de elevación.
 
   - id: hydrorivers
     titulo: HydroRIVERS v10.0
     institucion: WWF / HydroSHEDS
     url: https://www.hydrosheds.org/products/hydrorivers
-    fecha: 2020-01-01
+    fecha: "2020-01-01"
     escala: ~500 m
     licencia: CC BY 4.0
     estado: disponible
     metodo: recorte y filtrado por área aportante
+    grupo: Límites, relieve y red
+
+  - id: ign-cartas
+    titulo: Cartas nacionales del IGN
+    institucion: Instituto Geográfico Nacional
+    url: https://www.ign.gob.pe/
+    fecha: null
+    escala: "1:100000 / 1:25000"
+    licencia: uso con atribución
+    estado: por_verificar
+    metodo: descarga y contraste
+    grupo: Límites, relieve y red
+    notas: Toponimia y contraste de límites; no se copia al repositorio.
 
   - id: osm-agua
     titulo: Cuerpos de agua (natural=water)
     institucion: OpenStreetMap contributors
     url: https://www.openstreetmap.org/
-    fecha: 2026-11-16
+    fecha: "2026-11-16"
     escala: variable
     licencia: ODbL 1.0
     estado: disponible
     metodo: consulta Overpass
+    grupo: Agua
     notas: Laguna Ramón, Ñapique, La Niña, Las Salinas.
+
+  - id: osm-lugares
+    titulo: Coordenadas de ciudades del valle
+    institucion: OpenStreetMap contributors
+    url: https://www.openstreetmap.org/
+    fecha: "2026-11-16"
+    escala: punto
+    licencia: ODbL 1.0
+    estado: disponible
+    metodo: consulta manual y contraste con cartas nacionales
+    grupo: Límites, relieve y red
+    notas: Coordenadas aproximadas; no sustituyen cartografía oficial.
 
   - id: senamhi-aforos
     titulo: Caudales y niveles de estaciones del valle
@@ -61,6 +89,7 @@ fuentes:
     licencia: por definir
     estado: por_solicitar
     metodo: solicitud de acceso a la información pública
+    grupo: Agua
     notas: Puente Sánchez Cerro, Tambogrande, Chulucanas. Ver docs/07-solicitudes.md.
 
   - id: senamhi-pisco
@@ -72,6 +101,7 @@ fuentes:
     licencia: por definir
     estado: por_solicitar
     metodo: registro y descarga
+    grupo: Agua
 
   - id: pechp-poechos
     titulo: Operación de la represa de Poechos y trasvase
@@ -82,6 +112,7 @@ fuentes:
     licencia: por definir
     estado: por_solicitar
     metodo: solicitud institucional
+    grupo: Agua
 
   - id: ana-infraestructura
     titulo: Inventario de infraestructura hidráulica
@@ -92,6 +123,7 @@ fuentes:
     licencia: por definir
     estado: por_solicitar
     metodo: solicitud de acceso a la información pública
+    grupo: Agua
 
   - id: cenepred-riesgo
     titulo: Escenarios de riesgo por inundación — Piura
@@ -102,6 +134,7 @@ fuentes:
     licencia: por definir
     estado: por_verificar
     metodo: descarga y solicitud
+    grupo: Inundaciones y riesgo
 
   - id: enfen-informes
     titulo: Informes técnicos ENFEN (1982-83, 1997-98, 2017)
@@ -112,25 +145,87 @@ fuentes:
     licencia: documento público
     estado: disponible
     metodo: descarga directa
+    grupo: Inundaciones y riesgo
     notas: Base para el relato histórico de El Niño.
 
   - id: sentinel-1-2017
     titulo: Imágenes Sentinel-1 de marzo de 2017
     institucion: Copernicus / ESA
     url: https://dataspace.copernicus.eu/
-    fecha: 2017-03-01
+    fecha: "2017-03-01"
     escala: 10 m
     licencia: libre con atribución
-    estado: por_verificar
+    estado: disponible
     metodo: descarga y umbral de agua
+    grupo: Inundaciones y riesgo
     notas: Candidata para reconstruir la mancha de inundación.
+
+  - id: unosat-copernicus-ems
+    titulo: UNOSAT / Copernicus EMS — inundación de marzo de 2017
+    institucion: UNITAR / ESA
+    url: https://emergency.copernicus.eu/
+    fecha: "2017-03-01"
+    escala: variable
+    licencia: libre con atribución
+    estado: por_verificar
+    metodo: descarga y contraste con Sentinel-1
+    grupo: Inundaciones y riesgo
+
+  - id: arcc-plan-inundaciones
+    titulo: Plan de Control de Inundaciones Río Piura (2018)
+    institucion: ARCC / Autoridad Nacional del Agua
+    url: null
+    fecha: "2018-01-01"
+    escala: "1:10000"
+    licencia: por definir
+    estado: por_solicitar
+    metodo: solicitud de acceso a la información pública
+    grupo: Inundaciones y riesgo
+    notas: Obras, diagnóstico y defensas ribereñas.
 
   - id: ingemmet-geodinamica
     titulo: Estudio geodinámico de la cuenca del río Piura
     institucion: INGEMMET
     url: https://hdl.handle.net/20.500.12543/32
-    fecha: 1994-01-01
+    fecha: "1994-01-01"
     escala: "1:100000"
     licencia: documento público
     estado: disponible
     metodo: descarga directa
+    grupo: Estudios
+
+  - id: siar-piura
+    titulo: SIAR Piura — hidrología de la cuenca
+    institucion: SENAMHI / Gobierno Regional Piura
+    url: https://www.senamhi.gob.pe/
+    fecha: null
+    escala: cuenca
+    licencia: dato público
+    estado: disponible
+    metodo: consulta y descarga
+    grupo: Estudios
+    notas: Subcuencas, pendientes y longitudes; se usa como contraste.
+
+  - id: udep-estudios
+    titulo: Universidad de Piura — estudios de agua e inundaciones
+    institucion: Universidad de Piura
+    url: null
+    fecha: null
+    escala: cuenca / valle
+    licencia: uso académico con atribución
+    estado: por_verificar
+    metodo: consulta bibliográfica
+    grupo: Estudios
+    notas: Contraste técnico; no se reutilizan figuras sin permiso.
+
+  - id: banco-mundial-gfdrr
+    titulo: Banco Mundial / GFDRR — análisis de la inundación de 2017
+    institucion: Banco Mundial / GFDRR
+    url: null
+    fecha: null
+    escala: cuenca
+    licencia: por definir
+    estado: por_verificar
+    metodo: consulta y descarga
+    grupo: Estudios
+    notas: Análisis de riesgo y daños.

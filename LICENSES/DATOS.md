@@ -8,14 +8,21 @@ licencia de su fuente original.
 | `ana-subcuencas` | ANA — Unidades Hidrográficas 1:100 000 | dato público, sin restricciones | sí, citando |
 | `copernicus-dem-30` | Copernicus DEM GLO-30 | libre con atribución (© ESA / Airbus) | sí, citando |
 | `hydrorivers` | HydroRIVERS (WWF/HydroSHEDS) | CC BY 4.0 | sí, citando |
+| `ign-cartas` | IGN — cartas nacionales | uso con atribución | citar; no copiar sin confirmar |
 | `osm-agua` | OpenStreetMap | ODbL 1.0 | sí, con atribución y compartir igual |
+| `osm-lugares` | OpenStreetMap | ODbL 1.0 | sí, con atribución y compartir igual |
 | `enfen-informes` | ENFEN | documento público | citar; no reutilizar imágenes sin permiso |
 | `ingemmet-geodinamica` | INGEMMET | documento público | citar |
 | `sentinel-1-2017` | Copernicus / ESA | libre con atribución | sí, citando |
+| `unosat-copernicus-ems` | UNOSAT / Copernicus EMS | libre con atribución | citar; verificar términos del producto |
+| `siar-piura` | SIAR Piura / SENAMHI | dato público | citar |
 | `senamhi-*` | SENAMHI | por definir | **no** hasta confirmar |
 | `pechp-poechos` | PECHP | por definir | **no** hasta confirmar |
 | `ana-infraestructura` | ANA | por definir | **no** hasta confirmar |
+| `arcc-plan-inundaciones` | ARCC / ANA | por definir | **no** hasta confirmar |
 | `cenepred-riesgo` | CENEPRED | por definir | **no** hasta confirmar |
+| `udep-estudios` | Universidad de Piura | uso académico con atribución | citar; no reutilizar figuras |
+| `banco-mundial-gfdrr` | Banco Mundial / GFDRR | por definir | **no** hasta confirmar |
 
 ## Regla
 

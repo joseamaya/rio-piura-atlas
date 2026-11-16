@@ -12,6 +12,11 @@ data/
 `raw/` es inmutable: si una fuente se actualiza, se guarda como versión nueva.
 `processed/` se puede borrar y regenerar.
 
+Los archivos crudos se pueden reconstruir con `etl/download_ana.py`,
+`etl/download_hydrorivers.py` y `etl/download_osm_water.py`. Los scripts se niegan a
+sobrescribir sin `--force`. `etl/check_data.py` valida que cada capa apunte a una
+fuente existente y que los productos derivados sean coherentes.
+
 ## Formatos
 
 | Tipo | Formato | Motivo |
@@ -19,6 +24,7 @@ data/
 | Ráster (DEM, imágenes) | COG (`*.tif`) | lectura por teselas sin descargar todo |
 | Vectores grandes | PMTiles | un archivo, rápido en móvil |
 | Vectores pequeños | GeoJSON simplificado | legible y versionable |
+| Perfiles de corte | JSON + binario Int16 | perfil del DEM y malla de elevación sin cargar el ráster completo |
 | Tablas | CSV | universal |
 | Metadatos | YAML | legible y con comentarios |
 
@@ -36,6 +42,7 @@ Cada entrada:
   licencia: dato público
   estado: disponible        # disponible | por_solicitar | por_verificar
   metodo: descarga directa
+  grupo: Límites, relieve y red
   notas: R.M. 033-2008-AG
 ```
 

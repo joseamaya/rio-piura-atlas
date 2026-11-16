@@ -13,11 +13,13 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 | Copernicus DEM GLO-30 | relieve, sombreado, cortes | 30 m | ✅ | libre con atribución |
 | HydroRIVERS v10 | red hídrica, orden, área aportante | ~500 m | ✅ | CC BY 4.0 |
 | IGN — cartas nacionales | contraste y toponimia | 1:100 000 / 1:25 000 | ⚠️ | uso con atribución |
+| OpenStreetMap — ciudades | toponimia y ubicación aproximada | punto | ✅ | ODbL 1.0 |
 
 ## Agua
 
 | Fuente | Uso | Estado |
 |---|---|---|
+| OpenStreetMap — cuerpos de agua | lagunas, salinas y represas | ✅ |
 | SENAMHI — estaciones del valle (Puente Sánchez Cerro, Tambogrande, Chulucanas, entre otras) | caudales y niveles históricos | ❗ |
 | SENAMHI — PISCO v2.1 | precipitación grillada | ❗ registro |
 | PECHP — operación de Poechos y trasvase | caudales derivados, reglas de operación | ❗ |

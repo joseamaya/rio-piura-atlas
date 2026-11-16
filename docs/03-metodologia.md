@@ -34,10 +34,17 @@ HydroRIVERS, filtrada por área aportante y recortada a la cuenca. En la llanura
 DEM no resuelve el cauce: el trazo procede del vector, no del ráster.
 
 ### Cortes transversales
-Se calcula el perfil del DEM sobre un transecto dibujado por el usuario. La ficha del
-corte declara: resolución (30 m), separación entre muestras y cota de referencia.
-**Un corte de DEM no sirve para dimensionar obras**; sirve para explicar la forma del
-valle. Cuando exista batimetría, se superpone y se distingue por estilo.
+Implementados en `etl/build_cortes.py` y visibles en `/mapa`.
+
+- **Cortes de referencia**: cinco transectos perpendiculares a la red hídrica (Bajo
+  Piura, Piura, Catacaos, Chulucanas y Tambogrande), recortados a la cuenca oficial.
+  El perfil se muestrea del DEM de 30 m.
+- **Corte dibujado por el visitante**: dos clics sobre el mapa. El perfil se calcula
+  sobre una malla `Int16` derivada del DEM (resolución aproximada de 467 m) que se
+  descarga solo al dibujar; así no se envía el ráster completo al navegador.
+- La ficha declara resolución, longitud del transecto y cota mínima y máxima.
+- **Límite**: un corte de DEM no sirve para dimensionar obras; sirve para explicar la
+  forma del valle. Cuando exista batimetría, se superpondrá y se distinguirá por estilo.
 
 ### Escenarios de inundación
 No se simulan. Se digitalizan de fuentes documentales:
@@ -55,6 +62,8 @@ Cada escenario muestra un rótulo permanente: **«escenario documentado, no pron
 - Se comprueba: cierre de polígonos, geometrías válidas, coherencia con el relieve,
   y que el área calculada coincida con la declarada por la fuente.
 - Los desacuerdos entre fuentes se dejan visibles en la ficha, no se promedian.
+- `etl/check_data.py` valida procedencia, cierres de anillos, perfiles de corte y
+  presupuesto de datos. CI lo ejecuta junto con las pruebas de geometría.
 
 ## Reproducibilidad
 
