@@ -881,7 +881,13 @@ import { withBase } from "../lib/url";
     });
 
     // Señal observable para las pruebas y para cualquier integración: el mapa
-    // terminó de cargar datos y de registrar los manejadores.
-    document.getElementById("map")?.setAttribute("data-ready", "true");
+    // terminó de cargar datos, registró los manejadores y pintó las capas.
+    // No basta con que terminen los fetch: queryRenderedFeatures necesita el
+    // primer render de MapLibre.
+    const markMapReady = () => {
+      document.getElementById("map")?.setAttribute("data-ready", "true");
+    };
+    map.once("idle", markMapReady);
+    map.triggerRepaint();
   });
 </script>

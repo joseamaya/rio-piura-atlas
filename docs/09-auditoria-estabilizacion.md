@@ -125,8 +125,9 @@ Cambios de área por subcuenca (km², EPSG:32717): Bajo Piura +0,1080; Alto Piur
 - La ficha de 2017 muestra las observaciones por fecha y la advertencia de unión.
 - `Escape` cierra el panel de corte y devuelve el foco al botón que lo abrió.
 - La maqueta, si WebGL falla, muestra un enlace al mapa 2D.
-- El mapa expone `data-ready="true"` cuando terminó de cargar datos y manejadores;
-  las pruebas esperan ese estado observable en vez de un tiempo arbitrario.
+- El mapa expone `data-ready="true"` después de cargar datos, registrar manejadores
+  y completar el primer `idle` de MapLibre; las pruebas esperan ese estado
+  observable en vez de un tiempo arbitrario.
 
 ## 4. Validaciones geoespaciales implementadas
 
