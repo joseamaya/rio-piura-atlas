@@ -91,17 +91,34 @@ if (!executablePath) {
 }
 
 const axeSource = await readFile(require.resolve("axe-core/axe.min.js"), "utf8");
-const browser = await puppeteer.launch({
-  executablePath,
-  headless: true,
-  args: [
+
+async function launchBrowser() {
+  const args = [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
-    "--use-gl=swiftshader",
-    "--enable-unsafe-swiftshader",
-  ],
-});
+    "--disable-gpu",
+  ];
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await puppeteer.launch({
+        executablePath,
+        headless: true,
+        timeout: 60_000,
+        protocolTimeout: 120_000,
+        args,
+      });
+    } catch (error) {
+      lastError = error;
+      console.warn(`Chrome no arrancó (intento ${attempt}/3): ${error.message}`);
+      await new Promise((resolve) => setTimeout(resolve, 2_000 * attempt));
+    }
+  }
+  throw lastError;
+}
+
+const browser = await launchBrowser();
 
 const violations = [];
 try {
