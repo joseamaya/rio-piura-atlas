@@ -78,6 +78,9 @@ import { withBase } from "../lib/url";
       <div id="ficha" aria-live="polite">
         <h3>Haz clic en el mapa</h3>
         <p class="muted">Cada elemento muestra su dato y su fuente.</p>
+        <button id="ficha-cuenca" class="btn-ficha" type="button">
+          Ver ficha de la cuenca
+        </button>
       </div>
 
       <section id="corte-panel" hidden aria-live="polite" aria-label="Perfil del corte transversal">
@@ -504,6 +507,14 @@ import { withBase } from "../lib/url";
       }
     }
 
+    const showCuencaFicha = () => {
+      const cuencaProps = cuenca?.features?.[0]?.properties || {};
+      const area = Number(cuencaProps.area_km2 || 10938.4);
+      show(`<h3>Cuenca del río Piura</h3><p>${Math.round(area).toLocaleString("es-PE")} km² medidos</p>
+            <p class="muted">ANA publica 11 022 km² en Shape_Area (EPSG:32718). Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a></p>`);
+    };
+    document.getElementById("ficha-cuenca")?.addEventListener("click", showCuencaFicha);
+
     map.addSource("cuenca", {
       type: "geojson",
       data: cuenca,
@@ -806,10 +817,7 @@ import { withBase } from "../lib/url";
 
       const p = hits[0].properties || {};
       if (p.nombre === "Cuenca del río Piura") {
-        const cuencaProps = cuenca?.features?.[0]?.properties || {};
-        const area = Number(cuencaProps.area_km2 || 10938.4);
-        show(`<h3>Cuenca del río Piura</h3><p>${Math.round(area).toLocaleString("es-PE")} km² medidos</p>
-              <p class="muted">ANA publica 11 022 km² en Shape_Area (EPSG:32718). Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a></p>`);
+        showCuencaFicha();
       } else if (p.nombre && p.area_km2) {
         show(`<h3>${p.nombre}</h3><p>Área: <strong>${Math.round(p.area_km2).toLocaleString("es-PE")} km²</strong></p>
               <p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${fuenteLabel(p.fuente)}</a></p>`);

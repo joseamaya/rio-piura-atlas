@@ -83,11 +83,9 @@ test.describe("mapa 2D", () => {
     await expect(page.locator("#layer-status")).toHaveText("");
   });
 
-  test("consulta la ficha de la cuenca al hacer clic en el relleno", async ({ page }) => {
+  test("consulta la ficha de la cuenca desde el botón accesible", async ({ page }) => {
     await openMap(page);
-    const box = await page.locator("#map").boundingBox();
-    if (!box) throw new Error("sin caja del mapa");
-    await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.4);
+    await page.locator("#ficha-cuenca").click();
     await expect(page.locator("#ficha")).toContainText("Cuenca del río Piura");
     await expect(page.locator("#ficha")).toContainText(/10[.,]938/);
     await expect(page.locator("#ficha")).toContainText("Shape_Area");

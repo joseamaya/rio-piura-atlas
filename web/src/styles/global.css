@@ -215,6 +215,20 @@ footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 
   height: calc(100vh - var(--header-h, 61px));
   height: calc(100dvh - var(--header-h, 61px));
 }
+#ficha .btn-ficha {
+  margin-top: 6px;
+  padding: 4px 9px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: #fffdf7;
+  color: var(--accent-2);
+  font: inherit;
+  cursor: pointer;
+}
+#ficha .btn-ficha:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
 #map { position: absolute; inset: 0; background: #cfd6d9; }
 #scene { position: absolute; inset: 0; background: #cdd6d6; }
 #scene canvas { display: block; }

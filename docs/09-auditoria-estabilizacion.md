@@ -120,7 +120,8 @@ Cambios de área por subcuenca (km², EPSG:32717): Bajo Piura +0,1080; Alto Piur
 
 ### 3.4 Interfaz y accesibilidad
 
-- La ficha de la cuenca se abre al hacer clic en el relleno (`cuenca-fill`).
+- La ficha de la cuenca se abre al hacer clic en el relleno (`cuenca-fill`) y
+  desde el botón «Ver ficha de la cuenca», accesible con teclado.
 - La ficha de subcuenca distingue ANA de Bajo Piura derivado.
 - La ficha de 2017 muestra las observaciones por fecha y la advertencia de unión.
 - `Escape` cierra el panel de corte y devuelve el foco al botón que lo abrió.
@@ -230,7 +231,7 @@ Total: **38 pruebas**, todas OK.
 - dibujo de un perfil con dos clics y nota de resolución;
 - activación/desactivación de cuenca, subcuencas, ríos, agua, cortes, lugares,
   obras e inundación;
-- consulta de la ficha de la cuenca;
+- consulta de la ficha de la cuenca desde el botón accesible;
 - cierre con `Escape` y retorno de foco;
 - fallo de una capa base;
 - fallo de la capa de inundación;
