@@ -18,8 +18,9 @@ tiene fuente, no se dibuja**.
 - Validación de datos (`etl/check_data.py`) y pruebas de geometría.
 - CI que compila el sitio y valida datos en cada push.
 - Accesibilidad: enlace de salto, foco visible, texto alternativo del mapa y la
-  maqueta, movimiento reducido y auditoría automática WCAG A/AA con axe sin
-  violaciones.
+  maqueta, movimiento reducido y auditoría automática WCAG A/AA con axe en CI
+  (`npm run check:a11y`), sin violaciones en las cinco páginas y el 404.
+- Comprobación automática de tipos (`astro check`) y de enlaces/anclas internas en CI.
 - Página 404, `robots.txt` y metadatos Open Graph/Twitter.
 - `CITATION.cff` con los metadatos de la versión 0.1.0.
 

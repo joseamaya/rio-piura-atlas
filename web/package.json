@@ -6,12 +6,25 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check": "astro check",
+    "check:links": "node scripts/check-links.mjs",
+    "check:a11y": "node scripts/a11y.mjs",
+    "verify": "npm run check && npm run build && npm run check:links && npm run check:a11y"
   },
   "dependencies": {
     "astro": "^5.6.1",
     "js-yaml": "^4.1.0",
     "maplibre-gl": "^4.7.1",
     "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^26.6.6",
+    "@types/three": "^0.170.0",
+    "axe-core": "^4.14.1",
+    "puppeteer-core": "^25.17.0",
+    "typescript": "^5.9.3"
   }
 }

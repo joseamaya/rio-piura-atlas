@@ -47,7 +47,11 @@ web/
 
 ## Presupuesto de rendimiento
 
-- Carga inicial < 2 MB.
+- Portada y páginas de texto: carga inicial < 1 MB.
+- `/mapa`: MapLibre comprimido (~220 kB) y datos (~630 kB); el DEM de cortes se
+  descarga aparte, solo al dibujar.
+- `/maqueta`: 6,3 MB de GLB más Three.js; se asume como excepción y no contamina la
+  carga de las demás páginas.
 - Mapa utilizable en 4G en menos de 3 s.
 - Sin fuentes externas bloqueantes.
 - Funciona sin JavaScript para leer los textos.
@@ -64,6 +68,9 @@ y solo se descarga al abrir `/maqueta`.
 - Los escenarios se pueden leer como tabla, no solo como mapa.
 - El perfil del corte se ofrece como gráfico SVG con etiqueta accesible.
 - Respeta `prefers-reduced-motion`.
+- `npm run check` (Astro/TypeScript), `npm run build`, `npm run check:links`
+  (enlaces y anclas internas) y `npm run check:a11y` (axe WCAG A/AA en Chrome
+  headless). `npm run verify` encadena las cuatro.
 - Auditoría automática WCAG A/AA con axe: sin violaciones en las cinco páginas y el
   404.
 

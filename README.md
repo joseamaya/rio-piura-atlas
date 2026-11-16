@@ -72,17 +72,22 @@ npm run dev        # http://localhost:4321
 npm run build      # estático en web/dist
 ```
 
-El sitio pesa menos de 2 MB en la primera carga: relieve 490 kB, capas vectoriales
-~200 kB y el modelo 3D 6,3 MB que solo se descarga al abrir la maqueta. La malla de
-elevación para cortes (~443 kB) se descarga solo al dibujar un corte.
+El presupuesto se mide por página. La portada y las páginas de texto no cargan
+librerías 3D. `/mapa` añade MapLibre (~220 kB comprimidos) y las capas vectoriales
+(~630 kB); la malla de elevación para cortes (~443 kB) solo se descarga al dibujar
+un corte. `/maqueta` es la excepción declarada: 6,3 MB de GLB más Three.js, y por eso
+solo se descarga al abrir esa página.
 
 ## Calidad
 
-- `python3 etl/check_data.py` valida fuentes, capas, cortes, malla de elevación y
-  presupuesto de datos.
+- `python3 etl/check_data.py` valida fuentes, capas, cortes, resoluciones, malla de
+  elevación y presupuesto de datos.
 - `python3 -m unittest discover -s etl/tests -v` prueba la geometría del ETL.
-- GitHub Actions compila el sitio y ejecuta ambas comprobaciones en cada push.
-- Auditoría automática WCAG A/AA con axe: sin violaciones en las páginas actuales.
+- En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas) y
+  `npm run check:a11y` (axe WCAG A/AA en Chrome headless). `npm run verify` ejecuta
+  la secuencia completa.
+- GitHub Actions compila el sitio, valida datos y ejecuta las tres comprobaciones web
+  en cada push.
 
 ## Qué hay hoy
 

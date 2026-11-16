@@ -27,7 +27,12 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      - run: npm run check
       - run: npm run build
+      - run: npm run check:links
+      - run: npm run check:a11y
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
 
   etl:
     name: Datos y ETL
