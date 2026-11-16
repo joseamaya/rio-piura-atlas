@@ -123,7 +123,7 @@ def build_rivers():
         if seg["upland"] < 150 or len(seg["coords"]) < 2:
             continue
         mid = seg["coords"][len(seg["coords"]) // 2]
-        if not point_in_ring(mid[0], mid[1], ring) and seg["upland"] < 4000:
+        if not point_in_ring(mid[0], mid[1], ring):
             continue  # fuera de la cuenca: el atlas no dibuja cuencas vecinas
         coords = [[round(x, 5), round(y, 5)] for x, y in seg["coords"]]
         if len(coords) > 4:

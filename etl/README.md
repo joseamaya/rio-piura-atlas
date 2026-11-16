@@ -18,8 +18,17 @@ etl/
 
 ## Estado
 
-Todavía no hay scripts. En la fase 0 solo se identifican las fuentes; la
-implementación empieza en la fase 1.
+`build_layers.py` ya funciona: convierte los JSON crudos (cuenca, subcuencas, red,
+agua) en GeoJSON simplificado y genera el relieve sombreado para la web.
 
-Los scripts del laboratorio de modelos (`../blender/projects/piura/scripts/`) sirven
-como referencia: ya resuelven DEM, red hídrica, límites y textura.
+```bash
+python3 etl/build_layers.py
+```
+
+Necesita el DEM del laboratorio de modelos en
+`../blender/projects/piura/data/dem.npz` (se puede cambiar con la variable
+`PIURA_DEM`). Si no lo encuentra, genera solo las capas vectoriales.
+
+Los scripts del laboratorio (`../blender/projects/piura/scripts/`) resolvieron el
+DEM, la red hídrica, los límites y la textura del diorama; este ETL reutiliza esos
+productos, no los recalcula.
