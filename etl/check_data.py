@@ -125,7 +125,9 @@ def check_layer_fuentes(ids: dict[str, dict]):
         for feature in data.get("features", []):
             props = feature.get("properties") or {}
             fuente = props.get("fuente")
-            if fuente and fuente not in ids:
+            if not fuente:
+                error(f"{path.name}: elemento sin 'fuente'")
+            elif fuente not in ids:
                 error(f"{path.name}: fuente desconocida '{fuente}'")
             if not feature.get("geometry"):
                 error(f"{path.name}: feature sin geometría")
@@ -146,6 +148,9 @@ def check_cortes():
         return
     ids = {f.get("properties", {}).get("id") for f in cortes.get("features", [])}
     perfiles_data = perfiles.get("perfiles") or {}
+    for campo in ["resolucion_fuente_m", "resolucion_malla_m"]:
+        if not perfiles.get(campo):
+            error(f"cortes_perfiles.json: falta '{campo}'")
     faltan = ids - set(perfiles_data)
     sobran = set(perfiles_data) - ids
     if faltan:
@@ -162,6 +167,12 @@ def check_cortes():
             error(f"perfil {fid}: distancias no monótonas")
         if any(v is None for v in elev):
             aviso(f"perfil {fid}: contiene elevaciones nulas")
+        paso = (dist[-1] - dist[0]) * 1000 / (len(dist) - 1)
+        declarado = perfil.get("paso_perfil_m")
+        if declarado is None:
+            error(f"perfil {fid}: falta paso_perfil_m")
+        elif abs(paso - float(declarado)) > max(1.0, paso * 0.02):
+            error(f"perfil {fid}: paso declarado {declarado} m; real {paso:.1f} m")
     print(f"  cortes: {len(ids)} · perfiles: {len(perfiles_data)}")
 
 
@@ -185,8 +196,8 @@ def check_model():
         error("falta web/public/models/piura-cuenca.glb")
         return
     mb = MODEL.stat().st_size / 1e6
-    if mb > 10:
-        aviso(f"piura-cuenca.glb pesa {mb:.1f} MB; conviene optimizarlo")
+    if mb > 4:
+        aviso(f"piura-cuenca.glb pesa {mb:.1f} MB; conviene optimizarlo (Draco o malla más ligera)")
     print(f"  modelo: {mb:.1f} MB")
 
 

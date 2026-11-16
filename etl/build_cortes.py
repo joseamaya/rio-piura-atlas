@@ -33,7 +33,8 @@ WEB = ROOT / "web" / "public" / "data"
 DEM_PATH = Path(os.environ.get("PIURA_DEM", ROOT.parent / "blender/projects/piura/data/dem.npz"))
 
 GRID_W = 512
-MUESTRAS = 160
+# 801 muestras sobre 24 km dan un paso de 30 m, la resolución real del DEM.
+MUESTRAS = 801
 
 # id, nombre visible, longitud, latitud, largo total del transecto en km.
 # El punto es un ancla; la orientación se calcula perpendicular al río más cercano.
@@ -204,7 +205,7 @@ def build_cortes(dem, limits, network):
                     "elev_max_m": round(max(clean)),
                     "fuente": "copernicus-dem-30",
                     "metodo": "transecto perpendicular a la red, recortado a la cuenca; perfil del DEM",
-                    "resolucion_m": 30,
+                    "resolucion_fuente_m": 30,
                 },
             }
         )
@@ -213,6 +214,7 @@ def build_cortes(dem, limits, network):
             "longitud_km": round(distance_km(a, b), 2),
             "elev_min_m": round(min(clean)),
             "elev_max_m": round(max(clean)),
+            "paso_perfil_m": round(distance_km(a, b) * 1000 / (MUESTRAS - 1), 1),
             "dist_km": dist,
             "elev_m": values,
         }
@@ -221,8 +223,13 @@ def build_cortes(dem, limits, network):
     write_json(
         "cortes_perfiles.json",
         {
-            "resolucion_m": 30,
-            "nota": "Perfil calculado del Copernicus DEM GLO-30. No sirve para dimensionar obras.",
+            "resolucion_fuente_m": 30,
+            "resolucion_malla_m": round(111_320 * abs(lon1 - lon0) / GRID_W),
+            "nota": (
+                "Perfiles de referencia calculados del Copernicus DEM GLO-30. "
+                "La malla del visor para cortes dibujados tiene otra resolución. "
+                "No sirve para dimensionar obras."
+            ),
             "perfiles": perfiles,
         },
     )
