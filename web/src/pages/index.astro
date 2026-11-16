@@ -2,8 +2,12 @@
 import Base from "../layouts/Base.astro";
 ---
 
-<Base title="Atlas de la cuenca del río Piura" current="inicio">
-  <main>
+<Base
+  title="Atlas de la cuenca del río Piura"
+  current="inicio"
+  description="Atlas interactivo y documentado de la cuenca del río Piura: mapa, relieve 3D, cortes transversales, escenarios históricos y fuentes."
+>
+  <main id="main">
     <p class="eyebrow">Atlas documentado · Piura, Perú</p>
     <h1>El río que no llega al mar</h1>
     <p class="lead">
@@ -17,7 +21,7 @@ import Base from "../layouts/Base.astro";
       <a class="card" href="/mapa">
         <span class="tag">Explorar</span>
         <h3>Mapa de la cuenca</h3>
-        <p>Relieve real, subcuencas oficiales, red hídrica, obras y cuerpos de agua.</p>
+        <p>Relieve real, subcuencas oficiales, red hídrica, cortes transversales y cuerpos de agua.</p>
       </a>
       <a class="card" href="/maqueta">
         <span class="tag">3D</span>

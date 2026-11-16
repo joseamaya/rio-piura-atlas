@@ -4,8 +4,14 @@ import "../styles/global.css";
 interface Props {
   title: string;
   current?: string;
+  description?: string;
 }
-const { title, current } = Astro.props;
+const {
+  title,
+  current,
+  description = "Atlas documentado de la cuenca del río Piura: mapa, relieve 3D, cortes transversales y escenarios históricos.",
+} = Astro.props;
+const fullTitle = `${title} · Río Piura Atlas`;
 const nav = [
   { href: "/", label: "Inicio", key: "inicio" },
   { href: "/mapa", label: "Mapa", key: "mapa" },
@@ -20,11 +26,21 @@ const nav = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · Río Piura Atlas</title>
-    <meta name="description" content="Atlas documentado de la cuenca del río Piura: mapa, relieve 3D y escenarios históricos." />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f4ea" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Río Piura Atlas" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="es_PE" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f7f4ea'/%3E%3Cpath d='M6 22c6-2 6-8 12-10s8 2 8 2' stroke='%231f6f8b' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
   </head>
   <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
     <header class="site-header">
       <div class="inner">
         <a class="brand" href="/">Río Piura <span>Atlas</span></a>

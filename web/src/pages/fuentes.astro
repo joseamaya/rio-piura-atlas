@@ -13,6 +13,7 @@ const data = yaml.load(fs.readFileSync(file, "utf8")) as {
     escala: string | null;
     licencia: string;
     estado: string;
+    grupo?: string;
     notas?: string;
   }>;
 };
@@ -20,18 +21,21 @@ const data = yaml.load(fs.readFileSync(file, "utf8")) as {
 const estado = (e: string) =>
   e === "disponible" ? ["ok", "disponible"] : e === "por_solicitar" ? ["pending", "por solicitar"] : ["warn", "por verificar"];
 
-const grupos = [
-  { titulo: "Límites, relieve y red", ids: ["ana-subcuencas", "copernicus-dem-30", "hydrorivers"] },
-  { titulo: "Agua", ids: ["osm-agua", "senamhi-aforos", "senamhi-pisco", "pechp-poechos", "ana-infraestructura"] },
-  { titulo: "Inundaciones y riesgo", ids: ["cenepred-riesgo", "enfen-informes", "sentinel-1-2017"] },
-  { titulo: "Estudios", ids: ["ingemmet-geodinamica"] },
-];
+const orden = ["Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"];
+const grupos = orden
+  .map((titulo) => ({ titulo, fuentes: data.fuentes.filter((f) => f.grupo === titulo) }))
+  .filter((g) => g.fuentes.length > 0);
 
-const byId = new Map(data.fuentes.map((f) => [f.id, f]));
+const resto = data.fuentes.filter((f) => !orden.includes(f.grupo ?? ""));
+if (resto.length > 0) grupos.push({ titulo: "Otras fuentes", fuentes: resto });
 ---
 
-<Base title="Fuentes" current="fuentes">
-  <main>
+<Base
+  title="Fuentes"
+  current="fuentes"
+  description="Catálogo de fuentes del Atlas del río Piura: institución, escala, licencia y estado de cada dato, con enlaces directos a la fuente original."
+>
+  <main id="main">
     <p class="eyebrow">Trazabilidad</p>
     <h1>De dónde sale cada dato</h1>
     <p class="lead">
@@ -47,12 +51,10 @@ const byId = new Map(data.fuentes.map((f) => [f.id, f]));
             <tr><th>Fuente</th><th>Institución</th><th>Escala</th><th>Licencia</th><th>Estado</th></tr>
           </thead>
           <tbody>
-            {g.ids.map((id) => {
-              const f = byId.get(id);
-              if (!f) return null;
+            {g.fuentes.map((f) => {
               const [cls, label] = estado(f.estado);
               return (
-                <tr>
+                <tr id={f.id}>
                   <td>
                     {f.url ? <a href={f.url} target="_blank" rel="noopener">{f.titulo}</a> : f.titulo}
                     {f.notas && <div class="small muted">{f.notas}</div>}

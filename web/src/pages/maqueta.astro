@@ -2,10 +2,20 @@
 import Base from "../layouts/Base.astro";
 ---
 
-<Base title="Maqueta 3D" current="maqueta">
-  <main class="wide">
+<Base
+  title="Maqueta 3D"
+  current="maqueta"
+  description="Maqueta 3D de la cuenca del río Piura: bloque recortado al polígono oficial, con relieve del Copernicus DEM y exageración vertical declarada."
+>
+  <main id="main" class="wide">
     <div class="map-shell">
-      <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura"></div>
+      <p id="scene-summary" class="sr-only">
+        Maqueta 3D de la cuenca del río Piura. El relieve está exagerado siete veces
+        para que se lea; no es una escala real. Arrastra para girar, usa la rueda para
+        acercar y haz doble clic para reiniciar la vista. El mapa 2D ofrece la misma
+        información con capas consultables.
+      </p>
+      <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura" aria-describedby="scene-summary"></div>
 
       <aside class="map-panel" aria-label="Información de la maqueta">
         <h2>Cuenca del río Piura</h2>
