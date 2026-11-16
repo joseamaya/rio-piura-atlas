@@ -5,7 +5,7 @@ test.describe("mapa 2D", () => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(String(error)));
 
-    await page.goto("/mapa/");
+    await page.goto("mapa/");
     await expect(page.locator("#map canvas")).toBeVisible();
     await expect(page.locator('[data-layer="cuenca"]')).toBeChecked();
 
@@ -29,7 +29,7 @@ test.describe("mapa 2D", () => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(String(error)));
     await page.route("**/data/cuenca.geojson", (route) => route.abort());
-    await page.goto("/mapa/");
+    await page.goto("mapa/");
     await expect(page.locator("#layer-status")).toContainText("No se pudieron cargar");
     await expect(page.locator("#map canvas")).toBeVisible();
     expect(errors).toEqual([]);
@@ -37,7 +37,7 @@ test.describe("mapa 2D", () => {
 
   test("en móvil el panel arranca plegado y el mapa tiene área útil", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/mapa/");
+    await page.goto("mapa/");
     await expect(page.locator("#map canvas")).toBeVisible();
     await expect(page.locator(".map-panel")).toHaveClass(/collapsed/);
     const collapsed = await page.locator(".map-panel").boundingBox();
@@ -55,7 +55,7 @@ test.describe("maqueta 3D", () => {
   test("carga el GLB y acepta teclado", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(String(error)));
-    await page.goto("/maqueta/");
+    await page.goto("maqueta/");
     await expect(page.locator("#scene canvas")).toBeVisible();
     await expect(page.locator("#scene-status")).toBeHidden();
     await expect(page.locator("#scene")).toHaveAttribute("tabindex", "0");
