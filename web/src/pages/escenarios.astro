@@ -12,8 +12,8 @@ import { withBase } from "../lib/url";
     <p class="eyebrow">Historia documentada</p>
     <h1>Cuándo el río sí llegó al mar</h1>
     <p class="lead">
-      Estos no son pronósticos. Son tres eventos documentados que cambiaron el cauce y
-      la forma de mirar la cuenca.
+      Estos no son pronósticos. Son cuatro episodios documentados que cambiaron el
+      cauce y la forma de mirar la cuenca.
     </p>
 
     <div class="note">
@@ -48,26 +48,47 @@ import { withBase } from "../lib/url";
 
     <h2>2017 · El Niño costero</h2>
     <p>
-      El evento más documentado y el más útil para un atlas: existen imágenes
-      satelitales, mapas de emergencia y registros de daño. Es el escenario que se
-      reconstruirá primero, con Sentinel-1 y las cartografías oficiales.
+      El evento más documentado y el más útil para un atlas. La mancha que ves no es
+      una reconstrucción propia: es el vector oficial de Copernicus EMSR199, levantado
+      con Radarsat-2 y Cosmo-SkyMed entre el 26 y el 30 de marzo de 2017. Cubre la
+      llanura baja y el desierto adyacente, no toda la cuenca.
     </p>
-    <p class="small muted">Fuente: ENFEN, CENEPRED, UNOSAT / Copernicus EMS (por verificar).</p>
+    <figure class="flood-figure">
+      <img
+        src={withBase("/data/flood_2017.jpg")}
+        alt="Mancha de inundación de marzo de 2017 en la llanura baja del río Piura, entre Piura, Catacaos, La Unión y Parachique. El área azul es el vector oficial de Copernicus EMSR199; la línea oscura es el límite de cuenca de la ANA."
+        width="900"
+        height="1160"
+        loading="lazy"
+      />
+      <figcaption>
+        Inundación observada entre el 26 y el 30 de marzo de 2017 (AOI10 y AOI11 de
+        Copernicus EMSR199). El área azul es el vector oficial simplificado; no es un
+        modelo hidráulico ni una predicción. Fuente:
+        <a href={withBase("/fuentes#copernicus-ems-emsr199")}>© European Union,
+        Copernicus EMS</a>. <a href={withBase("/mapa?capa=inundacion")}>Ver la capa en
+        el mapa</a>.
+      </figcaption>
+    </figure>
+    <p class="small muted">Fuente: ENFEN; Copernicus EMSR199; UNOSAT / Copernicus EMS (contraste).</p>
 
     <h2>Estado de esta sección</h2>
     <table>
       <thead><tr><th>Pieza</th><th>Estado</th><th>Qué falta</th></tr></thead>
       <tbody>
-        <tr><td>Mancha 2017</td><td><span class="badge warn">por construir</span></td><td>Sentinel-1 de marzo 2017 + contraste con mapas oficiales</td></tr>
+        <tr><td>Mancha 2017</td><td><span class="badge ok">disponible</span></td><td>Copernicus EMSR199, AOI10 y AOI11; 26–30 mar 2017</td></tr>
         <tr><td>Mancha 1998 y 1983</td><td><span class="badge pending">sin dato</span></td><td>cartografía oficial o informes con geometría</td></tr>
         <tr><td>Caudales y niveles</td><td><span class="badge pending">por solicitar</span></td><td>series de SENAMHI</td></tr>
-        <tr><td>Obras y diques</td><td><span class="badge pending">por solicitar</span></td><td>inventario de ANA / PECHP</td></tr>
+        <tr><td>Poechos y canal</td><td><span class="badge warn">esquemático</span></td><td>trazado manual; no es un levantamiento</td></tr>
+        <tr><td>Bocatomas y diques</td><td><span class="badge pending">por solicitar</span></td><td>inventario de ANA / PECHP</td></tr>
       </tbody>
     </table>
 
     <p style="margin-top: 28px;">
-      Mientras tanto, el <a href={withBase("/mapa")}>mapa</a> y la <a href={withBase("/maqueta")}>maqueta</a>
-      muestran lo que sí está verificado: la forma de la cuenca, su red y sus límites.
+      El <a href={withBase("/mapa")}>mapa</a> muestra la cuenca, la mancha de 2017 y las
+      obras esquemáticas; la <a href={withBase("/maqueta")}>maqueta</a> muestra el
+      diorama. Las geometrías esquemáticas están marcadas y no se presentan como datos
+      oficiales.
     </p>
   </main>
 </Base>

@@ -6,16 +6,19 @@ import { withBase } from "../lib/url";
 <Base
   title="Mapa de la cuenca"
   current="mapa"
-  description="Mapa interactivo de la cuenca del río Piura: relieve, subcuencas, red hídrica, lagunas, ciudades y cortes transversales."
+  description="Mapa interactivo de la cuenca del río Piura: relieve, subcuencas, red hídrica, lagunas, inundación de 2017, obras esquemáticas y cortes transversales."
 >
   <main id="main" class="wide">
     <div class="map-shell">
       <p id="map-summary" class="sr-only">
         Mapa de la cuenca del río Piura. Puedes activar o desactivar las capas de
-        cuenca, subcuencas, red hídrica, lagunas, cortes transversales y ciudades.
-        Haz clic sobre una capa para ver su dato y su fuente. Usa el botón
-        «Dibujar un corte» y marca dos puntos para calcular un perfil de elevación.
-        La información de cada capa está disponible en la página de fuentes.
+        cuenca, subcuencas, red hídrica, lagunas, inundación de 2017, obras
+        esquemáticas, cortes transversales y ciudades. La mancha de 2017 es el
+        vector oficial de Copernicus EMSR199 y cubre la llanura baja, no toda la
+        cuenca. Las obras son un trazado esquemático. Haz clic sobre una capa para
+        ver su dato y su fuente. Usa el botón «Dibujar un corte» y marca dos puntos
+        para calcular un perfil de elevación. La información de cada capa está
+        disponible en la página de fuentes.
       </p>
       <div id="map" role="application" aria-label="Mapa interactivo de la cuenca del río Piura" aria-describedby="map-summary"></div>
 
@@ -29,10 +32,15 @@ import { withBase } from "../lib/url";
           <span class="swatch" style="background:#134f7a"></span> Red hídrica</label>
         <label><input type="checkbox" data-layer="agua" checked />
           <span class="swatch" style="background:#2f6f8a"></span> Lagunas y salinas</label>
+        <label><input type="checkbox" data-layer="flood" />
+          <span class="swatch" style="background:#0069a0"></span> Inundación 2017</label>
+        <label><input type="checkbox" data-layer="obras" />
+          <span class="swatch" style="background:#8c5a2b"></span> Obras (esquemático)</label>
         <label><input type="checkbox" data-layer="cortes" checked />
           <span class="swatch" style="background:#8c4a1e"></span> Cortes transversales</label>
         <label><input type="checkbox" data-layer="lugares" checked />
           <span class="swatch" style="background:#b4552f"></span> Ciudades</label>
+        <p class="src" id="layer-status" aria-live="polite"></p>
         <hr />
         <button id="draw-corte" class="btn-draw" type="button" aria-pressed="false">
           Dibujar un corte
@@ -50,6 +58,8 @@ import { withBase } from "../lib/url";
           Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>.
           Red: <a href={withBase("/fuentes#hydrorivers")}>HydroSHEDS</a>.
           Agua: <a href={withBase("/fuentes#osm-agua")}>OpenStreetMap</a>.
+          Inundación 2017: <a href={withBase("/fuentes#copernicus-ems-emsr199")}>Copernicus EMSR199</a>.
+          Obras: <a href={withBase("/fuentes#obras-esquematicas")}>elaboración propia (esquemático)</a>.
           Lugares: <a href={withBase("/fuentes#osm-lugares")}>OpenStreetMap</a>.
         </p>
       </aside>
@@ -158,9 +168,60 @@ import { withBase } from "../lib/url";
   if (layerPanel) shellObserver.observe(layerPanel);
 
   const get = (url: string) => fetch(url).then((r) => r.json());
+  const safeGet = (url: string) =>
+    get(url).catch(() => ({ type: "FeatureCollection", features: [] }));
 
   const ficha = document.getElementById("ficha");
   const show = (html: string) => { if (ficha) ficha.innerHTML = html; };
+  const layerStatus = document.getElementById("layer-status");
+  let floodLoaded = false;
+  let floodLoading: Promise<void> | null = null;
+
+  async function loadFlood(): Promise<void> {
+    if (floodLoaded) return;
+    if (floodLoading) return floodLoading;
+    if (layerStatus) layerStatus.textContent = "Cargando la mancha de 2017…";
+    floodLoading = (async () => {
+      try {
+        const data = await get(withBase("/data/flood_2017.geojson"));
+        const source = map.getSource("flood") as maplibregl.GeoJSONSource | undefined;
+        if (!source) throw new Error("sin fuente flood");
+        source.setData(data);
+        floodLoaded = true;
+        const features = (data.features || []) as Array<{ properties?: { area_km2?: number } }>;
+        const total = features.reduce((sum, f) => sum + Number(f.properties?.area_km2 || 0), 0);
+        if (layerStatus) {
+          layerStatus.textContent =
+            `Mancha 2017: ${features.length} zonas, ${Math.round(total).toLocaleString("es-PE")} km².`;
+        }
+      } catch {
+        if (layerStatus) {
+          layerStatus.textContent = "No se pudo cargar la mancha de 2017. Revisa la conexión.";
+        }
+        throw new Error("flood");
+      } finally {
+        floodLoading = null;
+      }
+    })();
+    return floodLoading;
+  }
+
+  async function setFlood(on: boolean): Promise<void> {
+    if (on) {
+      try {
+        await loadFlood();
+      } catch {
+        const input = document.querySelector<HTMLInputElement>('[data-layer="flood"]');
+        if (input) input.checked = false;
+        on = false;
+      }
+    }
+    for (const id of ["flood-fill", "flood-line"]) {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+      }
+    }
+  }
 
   const panel = document.getElementById("corte-panel")!;
   const chart = document.getElementById("corte-chart")!;
@@ -328,7 +389,7 @@ import { withBase } from "../lib/url";
 
   map.on("load", async () => {
     fitBasin();
-    const [cuenca, subcuencas, rios, agua, lugares, cortes, perfilesData] = await Promise.all([
+    const [cuenca, subcuencas, rios, agua, lugares, cortes, perfilesData, obras] = await Promise.all([
       get(withBase("/data/cuenca.geojson")),
       get(withBase("/data/subcuencas.geojson")),
       get(withBase("/data/red_hidrica.geojson")),
@@ -336,6 +397,7 @@ import { withBase } from "../lib/url";
       get(withBase("/data/lugares.geojson")),
       get(withBase("/data/cortes.geojson")),
       get(withBase("/data/cortes_perfiles.json")),
+      safeGet(withBase("/data/obras.geojson")),
     ]);
     perfiles = perfilesData.perfiles || {};
 
@@ -373,6 +435,16 @@ import { withBase } from "../lib/url";
       data: agua,
       attribution: `<a href="${withBase("/fuentes#osm-agua")}">© OpenStreetMap (ODbL)</a>`,
     });
+    map.addSource("flood", {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+      attribution: `<a href="${withBase("/fuentes#copernicus-ems-emsr199")}">© European Union, Copernicus EMSR199 (2017)</a>`,
+    });
+    map.addSource("obras", {
+      type: "geojson",
+      data: obras,
+      attribution: `<a href="${withBase("/fuentes#obras-esquematicas")}">Obras esquemáticas (elaboración propia)</a>`,
+    });
     map.addSource("cortes", {
       type: "geojson",
       data: cortes,
@@ -404,6 +476,20 @@ import { withBase } from "../lib/url";
       paint: { "fill-color": "#2f6f8a", "fill-opacity": 0.9 },
     });
     map.addLayer({
+      id: "flood-fill",
+      type: "fill",
+      source: "flood",
+      layout: { visibility: "none" },
+      paint: { "fill-color": "#0069a0", "fill-opacity": 0.45 },
+    });
+    map.addLayer({
+      id: "flood-line",
+      type: "line",
+      source: "flood",
+      layout: { visibility: "none" },
+      paint: { "line-color": "#004b72", "line-width": 0.8, "line-opacity": 0.85 },
+    });
+    map.addLayer({
       id: "rios-line",
       type: "line",
       source: "rios",
@@ -414,6 +500,26 @@ import { withBase } from "../lib/url";
           "interpolate", ["linear"], ["get", "aporte_km2"],
           150, 0.8, 800, 1.6, 3000, 2.8, 9000, 4.5,
         ],
+      },
+    });
+    map.addLayer({
+      id: "obras-fill",
+      type: "fill",
+      source: "obras",
+      filter: ["==", ["geometry-type"], "Polygon"],
+      layout: { visibility: "none" },
+      paint: { "fill-color": "#8c5a2b", "fill-opacity": 0.28 },
+    });
+    map.addLayer({
+      id: "obras-line",
+      type: "line",
+      source: "obras",
+      layout: { visibility: "none" },
+      paint: {
+        "line-color": "#6b3f18",
+        "line-width": 2.2,
+        "line-dasharray": [2, 2],
+        "line-opacity": 0.95,
       },
     });
     map.addLayer({
@@ -467,6 +573,24 @@ import { withBase } from "../lib/url";
       );
     }
 
+    // Rótulos de las obras esquemáticas: solo aparecen al activar la capa.
+    const obraMarkers: maplibregl.Marker[] = [];
+    const obrasLugares: Array<[string, [number, number]]> = [
+      ["Poechos (esquemático)", [-80.518, -4.813]],
+      ["Canal Daniel Escobar (esquemático)", [-80.460, -4.930]],
+    ];
+    for (const [nombre, coords] of obrasLugares) {
+      const el = document.createElement("div");
+      el.className = "city obra";
+      el.style.display = "none";
+      el.innerHTML = `<span class="dot"></span>${nombre}`;
+      obraMarkers.push(
+        new maplibregl.Marker({ element: el, anchor: "left", offset: [5, 0] })
+          .setLngLat(coords)
+          .addTo(map),
+      );
+    }
+
     map.on("mouseenter", "cortes-line", () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", "cortes-line", () => {
       if (!drawMode) map.getCanvas().style.cursor = "";
@@ -509,7 +633,10 @@ import { withBase } from "../lib/url";
       }
 
       const hits = map.queryRenderedFeatures(e.point, {
-        layers: ["subcuencas-line", "agua-fill", "cuenca-line", "rios-line", "cortes-line"],
+        layers: [
+          "subcuencas-line", "agua-fill", "cuenca-line", "rios-line",
+          "flood-fill", "obras-fill", "obras-line", "cortes-line",
+        ],
       });
       if (!hits.length) {
         show('<h3>Sin elemento</h3><p class="muted">Haz clic sobre una capa.</p>');
@@ -526,6 +653,27 @@ import { withBase } from "../lib/url";
         }
       }
 
+      const obraHit = hits.find((hit) => hit.layer.id === "obras-fill" || hit.layer.id === "obras-line");
+      if (obraHit) {
+        const p = obraHit.properties || {};
+        show(`<h3>${p.nombre}</h3>
+              <p class="muted">${p.nota || "Geometría esquemática; no es un levantamiento."}</p>
+              <p class="muted">Fuente: <a href="${withBase("/fuentes#obras-esquematicas")}">elaboración propia (interpretación)</a>.</p>`);
+        return;
+      }
+
+      const floodHit = hits.find((hit) => hit.layer.id === "flood-fill");
+      if (floodHit) {
+        const p = floodHit.properties || {};
+        const area = Number(p.area_km2 || 0);
+        show(`<h3>Inundación de marzo de 2017</h3>
+              <p><strong>${p.zona}</strong> · ${Math.round(area).toLocaleString("es-PE")} km²</p>
+              <p class="muted">Observada el ${p.fecha_texto || p.fecha}. ${p.sensores}.</p>
+              <p class="muted">${p.cobertura}.</p>
+              <p class="muted">Fuente: <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>. Área del vector simplificado; no es un modelo hidráulico.</p>`);
+        return;
+      }
+
       const p = hits[0].properties || {};
       if (p.nombre && p.area_km2) {
         show(`<h3>${p.nombre}</h3><p>Área: <strong>${Math.round(p.area_km2).toLocaleString("es-PE")} km²</strong></p>
@@ -540,6 +688,32 @@ import { withBase } from "../lib/url";
       }
     });
 
+    const capa = new URLSearchParams(location.search).get("capa");
+    if (capa === "inundacion" || capa === "flood") {
+      const input = document.querySelector<HTMLInputElement>('[data-layer="flood"]');
+      if (input) {
+        input.checked = true;
+        void setFlood(true);
+        map.fitBounds([[-80.95, -6.07], [-80.47, -5.14]], {
+          padding: mapPadding(),
+          duration: 0,
+        });
+      }
+    } else if (capa === "obras") {
+      const input = document.querySelector<HTMLInputElement>('[data-layer="obras"]');
+      if (input) {
+        input.checked = true;
+        for (const id of ["obras-fill", "obras-line"]) {
+          map.setLayoutProperty(id, "visibility", "visible");
+        }
+        obraMarkers.forEach((m) => { m.getElement().style.display = ""; });
+        map.fitBounds([[-80.58, -5.02], [-80.38, -4.77]], {
+          padding: mapPadding(),
+          duration: 0,
+        });
+      }
+    }
+
     document.querySelectorAll<HTMLInputElement>("[data-layer]").forEach((input) => {
       input.addEventListener("change", () => {
         const layer = input.dataset.layer!;
@@ -547,10 +721,20 @@ import { withBase } from "../lib/url";
           markers.forEach((m) => { m.getElement().style.display = input.checked ? "" : "none"; });
           return;
         }
+        if (layer === "flood") {
+          void setFlood(input.checked);
+          return;
+        }
+        if (layer === "obras") {
+          obraMarkers.forEach((m) => {
+            m.getElement().style.display = input.checked ? "" : "none";
+          });
+        }
         const ids =
           layer === "cuenca" ? ["cuenca-fill", "cuenca-line"]
           : layer === "subcuencas" ? ["subcuencas-line"]
           : layer === "rios" ? ["rios-line"]
+          : layer === "obras" ? ["obras-fill", "obras-line"]
           : layer === "cortes" ? ["cortes-line"]
           : ["agua-fill"];
         ids.forEach((id) => map.setLayoutProperty(id, "visibility", input.checked ? "visible" : "none"));

@@ -166,6 +166,23 @@ kbd {
 }
 .note strong { color: #7a5a12; }
 
+.flood-figure { margin: 24px 0 18px; }
+.flood-figure img {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-2);
+}
+.flood-figure figcaption {
+  max-width: 720px;
+  margin-top: 8px;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
 table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
@@ -223,6 +240,7 @@ footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 
 .map-panel .swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
 .map-panel hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 .map-panel .src { color: var(--ink-soft); font-size: 0.76rem; }
+.map-panel #layer-status { margin: 6px 0 0; min-height: 1.1em; color: var(--accent-2); }
 .map-panel .panel-sources { margin-bottom: 8px; }
 .map-panel .src p { margin: 6px 0 0; }
 .map-panel details.src { margin-top: 8px; }
@@ -312,10 +330,10 @@ footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 
 }
 #ficha {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
+  bottom: 40px;
+  left: 322px;
   right: auto;
-  width: 290px;
+  width: 360px;
   background: rgba(255, 253, 247, 0.97);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -325,6 +343,7 @@ footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 
   z-index: 5;
   box-shadow: 0 6px 24px rgba(20, 30, 40, 0.12);
 }
+body.corte-open #ficha { display: none; }
 #ficha h3 { margin: 0 0 4px; font-size: 0.9rem; }
 #ficha p { margin: 2px 0; }
 
@@ -365,7 +384,14 @@ table tr[id] { scroll-margin-top: 90px; }
 
 @media (max-width: 720px) {
   .map-panel { width: calc(100% - 32px); max-height: 54%; }
-  #ficha { display: block; width: calc(100% - 32px); max-height: 30%; overflow: auto; }
+  #ficha {
+    display: block;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: 30%;
+    overflow: auto;
+  }
   body.corte-open #ficha { display: none; }
   #corte-panel { left: 16px; right: 16px; width: auto; bottom: 56px; max-height: 55%; }
   nav.main { margin-left: 0; }
@@ -391,4 +417,14 @@ table tr[id] { scroll-margin-top: 90px; }
   background: #b4552f;
   margin-right: 5px;
   vertical-align: middle;
+}
+.city.obra {
+  color: #6b3f18;
+  border-style: dashed;
+  font-style: italic;
+}
+.city.obra .dot {
+  border-radius: 1px;
+  transform: rotate(45deg);
+  background: #8c5a2b;
 }

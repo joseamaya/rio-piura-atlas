@@ -20,8 +20,8 @@ import { withBase } from "../lib/url";
         punteadas son trazos aproximados de rutas históricas de crecida y no son
         cartografía oficial. Las subcuencas solo aparecen como rótulos; sus límites
         están en el mapa 2D. Arrastra para girar, usa la rueda para acercar y haz doble
-        clic para reiniciar la vista. El <a href={withBase("/mapa")}>mapa 2D</a> ofrece
-        la misma información con capas consultables.
+        clic para reiniciar la vista. El <a href={withBase("/mapa")}>mapa 2D</a> añade
+        la mancha oficial de 2017 y las obras esquemáticas, con capas consultables.
       </p>
       <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
       <p id="scene-status" class="scene-status" role="status" aria-live="polite"></p>
@@ -63,7 +63,8 @@ import { withBase } from "../lib/url";
             <li>Las rutas punteadas son una interpretación del equipo; no hay una capa oficial publicada. El relato está en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
             <li>Las subcuencas solo están rotuladas; sus límites están en el <a href={withBase("/mapa")}>mapa 2D</a>.</li>
             <li>Los rótulos «Naciente ~2 700 m» y «Reserva Illescas» están por verificar; no deben leerse como cota ni como límite oficial.</li>
-            <li>Poechos y el canal Daniel Escobar son geometría esquemática; los bordes del bloque no son un corte geológico.</li>
+            <li>Poechos y el canal Daniel Escobar son geometría esquemática; los bordes del bloque no son un corte geológico. Están también en el <a href={withBase("/mapa?capa=obras")}>mapa 2D</a>, marcados como esquemáticos.</li>
+            <li>La maqueta no dibuja la inundación de 2017. Esa capa está en el <a href={withBase("/mapa?capa=inundacion")}>mapa 2D</a> y en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
             <li>Lugares: OSM/IGN; subcuencas: ANA; cuerpos de agua: OSM. Coordenadas aproximadas. Relieve: Copernicus DEM GLO-30 (30 m).</li>
           </ul>
         </details>

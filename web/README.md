@@ -9,7 +9,7 @@ técnicas y el estado real para no improvisarlas después.
 |---|---|---|
 | Sitio | Astro (salida estática) | HTML mínimo, carga rápida, sin servidor |
 | Mapa | **MapLibre GL JS** | relieve 3D nativo, teselas vectoriales, rótulos, móvil |
-| Capas pesadas | deck.gl (previsto) | inundaciones y agregados; aún no se usa |
+| Capas pesadas | deck.gl (previsto) | agregados y teselas; la mancha 2017 cabe en GeoJSON |
 | Maqueta 3D | Three.js + DRACOLoader | solo para el diorama (`piura`) |
 | Datos | COG + PMTiles + GeoJSON | servible desde CDN sin backend |
 | Estilos | CSS propio, sin framework | menos peso y menos dependencias |
@@ -45,18 +45,25 @@ El GLB se genera en el proyecto Blender hermano
 
 ## Capas y datos
 
-- `cuenca.geojson`, `subcuencas.geojson`, `red_hidrica.geojson`, `agua.geojson` y
-  `lugares.geojson` se generan con `etl/build_layers.py`.
+- `cuenca.geojson`, `subcuencas.geojson`, `red_hidrica.geojson`, `agua.geojson`,
+  `lugares.geojson`, `obras.geojson` y `flood_2017.geojson` se generan con
+  `etl/build_layers.py`.
+- `obras.geojson` contiene solo Poechos y el canal Daniel Escobar, marcados con
+  `esquematico: true`; no es un inventario de ANA/PECHP.
+- `flood_2017.geojson` es el vector oficial de Copernicus EMSR199 (AOI10 + AOI11),
+  simplificado. Cubre la llanura baja y el desierto adyacente, no toda la cuenca.
+- `flood_2017.jpg` es la figura estática de `/escenarios`, generada por
+  `build_layers.py` a partir del relieve y de la mancha.
 - `cortes.geojson`, `cortes_perfiles.json`, `dem_grid.bin` y `dem_grid.meta.json` se
   generan con `etl/build_cortes.py`.
-- El mapa carga la malla de elevación solo cuando el visitante pulsa «Dibujar un
-  corte»; la primera carga no incluye el DEM.
+- El mapa carga la mancha de 2017 solo al activar la capa (o con
+  `?capa=inundacion`) y la malla de elevación solo al pulsar «Dibujar un corte».
 
 ## Presupuesto de rendimiento
 
 - Portada y páginas de texto: carga inicial < 1 MB.
-- `/mapa`: MapLibre comprimido (~220 kB) y datos (~630 kB); el DEM de cortes se
-  descarga aparte, solo al dibujar.
+- `/mapa`: MapLibre comprimido (~220 kB) y datos iniciales (~650 kB); la mancha de
+  2017 (~518 kB) y el DEM de cortes (~443 kB) se descargan aparte, solo al activarlos.
 - `/maqueta`: 1,7 MB de GLB, ~250 kB de decodificador Draco y Three.js; se asume como
   excepción y no contamina la carga de las demás páginas.
 - Mapa utilizable en 4G en menos de 3 s.
@@ -92,8 +99,8 @@ públicos.
 
 ## Pendiente en la web
 
-- Capa de obras hidráulicas (diques, bocatomas, canal Daniel Escobar, Poechos).
-- Manchas de inundación de 1983, 1998 y 2017.
+- Bocatomas y diques: no hay geometría pública; el inventario está en ANA/PECHP.
+- Manchas de inundación de 1983 y 1998.
 - Caudales y niveles (SENAMHI).
 - Sustituir las capas GeoJSON por PMTiles/COG si el volumen crece.
 - Dominio propio (opcional). El despliegue en GitHub Pages ya está activo en
