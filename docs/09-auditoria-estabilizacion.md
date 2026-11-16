@@ -284,7 +284,7 @@ obtener un CI verde.
 
 ## 11. Recomendaciones
 
-1. Publicar una versión de parche (v0.2.1) con esta corrección topológica y de
+1. La versión de parche **v0.2.1** publica esta corrección topológica y de
    metadatos, sin cambiar la arquitectura.
 2. Solicitar a SENAMHI las series diarias de 1983/1998 y a ANA/PECHP la geometría
    oficial de Poechos y del canal.

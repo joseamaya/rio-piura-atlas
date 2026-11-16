@@ -53,13 +53,31 @@ Ciudadano. Conviene registrar la solicitud con número de expediente.
 >
 > Domicilio electrónico: [CORREO].
 
+## Pedidos específicos de la auditoría v0.2.1
+
+Estos son los datos que aún no están en el catálogo. No se envían automáticamente:
+requieren firma, datos personales y registro de expediente.
+
+| Dato | Entidad | Pedido concreto | Uso |
+|---|---|---|---|
+| Fecha exacta del pico de 1998 | SENAMHI | Serie de caudales medios diarios y niveles de Puente Sánchez Cerro, 01/01/1998–31/12/1998, con hora del máximo instantáneo | Resolver la discrepancia 12 vs 16 de marzo |
+| Duración del episodio de 1983 | SENAMHI | Serie diaria de caudales y niveles, 01/01/1983–31/12/1983 | Documentar duración y volumen |
+| La Niña 2023 | SENAMHI / ANA | Informe hidrológico, área y volumen, fechas de formación y desborde | Sustituir la nota de prensa por una medición |
+| Vaso de Poechos y eje del canal Daniel Escobar | PECHP / ANA | Shapefile o GeoPackage con metadatos, escala y fecha de levantamiento | Dejar de usar punto y recta de referencia |
+| Manchas de 1983 y 1998 | ANA / INDECI | Cartografía vectorial con metadatos y método | Publicar geometrías históricas |
+| Informe ENFEN concreto | ENFEN | Edición exacta de los informes 1982-83, 1997-98 y 2017, con páginas | Sustituir la ficha genérica |
+| Documento UDEP exacto | Universidad de Piura | Tesis o informe que sustente los picos de 3 200 y 4 424 m³/s | Dejar de usar un handle genérico |
+
 ## Seguimiento
 
 | # | Entidad | Pedido | Fecha | Expediente | Estado | Respuesta |
 |---|---|---|---|---|---|---|
-| 1 | SENAMHI | caudales diarios | — | — | pendiente | — |
+| 1 | SENAMHI | caudales diarios 1983/1998 | — | — | pendiente | — |
 | 2 | ANA | cartografía de inundación 1983/1998 | — | — | pendiente | — |
-| 3 | PECHP | operación de Poechos | — | — | pendiente | — |
+| 3 | PECHP | operación y geometría de Poechos/canal | — | — | pendiente | — |
 | 4 | CENEPRED | escenarios de riesgo | — | — | pendiente | — |
+| 5 | ANA | informe hidrológico La Niña 2023 | — | — | pendiente | — |
+| 6 | ENFEN | informe técnico concreto | — | — | pendiente | — |
+| 7 | UDEP | documento exacto de contraste | — | — | pendiente | — |
 
 Actualizar esta tabla al enviar y al recibir cada respuesta.
