@@ -19,7 +19,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "data" / "sources.yml"
 WEB_DATA = ROOT / "web" / "public" / "data"
-MODEL = ROOT / "web" / "public" / "models" / "piura-cuenca.glb"
+MODEL = ROOT / "web" / "public" / "models" / "piura.glb"
+DRACO = ROOT / "web" / "public" / "draco"
+DRACO_FILES = ("draco_wasm_wrapper.js", "draco_decoder.wasm")
 
 ESTADOS = {"disponible", "por_solicitar", "por_verificar"}
 GRUPOS = {"Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"}
@@ -191,13 +193,41 @@ def check_grid():
     print(f"  dem_grid: {real / 1e3:.0f} kB")
 
 
+def check_glb(path: Path) -> None:
+    """Comprueba cabecera, versión y extensión Draco del GLB publicado."""
+    data = path.read_bytes()
+    if len(data) < 20 or data[:4] != b"glTF":
+        error(f"{path.relative_to(ROOT)} no es un GLB válido")
+        return
+    version = int.from_bytes(data[4:8], "little")
+    if version != 2:
+        error(f"{path.relative_to(ROOT)}: versión glTF {version}; se esperaba 2")
+        return
+    chunk_len = int.from_bytes(data[12:16], "little")
+    if data[16:20] != b"JSON" or 20 + chunk_len > len(data):
+        error(f"{path.relative_to(ROOT)}: bloque JSON inválido")
+        return
+    try:
+        gltf = json.loads(data[20:20 + chunk_len].decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        error(f"{path.relative_to(ROOT)}: JSON inválido ({exc})")
+        return
+    extensiones = set(gltf.get("extensionsUsed") or []) | set(gltf.get("extensionsRequired") or [])
+    if "KHR_draco_mesh_compression" not in extensiones:
+        aviso(f"{path.name} no declara compresión Draco; el visor seguirá funcionando")
+
+
 def check_model():
     if not MODEL.exists():
-        error("falta web/public/models/piura-cuenca.glb")
+        error("falta web/public/models/piura.glb")
         return
+    for name in DRACO_FILES:
+        if not (DRACO / name).exists():
+            error(f"falta web/public/draco/{name}")
+    check_glb(MODEL)
     mb = MODEL.stat().st_size / 1e6
     if mb > 4:
-        aviso(f"piura-cuenca.glb pesa {mb:.1f} MB; conviene optimizarlo (Draco o malla más ligera)")
+        aviso(f"piura.glb pesa {mb:.1f} MB; conviene optimizarlo (Draco o malla más ligera)")
     print(f"  modelo: {mb:.1f} MB")
 
 
