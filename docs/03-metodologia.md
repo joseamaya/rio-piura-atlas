@@ -1,0 +1,62 @@
+# 03 · Metodología
+
+## Principio
+
+El atlas no dibuja nada que no pueda justificar. Cada elemento visible tiene:
+
+- **procedencia**: de dónde sale el dato;
+- **método**: cómo se transformó;
+- **incertidumbre**: qué margen tiene;
+- **licencia**: qué se puede hacer con él.
+
+## Clases de incertidumbre
+
+| Clase | Significa | Cómo se muestra |
+|---|---|---|
+| **Dato** | proviene de una fuente oficial sin transformación geométrica | línea continua, ficha con la fuente |
+| **Derivado** | calculado a partir de un dato (p. ej. pendiente desde un DEM) | línea continua, ficha con el método |
+| **Interpretación** | reconstruido por el equipo (p. ej. traza aproximada de un canal) | línea punteada + aviso |
+| **Sin dato** | no existe información pública | se declara, no se rellena |
+
+## Capas y su producción
+
+### Límites y subcuencas
+Polígono oficial ANA 1:100 000, simplificado a ~1 000 puntos por anillo. Sin
+reinterpretación. Si se compara con otra delimitación (HydroBASINS, estudios
+hidrológicos), la diferencia se documenta en la ficha.
+
+### Relieve
+Copernicus DEM 30 m. El relieve se muestra con **exageración vertical declarada**
+(×7 en la maqueta). La exageración no es un dato: se dice en la leyenda y en la ficha.
+
+### Red hídrica
+HydroRIVERS, filtrada por área aportante y recortada a la cuenca. En la llanura el
+DEM no resuelve el cauce: el trazo procede del vector, no del ráster.
+
+### Cortes transversales
+Se calcula el perfil del DEM sobre un transecto dibujado por el usuario. La ficha del
+corte declara: resolución (30 m), separación entre muestras y cota de referencia.
+**Un corte de DEM no sirve para dimensionar obras**; sirve para explicar la forma del
+valle. Cuando exista batimetría, se superpone y se distingue por estilo.
+
+### Escenarios de inundación
+No se simulan. Se digitalizan de fuentes documentales:
+
+1. fuente (mapa oficial, imagen satelital, informe);
+2. fecha del evento;
+3. método de extracción (digitalización manual, umbral sobre Sentinel-1);
+4. control de calidad (comparación con relatos o mapas oficiales).
+
+Cada escenario muestra un rótulo permanente: **«escenario documentado, no pronóstico»**.
+
+## Control de calidad
+
+- Toda capa pasa por revisión de otra persona antes de publicarse.
+- Se comprueba: cierre de polígonos, geometrías válidas, coherencia con el relieve,
+  y que el área calculada coincida con la declarada por la fuente.
+- Los desacuerdos entre fuentes se dejan visibles en la ficha, no se promedian.
+
+## Reproducibilidad
+
+`etl/` debe poder reconstruir `data/processed/` desde `data/raw/` con un comando.
+Si un paso depende de una decisión manual, se documenta en el propio script.

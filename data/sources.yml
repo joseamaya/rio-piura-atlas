@@ -1,0 +1,136 @@
+# Registro maestro de fuentes.
+# Cada elemento publicado en el atlas debe referenciar un id de esta lista.
+
+meta:
+  proyecto: rio-piura-atlas
+  actualizado: 2026-11-16
+  notas: >
+    Estado: disponible | por_solicitar | por_verificar.
+    La licencia se refiere al dato original, no a este repositorio.
+
+fuentes:
+  - id: ana-subcuencas
+    titulo: Unidades Hidrográficas del Perú (Pfafstetter)
+    institucion: Autoridad Nacional del Agua
+    url: https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_CARACTERIZACI%C3%93N_DEL_TERRITORIO_PIURA/MapServer/18
+    fecha: 2008-01-05
+    escala: "1:100000"
+    licencia: dato público
+    estado: disponible
+    metodo: descarga GeoJSON desde el servicio
+    notas: R.M. N.° 033-2008-AG. Cuenca 11 022 km² y 9 subcuencas.
+
+  - id: copernicus-dem-30
+    titulo: Copernicus DEM GLO-30 (tiles Terrarium)
+    institucion: ESA / Airbus (AWS Open Data)
+    url: https://registry.opendata.aws/copernicus-dem/
+    fecha: 2021-01-01
+    escala: 30 m
+    licencia: libre con atribución
+    estado: disponible
+    metodo: descarga por teselas
+    notas: Usado para relieve, sombreado y cortes.
+
+  - id: hydrorivers
+    titulo: HydroRIVERS v10.0
+    institucion: WWF / HydroSHEDS
+    url: https://www.hydrosheds.org/products/hydrorivers
+    fecha: 2020-01-01
+    escala: ~500 m
+    licencia: CC BY 4.0
+    estado: disponible
+    metodo: recorte y filtrado por área aportante
+
+  - id: osm-agua
+    titulo: Cuerpos de agua (natural=water)
+    institucion: OpenStreetMap contributors
+    url: https://www.openstreetmap.org/
+    fecha: 2026-11-16
+    escala: variable
+    licencia: ODbL 1.0
+    estado: disponible
+    metodo: consulta Overpass
+    notas: Laguna Ramón, Ñapique, La Niña, Las Salinas.
+
+  - id: senamhi-aforos
+    titulo: Caudales y niveles de estaciones del valle
+    institucion: SENAMHI
+    url: https://www.senamhi.gob.pe/
+    fecha: null
+    escala: punto
+    licencia: por definir
+    estado: por_solicitar
+    metodo: solicitud de acceso a la información pública
+    notas: Puente Sánchez Cerro, Tambogrande, Chulucanas. Ver docs/07-solicitudes.md.
+
+  - id: senamhi-pisco
+    titulo: PISCO v2.1 — precipitación grillada
+    institucion: SENAMHI
+    url: https://www.senamhi.gob.pe/
+    fecha: null
+    escala: 0.1°
+    licencia: por definir
+    estado: por_solicitar
+    metodo: registro y descarga
+
+  - id: pechp-poechos
+    titulo: Operación de la represa de Poechos y trasvase
+    institucion: Proyecto Especial Chira-Piura
+    url: null
+    fecha: null
+    escala: punto
+    licencia: por definir
+    estado: por_solicitar
+    metodo: solicitud institucional
+
+  - id: ana-infraestructura
+    titulo: Inventario de infraestructura hidráulica
+    institucion: Autoridad Nacional del Agua
+    url: null
+    fecha: null
+    escala: "1:10000"
+    licencia: por definir
+    estado: por_solicitar
+    metodo: solicitud de acceso a la información pública
+
+  - id: cenepred-riesgo
+    titulo: Escenarios de riesgo por inundación — Piura
+    institucion: CENEPRED / SIGRID
+    url: https://sigrid.cenepred.gob.pe/
+    fecha: null
+    escala: variable
+    licencia: por definir
+    estado: por_verificar
+    metodo: descarga y solicitud
+
+  - id: enfen-informes
+    titulo: Informes técnicos ENFEN (1982-83, 1997-98, 2017)
+    institucion: ENFEN
+    url: https://enfen.gob.pe/
+    fecha: null
+    escala: cuenca
+    licencia: documento público
+    estado: disponible
+    metodo: descarga directa
+    notas: Base para el relato histórico de El Niño.
+
+  - id: sentinel-1-2017
+    titulo: Imágenes Sentinel-1 de marzo de 2017
+    institucion: Copernicus / ESA
+    url: https://dataspace.copernicus.eu/
+    fecha: 2017-03-01
+    escala: 10 m
+    licencia: libre con atribución
+    estado: por_verificar
+    metodo: descarga y umbral de agua
+    notas: Candidata para reconstruir la mancha de inundación.
+
+  - id: ingemmet-geodinamica
+    titulo: Estudio geodinámico de la cuenca del río Piura
+    institucion: INGEMMET
+    url: https://hdl.handle.net/20.500.12543/32
+    fecha: 1994-01-01
+    escala: "1:100000"
+    licencia: documento público
+    estado: disponible
+    metodo: descarga directa
