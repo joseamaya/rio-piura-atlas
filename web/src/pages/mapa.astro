@@ -40,7 +40,7 @@ import { withBase } from "../lib/url";
         <label><input type="checkbox" data-layer="flood" />
           <span class="swatch" style="background:#0069a0"></span> Inundación 2017</label>
         <label><input type="checkbox" data-layer="obras" />
-          <span class="swatch" style="background:#8c5a2b"></span> Obras (esquemático)</label>
+          <span class="swatch" style="background:#8c5a2b"></span> Obras (referencia)</label>
         <label><input type="checkbox" data-layer="cortes" checked />
           <span class="swatch" style="background:#8c4a1e"></span> Cortes transversales</label>
         <label><input type="checkbox" data-layer="lugares" checked />
@@ -64,11 +64,12 @@ import { withBase } from "../lib/url";
         <hr />
         <p class="src">
           Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM (malla ~140 m)</a>.
-          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>.
-          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroSHEDS</a>.
+          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>
+          + <a href={withBase("/fuentes#bajo-piura-derivado")}>Bajo Piura derivado</a>.
+          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS v1.0 (HydroSHEDS)</a>.
           Agua: <a href={withBase("/fuentes#osm-agua")}>OpenStreetMap</a>.
           Inundación 2017: <a href={withBase("/fuentes#copernicus-ems-emsr199")}>Copernicus EMSR199</a>.
-          Obras: <a href={withBase("/fuentes#obras-esquematicas")}>elaboración propia (esquemático)</a>.
+          Obras: <a href={withBase("/fuentes#obras-esquematicas")}>elaboración propia (referencia)</a>.
           Lugares: <a href={withBase("/fuentes#osm-lugares")}>OpenStreetMap</a>.
         </p>
         </div>
@@ -211,6 +212,16 @@ import { withBase } from "../lib/url";
 
   const ficha = document.getElementById("ficha");
   const show = (html: string) => { if (ficha) ficha.innerHTML = html; };
+  const fuenteLabel = (id: string | undefined) =>
+    ({
+      "ana-subcuencas": "ANA, 1:100 000",
+      "bajo-piura-derivado": "Río Piura Atlas, derivado de ANA",
+      "hydrorivers": "HydroRIVERS v1.0 (HydroSHEDS)",
+      "osm-agua": "OpenStreetMap",
+      "osm-lugares": "OpenStreetMap",
+      "copernicus-ems-emsr199": "Copernicus EMSR199",
+      "obras-esquematicas": "Río Piura Atlas (interpretación)",
+    } as Record<string, string>)[id ?? ""] ?? (id || "fuente no declarada");
   const layerStatus = document.getElementById("layer-status");
   let floodLoaded = false;
   let floodLoading: Promise<void> | null = null;
@@ -360,6 +371,12 @@ import { withBase } from "../lib/url";
   }
 
   document.getElementById("corte-close")!.addEventListener("click", closeCorte);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !panel.hidden) {
+      event.preventDefault();
+      closeCorte();
+    }
+  });
 
   async function loadGrid() {
     if (grid) return grid;
@@ -495,7 +512,7 @@ import { withBase } from "../lib/url";
     map.addSource("subcuencas", {
       type: "geojson",
       data: subcuencas,
-      attribution: `<a href="${withBase("/fuentes#ana-subcuencas")}">ANA 1:100 000</a>`,
+      attribution: `<a href="${withBase("/fuentes#ana-subcuencas")}">ANA 1:100 000</a> + <a href="${withBase("/fuentes#bajo-piura-derivado")}">Bajo Piura derivado</a>`,
     });
     map.addSource("rios", {
       type: "geojson",
@@ -737,7 +754,7 @@ import { withBase } from "../lib/url";
 
       const hits = map.queryRenderedFeatures(e.point, {
         layers: [
-          "subcuencas-line", "agua-fill", "cuenca-line", "rios-line",
+          "subcuencas-line", "agua-fill", "cuenca-line", "cuenca-fill", "rios-line",
           "flood-fill", "obras-fill", "obras-line", "obras-point", "cortes-line",
         ],
       });
@@ -769,23 +786,38 @@ import { withBase } from "../lib/url";
       if (floodHit) {
         const p = floodHit.properties || {};
         const area = Number(p.area_km2 || 0);
+        const observations = Array.isArray(p.observaciones) ? p.observaciones : [];
+        const obsHtml = observations.length
+          ? observations
+              .map(
+                (o: any) =>
+                  `${o.fecha} · ${o.sensor}: ${Number(o.area_original_km2).toLocaleString("es-PE")} km²`,
+              )
+              .join("<br>")
+          : `${p.fecha_texto || p.fecha}: ${p.sensores || "sensor no declarado"}`;
         show(`<h3>Inundación de marzo de 2017</h3>
-              <p><strong>${p.zona}</strong> · ${Math.round(area).toLocaleString("es-PE")} km²</p>
-              <p class="muted">Observada el ${p.fecha_texto || p.fecha}. ${p.sensores}.</p>
-              <p class="muted">${p.cobertura}.</p>
-              <p class="muted">Fuente: <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>. Área del vector simplificado; no es un modelo hidráulico.</p>`);
+              <p><strong>${p.zona}</strong> · ${Math.round(area).toLocaleString("es-PE")} km² de unión simplificada</p>
+              <p class="muted">${obsHtml}</p>
+              <p class="muted">${p.cobertura || ""}</p>
+              <p class="muted">${p.advertencia || ""}</p>
+              <p class="muted">Fuente: <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>. Solo clase <code>Flooded Area</code>; no es un modelo hidráulico ni una mancha simultánea.</p>`);
         return;
       }
 
       const p = hits[0].properties || {};
-      if (p.nombre && p.area_km2) {
+      if (p.nombre === "Cuenca del río Piura") {
+        const cuencaProps = cuenca?.features?.[0]?.properties || {};
+        const area = Number(cuencaProps.area_km2 || 10938.4);
+        show(`<h3>Cuenca del río Piura</h3><p>${Math.round(area).toLocaleString("es-PE")} km² medidos</p>
+              <p class="muted">ANA publica 11 022 km² en Shape_Area (EPSG:32718). Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a></p>`);
+      } else if (p.nombre && p.area_km2) {
         show(`<h3>${p.nombre}</h3><p>Área: <strong>${Math.round(p.area_km2).toLocaleString("es-PE")} km²</strong></p>
-              <p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${p.fuente === "ana-subcuencas" ? "ANA, 1:100 000" : "OpenStreetMap"}</a></p>`);
+              <p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${fuenteLabel(p.fuente)}</a></p>`);
       } else if (p.aporte_km2) {
         show(`<h3>Tramo de río</h3><p>Área aportante: <strong>${Math.round(p.aporte_km2).toLocaleString("es-PE")} km²</strong></p>
-              <p class="muted">Fuente: <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS</a></p>`);
+              <p class="muted">Fuente: <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS v1.0 (HydroSHEDS)</a></p>`);
       } else if (p.nombre) {
-        show(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">OpenStreetMap</a></p>`);
+        show(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${fuenteLabel(p.fuente)}</a></p>`);
       } else {
         const cuencaProps = cuenca?.features?.[0]?.properties || {};
         const area = Number(cuencaProps.area_km2 || 10938.4);
@@ -847,5 +879,9 @@ import { withBase } from "../lib/url";
         ids.forEach((id) => map.setLayoutProperty(id, "visibility", input.checked ? "visible" : "none"));
       });
     });
+
+    // Señal observable para las pruebas y para cualquier integración: el mapa
+    // terminó de cargar datos y de registrar los manejadores.
+    document.getElementById("map")?.setAttribute("data-ready", "true");
   });
 </script>

@@ -32,8 +32,9 @@ import { withBase } from "../lib/url";
         <button id="reset-scene" class="btn-draw scene-reset" type="button">Reiniciar vista</button>
         <p class="src panel-sources">
           Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM (malla ~140 m)</a> ·
-          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a> ·
-          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS</a> ·
+          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>
+          + <a href={withBase("/fuentes#bajo-piura-derivado")}>Bajo Piura derivado</a> ·
+          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS v1.0 (HydroSHEDS)</a> ·
           Agua: <a href={withBase("/fuentes#osm-agua")}>OSM</a> ·
           Lugares: <a href={withBase("/fuentes#osm-lugares")}>OSM</a>.
         </p>
@@ -52,7 +53,7 @@ import { withBase } from "../lib/url";
           <strong>rueda</strong> para acercar · <strong>doble clic</strong> para reiniciar.
         </p>
         <ul class="map-legend" aria-label="Leyenda de la maqueta">
-          <li><span class="swatch river"></span> Cauce y red (HydroRIVERS)</li>
+          <li><span class="swatch river"></span> Cauce y red (HydroRIVERS v1.0)</li>
           <li><span class="swatch flooded"></span> <a href={withBase("/escenarios")}>Rutas históricas (interpretación)</a></li>
           <li><span class="swatch divide"></span> Límite de cuenca (ANA)</li>
         </ul>
@@ -60,7 +61,7 @@ import { withBase } from "../lib/url";
           <summary>Fuentes, método y límites</summary>
           <ul>
             <li>El color del terreno es una rampa hipsométrica: indica altitud, no vegetación.</li>
-            <li>La red es HydroRIVERS (~500 m), elevada 45 m para que se lea; no es el cauce exacto.</li>
+            <li>La red es HydroRIVERS v1.0 (~500 m), elevada 45 m para que se lea; no es el cauce exacto.</li>
             <li>La laguna Ramón es un polígono OSM intermitente y puede estar seca; el agua del modelo es narrativa. Las superficies están a cota simbólica (+25 m).</li>
             <li>Las rutas punteadas son una interpretación del equipo; no hay una capa oficial publicada. El relato está en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
             <li>Las subcuencas solo están rotuladas; sus límites están en el <a href={withBase("/mapa")}>mapa 2D</a>.</li>
@@ -98,8 +99,9 @@ import { withBase } from "../lib/url";
       const statusEl = document.getElementById("scene-status");
       if (statusEl) {
         statusEl.hidden = false;
-        statusEl.textContent =
-          "Este navegador no pudo iniciar WebGL. Usa el mapa 2D para consultar las capas.";
+        statusEl.innerHTML =
+          `Este navegador no pudo iniciar WebGL. Usa el ` +
+          `<a href="${withBase("/mapa")}">mapa 2D</a> para consultar las capas.`;
       }
       throw error;
     }
