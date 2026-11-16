@@ -12,6 +12,8 @@ licencia de su fuente original.
 | `osm-agua` | OpenStreetMap | ODbL 1.0 | sí, con atribución y compartir igual |
 | `osm-lugares` | OpenStreetMap | ODbL 1.0 | sí, con atribución y compartir igual |
 | `enfen-informes` | ENFEN | documento público | citar; no reutilizar imágenes sin permiso |
+| `copernicus-ems-emsr199` | Copernicus EMS — EMSR199 (AOI10 y AOI11), © European Union | reutilización de la Comisión Europea con atribución | sí, citando la activación y su DOI |
+| `obras-esquematicas` | Río Piura Atlas — Poechos y canal Daniel Escobar | CC BY 4.0 | sí, citando; es interpretación, no un dato de campo |
 | `ingemmet-geodinamica` | INGEMMET | documento público | citar |
 | `sentinel-1-2017` | Copernicus / ESA | libre con atribución | sí, citando |
 | `unosat-copernicus-ems` | UNOSAT / Copernicus EMS | libre con atribución | citar; verificar términos del producto |

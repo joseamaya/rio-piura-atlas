@@ -80,6 +80,20 @@ fuentes:
     grupo: Límites, relieve y red
     notas: Coordenadas aproximadas; no sustituyen cartografía oficial.
 
+  - id: obras-esquematicas
+    titulo: Poechos y canal Daniel Escobar — trazado esquemático
+    institucion: Río Piura Atlas (elaboración propia)
+    url: null
+    fecha: "2026-11-16"
+    escala: aproximada
+    licencia: CC BY 4.0
+    estado: disponible
+    metodo: trazado manual a partir de coordenadas aproximadas
+    grupo: Agua
+    notas: >
+      Geometría esquemática para orientar al visitante; no es un levantamiento
+      ni proviene del inventario de ANA/PECHP. Bocatomas y diques no se dibujan.
+
   - id: senamhi-aforos
     titulo: Caudales y niveles de estaciones del valle
     institucion: SENAMHI
@@ -148,6 +162,21 @@ fuentes:
     grupo: Inundaciones y riesgo
     notas: Base para el relato histórico de El Niño.
 
+  - id: copernicus-ems-emsr199
+    titulo: Delineación de la inundación de marzo de 2017 (EMSR199, AOI10 y AOI11)
+    institucion: Copernicus Emergency Management Service / Comisión Europea
+    url: https://mapping.emergency.copernicus.eu/activations/EMSR199/
+    fecha: "2017-03-30"
+    escala: "1:76000–1:80000"
+    licencia: reutilización de la Comisión Europea con atribución
+    estado: disponible
+    metodo: descarga de vectores oficiales; disolución, filtrado y simplificación
+    grupo: Inundaciones y riesgo
+    notas: >
+      AOI10 Piura y AOI11 Parachique. Sensores Radarsat-2 (26/03) y
+      Cosmo-SkyMed (30/03). Cubre la llanura baja y el desierto adyacente, no
+      toda la cuenca. DOI de la activación: 10.2905/JRC.GKDVN10.
+
   - id: sentinel-1-2017
     titulo: Imágenes Sentinel-1 de marzo de 2017
     institucion: Copernicus / ESA
@@ -156,9 +185,11 @@ fuentes:
     escala: 10 m
     licencia: libre con atribución
     estado: disponible
-    metodo: descarga y umbral de agua
+    metodo: descarga y contraste
     grupo: Inundaciones y riesgo
-    notas: Candidata para reconstruir la mancha de inundación.
+    notas: >
+      Se usa como contraste; la geometría publicada es el vector oficial de
+      Copernicus EMSR199. No se deriva una mancha propia con umbral.
 
   - id: unosat-copernicus-ems
     titulo: UNOSAT / Copernicus EMS — inundación de marzo de 2017
@@ -168,8 +199,9 @@ fuentes:
     escala: variable
     licencia: libre con atribución
     estado: por_verificar
-    metodo: descarga y contraste con Sentinel-1
+    metodo: descarga y contraste visual
     grupo: Inundaciones y riesgo
+    notas: Producto de referencia para contrastar; no se usa como geometría publicada.
 
   - id: arcc-plan-inundaciones
     titulo: Plan de Control de Inundaciones Río Piura (2018)

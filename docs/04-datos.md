@@ -13,9 +13,16 @@ data/
 `processed/` se puede borrar y regenerar.
 
 Los archivos crudos se pueden reconstruir con `etl/download_ana.py`,
-`etl/download_hydrorivers.py` y `etl/download_osm_water.py`. Los scripts se niegan a
-sobrescribir sin `--force`. `etl/check_data.py` valida que cada capa apunte a una
-fuente existente y que los productos derivados sean coherentes.
+`etl/download_hydrorivers.py`, `etl/download_osm_water.py` y
+`etl/download_emsr199.py`. Los scripts se niegan a sobrescribir sin `--force`.
+`etl/check_data.py` valida que cada capa apunte a una fuente existente y que los
+productos derivados sean coherentes.
+
+La mancha de 2017 se construye en dos pasos: `download_emsr199.py` guarda los ZIP
+oficiales en `data/raw/emsr199/` (ignorados por Git) y `build_layers.py` publica una
+versión simplificada en `web/public/data/flood_2017.geojson`. Las obras esquemáticas
+(Poechos y canal Daniel Escobar) se generan en `build_layers.py` desde `water.json` y
+el eje manual del canal; no se descargan de ANA/PECHP.
 
 ## Formatos
 
@@ -61,7 +68,7 @@ Sin espacios, sin acentos, sin mayúsculas.
 - Git para textos, metadatos, scripts y GeoJSON pequeños.
 - Los archivos pesados (COG, PMTiles) **no** van en Git: se publican como *release* o
   en almacenamiento estático, y se enlazan desde `sources.yml` con su hash.
-- Cada versión publicada del atlas queda etiquetada (`v0.1.0`) y citada en
+- Cada versión publicada del atlas queda etiquetada (`v0.2.0`) y citada en
   `docs/06-como-citar.md`.
 
 ## Privacidad y licencias

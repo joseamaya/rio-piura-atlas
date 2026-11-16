@@ -19,11 +19,12 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 
 | Fuente | Uso | Estado |
 |---|---|---|
-| OpenStreetMap — cuerpos de agua | lagunas, salinas y represas | ✅ |
+| OpenStreetMap — cuerpos de agua | lagunas y salinas | ✅ |
 | SENAMHI — estaciones del valle (Puente Sánchez Cerro, Tambogrande, Chulucanas, entre otras) | caudales y niveles históricos | ❗ |
 | SENAMHI — PISCO v2.1 | precipitación grillada | ❗ registro |
 | PECHP — operación de Poechos y trasvase | caudales derivados, reglas de operación | ❗ |
 | ANA — inventario de infraestructura hidráulica | diques, bocatomas, canal Daniel Escobar | ❗ |
+| Río Piura Atlas — Poechos y canal Daniel Escobar | trazado esquemático para orientar; no es levantamiento | ⚠️ interpretación |
 
 ## Inundaciones y riesgo
 
@@ -31,8 +32,9 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 |---|---|---|
 | CENEPRED / SIGRID | escenarios de riesgo, mapas de peligro | ⚠️ |
 | ENFEN | informes técnicos 1982-83, 1997-98, 2017 | ✅ |
-| UNOSAT / Copernicus EMS | extensión de la inundación de marzo 2017 | ❓ |
-| Sentinel-1 y 2 (Copernicus) | reconstrucción de la mancha 2017 | ✅ descarga libre |
+| Copernicus EMS — activación EMSR199 (AOI10 y AOI11) | geometría oficial de la inundación de marzo 2017 | ✅ con atribución |
+| UNOSAT / Copernicus EMS | contraste visual de la inundación de marzo 2017 | ❓ |
+| Sentinel-1 y 2 (Copernicus) | contraste de la mancha 2017; no se usa para la geometría publicada | ✅ descarga libre |
 | ANA / ARCC — Plan de Control de Inundaciones Río Piura (2018) | obras y diagnóstico | ❗ |
 
 ## Estudios de referencia

@@ -119,6 +119,38 @@ def check_citation():
     print(f"citación: versión {data.get('version', '?')}")
 
 
+def check_geometry(path: Path, geom: dict):
+    gtype = geom.get("type")
+    if gtype == "Point":
+        if len(geom.get("coordinates") or []) != 2:
+            error(f"{path.name}: punto sin dos coordenadas")
+        return
+    if gtype == "LineString":
+        if len(geom.get("coordinates") or []) < 2:
+            error(f"{path.name}: línea con menos de 2 puntos")
+        return
+    if gtype == "Polygon":
+        polygons = [geom.get("coordinates") or []]
+    elif gtype == "MultiPolygon":
+        polygons = geom.get("coordinates") or []
+    else:
+        error(f"{path.name}: geometría no soportada '{gtype}'")
+        return
+    if not polygons:
+        error(f"{path.name}: geometría sin polígonos")
+        return
+    for polygon in polygons:
+        if not polygon:
+            error(f"{path.name}: polígono vacío")
+            continue
+        ring = polygon[0]
+        if len(ring) < 4 or ring[0] != ring[-1]:
+            error(f"{path.name}: anillo no cerrado o con menos de 4 puntos")
+        for hole in polygon[1:]:
+            if len(hole) < 4 or hole[0] != hole[-1]:
+                error(f"{path.name}: hueco no cerrado o con menos de 4 puntos")
+
+
 def check_layer_fuentes(ids: dict[str, dict]):
     for path in sorted(WEB_DATA.glob("*.geojson")):
         data = cargar_json(path)
@@ -133,14 +165,65 @@ def check_layer_fuentes(ids: dict[str, dict]):
                 error(f"{path.name}: fuente desconocida '{fuente}'")
             if not feature.get("geometry"):
                 error(f"{path.name}: feature sin geometría")
-            geom = feature["geometry"]
-            if geom.get("type") == "Polygon":
-                ring = (geom.get("coordinates") or [[]])[0]
-                if len(ring) < 4 or ring[0] != ring[-1]:
-                    error(f"{path.name}: anillo no cerrado o con menos de 4 puntos")
-            if geom.get("type") == "LineString" and len(geom.get("coordinates") or []) < 2:
-                error(f"{path.name}: línea con menos de 2 puntos")
+                continue
+            check_geometry(path, feature["geometry"])
         print(f"  {path.name}: {len(data.get('features', []))} elementos")
+
+
+def check_flood():
+    path = WEB_DATA / "flood_2017.geojson"
+    data = cargar_json(path)
+    if not data:
+        return
+    features = data.get("features") or []
+    if not features:
+        error("flood_2017.geojson: no tiene elementos")
+        return
+    total = 0.0
+    for feature in features:
+        props = feature.get("properties") or {}
+        for campo in ("evento", "zona", "aoi", "fecha", "sensores", "area_km2", "fuente", "metodo", "cobertura"):
+            if campo not in props:
+                error(f"flood_2017.geojson: falta '{campo}' en {props.get('aoi', '?')}")
+        if props.get("fuente") != "copernicus-ems-emsr199":
+            error(f"flood_2017.geojson: fuente inesperada '{props.get('fuente')}'")
+        if props.get("esquematico") is not False:
+            error(f"flood_2017.geojson: la mancha no debe marcarse como esquemática")
+        area = props.get("area_km2")
+        if not isinstance(area, (int, float)) or area <= 0:
+            error(f"flood_2017.geojson: área inválida en {props.get('aoi', '?')}")
+        else:
+            total += float(area)
+    if not 500 <= total <= 600:
+        error(f"flood_2017.geojson: área total {total:.1f} km² fuera del rango esperado (500–600)")
+    size = path.stat().st_size
+    if size > 1_500_000:
+        error(f"flood_2017.geojson: {size / 1e6:.2f} MB; conviene simplificar más")
+    print(f"  flood_2017: {len(features)} zonas · {total:.1f} km² · {size / 1e3:.0f} kB")
+
+
+def check_obras():
+    path = WEB_DATA / "obras.geojson"
+    data = cargar_json(path)
+    if not data:
+        return
+    features = data.get("features") or []
+    if len(features) != 2:
+        error(f"obras.geojson: se esperaban 2 elementos; hay {len(features)}")
+        return
+    tipos = set()
+    for feature in features:
+        props = feature.get("properties") or {}
+        if props.get("fuente") != "obras-esquematicas":
+            error("obras.geojson: fuente inesperada; debe ser 'obras-esquematicas'")
+        if props.get("esquematico") is not True:
+            error("obras.geojson: falta la marca 'esquematico: true'")
+        if not props.get("nota"):
+            error("obras.geojson: falta la nota de límite")
+        tipos.add(props.get("tipo"))
+    if tipos != {"represa", "canal"}:
+        error(f"obras.geojson: tipos inesperados {sorted(tipos)}")
+    print(f"  obras: {len(features)} elementos esquemáticos")
 
 
 def check_cortes():
@@ -234,9 +317,9 @@ def check_model():
 def check_presupuesto():
     pesos = [p.stat().st_size for p in WEB_DATA.glob("*") if p.name not in {"dem_grid.bin"}]
     total = sum(pesos)
-    print(f"  datos iniciales: {total / 1e3:.0f} kB")
+    print(f"  datos publicados: {total / 1e3:.0f} kB")
     if total > 2_000_000:
-        aviso(f"los datos iniciales superan 2 MB ({total / 1e6:.2f} MB)")
+        aviso(f"los datos publicados superan 2 MB ({total / 1e6:.2f} MB)")
 
 
 def main() -> int:
@@ -245,6 +328,8 @@ def main() -> int:
     check_licencias(ids)
     check_citation()
     check_layer_fuentes(ids)
+    check_flood()
+    check_obras()
     check_cortes()
     check_grid()
     check_model()

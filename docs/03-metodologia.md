@@ -55,10 +55,35 @@ No se simulan. Se digitalizan de fuentes documentales:
 
 1. fuente (mapa oficial, imagen satelital, informe);
 2. fecha del evento;
-3. método de extracción (digitalización manual, umbral sobre Sentinel-1);
+3. método de extracción (descarga de vector oficial, digitalización manual o umbral
+   sobre radar; el umbral propio no se usa para 2017);
 4. control de calidad (comparación con relatos o mapas oficiales).
 
 Cada escenario muestra un rótulo permanente: **«escenario documentado, no pronóstico»**.
+
+### Inundación de 2017
+La mancha publicada es el **vector oficial de Copernicus EMSR199**, no una
+reconstrucción propia. Se usan dos áreas de interés:
+
+- **AOI10 Piura**: Piura, Catacaos y La Unión. Radarsat-2 (26/03) y Cosmo-SkyMed
+  (30/03).
+- **AOI11 Parachique**: llanura baja y desierto adyacente. Radarsat-2 (26/03).
+
+Se conserva la clase `Flooded Area`, se disuelve, se descartan fragmentos menores de
+0,5 ha y se simplifica a 25 m. El área publicada es la del vector simplificado
+(≈555 km² en total); la suma de los polígonos originales es ≈554 km². La capa cubre
+la llanura baja y el desierto adyacente, **no toda la cuenca**: en la sierra el evento
+se expresó como crecidas y deslizamientos, no como una mancha continua. No es un
+modelo hidráulico ni una predicción. El AOI12 Piura North se descartó porque sus
+registros no traen fecha ni sensor.
+
+### Obras hidráulicas
+Poechos y el canal Daniel Escobar se dibujan en el mapa 2D como **geometría
+esquemática**, con el mismo trazado manual que usa la maqueta. No son levantamientos
+ni provienen del inventario de ANA/PECHP. Las bocatomas y los diques no se dibujan
+porque no hay geometría pública: se declaran como pendientes. El ancho de 420 m del
+canal en el diorama es un recurso visual, no el ancho real; en 2D se muestra solo el
+eje aproximado.
 
 ## Control de calidad
 
@@ -66,8 +91,12 @@ Cada escenario muestra un rótulo permanente: **«escenario documentado, no pron
 - Se comprueba: cierre de polígonos, geometrías válidas, coherencia con el relieve,
   y que el área calculada coincida con la declarada por la fuente.
 - Los desacuerdos entre fuentes se dejan visibles en la ficha, no se promedian.
-- `etl/check_data.py` valida procedencia, cierres de anillos, perfiles de corte y
-  presupuesto de datos. CI lo ejecuta junto con las pruebas de geometría.
+- La mancha de 2017 conserva la clase `Flooded Area`, se revisa contra la máscara de
+  mar y declara su cobertura; las obras esquemáticas se validan por su marca
+  `esquematico: true`.
+- `etl/check_data.py` valida procedencia, cierres de anillos, perfiles de corte,
+  área y cobertura de la mancha, y presupuesto de datos. CI lo ejecuta junto con las
+  pruebas de geometría.
 
 ## Reproducibilidad
 
