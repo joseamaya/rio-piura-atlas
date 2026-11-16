@@ -1,11 +1,11 @@
 import json
-import math
 import unittest
 from pathlib import Path
 
-from shapely.geometry import LineString, Point, Polygon, shape
-from shapely.ops import unary_union
-from shapely.validation import make_valid
+import yaml
+from shapely.geometry import LineString, Point, shape
+
+from etl.topology import Tolerances, audit_partition
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "web" / "public" / "data"
@@ -19,8 +19,10 @@ def load(name):
 class TestDatosPublicados(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cuenca = shape(load("cuenca.geojson")["features"][0]["geometry"])
-        cls.subs = [shape(f["geometry"]) for f in load("subcuencas.geojson")["features"]]
+        cls.cuenca_feature = load("cuenca.geojson")["features"][0]
+        cls.cuenca = shape(cls.cuenca_feature["geometry"])
+        cls.subs_features = load("subcuencas.geojson")["features"]
+        cls.subs = [shape(f["geometry"]) for f in cls.subs_features]
         cls.red = [shape(f["geometry"]) for f in load("red_hidrica.geojson")["features"]]
         cls.cortes = load("cortes.geojson")["features"]
         cls.perfiles = load("cortes_perfiles.json")
@@ -30,18 +32,40 @@ class TestDatosPublicados(unittest.TestCase):
         self.assertTrue(all(geom.is_valid for geom in self.subs))
 
     def test_areas_coherentes(self):
-        declared = load("cuenca.geojson")["features"][0]["properties"]["area_km2"]
-        sum_subs = sum(f["properties"]["area_km2"] for f in load("subcuencas.geojson")["features"])
+        declared = self.cuenca_feature["properties"]["area_km2"]
+        sum_subs = sum(
+            f["properties"]["area_km2"] for f in self.subs_features
+        )
         self.assertAlmostEqual(sum_subs, declared, delta=declared * 0.005)
 
-    def test_sin_hueco_grande(self):
-        gap = self.cuenca.difference(unary_union(self.subs)).area
-        # grados²; 0.0002°² equivale a ~2,5 km² en esta latitud
-        self.assertLess(gap, 0.0002)
+    def test_particion_limpia(self):
+        named = [
+            (f["properties"]["nombre"], shape(f["geometry"]))
+            for f in self.subs_features
+        ]
+        report = audit_partition(self.cuenca, named, Tolerances())
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.overlap_pairs, 0)
+        self.assertEqual(report.outside_total_km2, 0.0)
+        self.assertEqual(report.gap_total_km2, 0.0)
+
+    def test_bajo_piura_es_derivado(self):
+        bajo = next(
+            f for f in self.subs_features
+            if f["properties"]["nombre"] == "Bajo Piura"
+        )
+        self.assertEqual(bajo["properties"]["fuente"], "bajo-piura-derivado")
+        sources = yaml.safe_load(
+            (ROOT / "data" / "sources.yml").read_text(encoding="utf-8")
+        )["fuentes"]
+        source = next(s for s in sources if s["id"] == "bajo-piura-derivado")
+        self.assertIn("Río Piura Atlas", source["institucion"])
+        self.assertEqual(source["tipo"], "elaboracion_propia")
+        self.assertEqual(source["certeza"], "derivado")
 
     def test_red_dentro_de_cuenca(self):
         for line in self.red:
-            # El redondeo a 5 decimales puede dejar milímetros fuera del borde.
+            # El redondeo a 6 decimales puede dejar milímetros fuera del borde.
             self.assertLess(line.difference(self.cuenca).length, 1e-5)
 
     def test_cortes_cruzan_rio(self):
@@ -53,7 +77,10 @@ class TestDatosPublicados(unittest.TestCase):
         ]
         for feature in self.cortes:
             corte = shape(feature["geometry"])
-            self.assertTrue(any(corte.intersects(line) for line in lines), feature["properties"]["id"])
+            self.assertTrue(
+                any(corte.intersects(line) for line in lines),
+                feature["properties"]["id"],
+            )
 
     def test_paso_de_perfil_no_inventa_resolucion(self):
         effective = self.perfiles["resolucion_efectiva_m"]
@@ -68,6 +95,25 @@ class TestDatosPublicados(unittest.TestCase):
         geom = shape(poechos["geometry"])
         self.assertEqual(geom.geom_type, "Point")
         self.assertLess(geom.distance(Point(-80.5036, -4.6686)), 0.001)
+
+    def test_flood_publica_solo_observado_y_por_fecha(self):
+        total = 0.0
+        for feature in load("flood_2017.geojson")["features"]:
+            props = feature["properties"]
+            self.assertEqual(props["clase"], "Flooded Area")
+            obs = props["observaciones"]
+            self.assertTrue(obs)
+            dates = [o["fecha"] for o in obs]
+            expected = dates[0] if len(dates) == 1 else f"{min(dates)}/{max(dates)}"
+            self.assertEqual(props["fecha"], expected)
+            observed_max = max(o["area_original_km2"] for o in obs)
+            observed_sum = sum(o["area_original_km2"] for o in obs)
+            self.assertGreaterEqual(props["area_km2"], observed_max * 0.98)
+            self.assertLessEqual(props["area_original_km2"], observed_sum + 0.5)
+            self.assertIn("no es una mancha simultánea", props["metodo"])
+            total += props["area_km2"]
+        self.assertGreaterEqual(total, 500)
+        self.assertLessEqual(total, 600)
 
 
 if __name__ == "__main__":
