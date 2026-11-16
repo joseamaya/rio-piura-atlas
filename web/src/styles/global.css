@@ -223,6 +223,48 @@ footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 
 .map-panel .swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
 .map-panel hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
 .map-panel .src { color: var(--ink-soft); font-size: 0.76rem; }
+.map-panel .panel-sources { margin-bottom: 8px; }
+.map-panel .src p { margin: 6px 0 0; }
+.map-panel details.src { margin-top: 8px; }
+.map-panel details.src summary { cursor: pointer; }
+.map-legend {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+}
+.map-legend li { display: flex; align-items: center; gap: 8px; }
+.map-legend .swatch {
+  width: 22px;
+  height: 0;
+  flex: none;
+  border-top: 2px solid var(--accent-2);
+  border-radius: 1px;
+}
+.map-legend .swatch.flooded { border-top-style: dashed; border-top-color: #1f8fa6; }
+.map-legend .swatch.divide { border-top-width: 3px; border-top-color: #6b2e26; }
+.scene-status {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 4;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 253, 247, 0.94);
+  color: var(--ink-soft);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8rem;
+  text-align: center;
+  pointer-events: none;
+}
+.scene-status[hidden], .scene-status:empty { display: none; }
+.scene-status a { pointer-events: auto; }
 .map-panel .btn-draw {
   width: 100%;
   padding: 7px 10px;
@@ -320,7 +362,7 @@ footer.site .inner { max-width: var(--max); margin: 0 auto; display: flex; gap: 
 table tr[id] { scroll-margin-top: 90px; }
 
 @media (max-width: 720px) {
-  .map-panel { width: calc(100% - 32px); max-height: 42%; }
+  .map-panel { width: calc(100% - 32px); max-height: 50%; }
   #ficha { display: block; width: calc(100% - 32px); max-height: 30%; overflow: auto; }
   body.corte-open #ficha { display: none; }
   #corte-panel { left: 16px; right: 16px; width: auto; bottom: 56px; max-height: 55%; }

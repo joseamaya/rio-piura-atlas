@@ -10,33 +10,59 @@ import { withBase } from "../lib/url";
 >
   <main id="main" class="wide">
     <div class="map-shell">
+      <h1 class="sr-only">La cuenca del río Piura y su salida al mar</h1>
       <p id="scene-summary" class="sr-only">
         Maqueta 3D del río Piura con la cuenca, el desierto de Sechura y la bahía.
-        La cresta oscura marca la divisoria de aguas. El relieve está exagerado siete
-        veces para que se lea; no es una escala real. Arrastra para girar, usa la rueda
-        para acercar y haz doble clic para reiniciar la vista.
+        La cresta oscura deriva del límite de cuenca de la ANA. El relieve está
+        exagerado siete veces para que se lea; no es una escala real. El río muere en
+        la laguna Ramón; las líneas punteadas son trazos aproximados de rutas
+        históricas de crecida y no son cartografía oficial. Arrastra para girar, usa
+        la rueda para acercar y haz doble clic para reiniciar la vista. El
+        <a href={withBase("/mapa")}>mapa 2D</a> ofrece la misma información con capas
+        consultables.
       </p>
-      <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura" aria-describedby="scene-summary"></div>
+      <div id="scene" role="img" aria-label="Maqueta 3D de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
+      <p id="scene-status" class="scene-status" role="status" aria-live="polite"></p>
 
-      <aside class="map-panel" aria-label="Información de la maqueta">
+      <aside class="map-panel" aria-label="Información de la maqueta" tabindex="0">
         <h2>La cuenca y su salida al mar</h2>
-        <p class="src">
-          La <strong>cresta oscura</strong> es la divisoria de aguas de la ANA. Dentro
-          queda la cuenca; fuera, el desierto de Sechura y la bahía.
+        <p class="src panel-sources">
+          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM 30 m</a> ·
+          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a> ·
+          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS</a> ·
+          Agua: <a href={withBase("/fuentes#osm-agua")}>OSM</a> ·
+          Lugares: <a href={withBase("/fuentes#osm-lugares")}>OSM</a>.
         </p>
         <p class="src">
-          El río muere en la laguna; las <strong>líneas punteadas</strong> son las rutas
-          de crecida que solo con El Niño llegan al mar.
+          La <strong>cresta oscura</strong> deriva del límite de cuenca de la ANA.
+          Al oeste y al sur quedan el desierto de Sechura y la bahía.
         </p>
         <p class="src">
-          Relieve exagerado <strong>×7</strong> para que se lea: no es una escala real.
+          El río muere en la <strong>laguna Ramón</strong>. Las
+          <strong>líneas punteadas</strong> son trazos aproximados de rutas de crecida;
+          no son cartografía oficial.
         </p>
-        <hr />
-        <p class="src"><strong>Arrastra</strong> para girar · <strong>rueda</strong> para acercar · <strong>doble clic</strong> para reiniciar.</p>
-        <hr />
         <p class="src">
-          Relieve: Copernicus DEM 30 m · Límites: ANA 1:100 000 · Red: HydroSHEDS.
+          <a href={withBase("/mapa")}>Ver el mapa 2D</a> si prefieres capas consultables
+          o navegación con teclado. <strong>Arrastra</strong> para girar ·
+          <strong>rueda</strong> para acercar · <strong>doble clic</strong> para reiniciar.
         </p>
+        <ul class="map-legend" aria-label="Leyenda de la maqueta">
+          <li><span class="swatch river"></span> Cauce y red (HydroRIVERS)</li>
+          <li><span class="swatch flooded"></span> <a href={withBase("/escenarios")}>Rutas históricas (interpretación)</a></li>
+          <li><span class="swatch divide"></span> Límite de cuenca (ANA)</li>
+        </ul>
+        <details class="src">
+          <summary>Fuentes y método</summary>
+          <p>
+            Relieve exagerado <strong>×7</strong>: no es una escala real. La traza de
+            las rutas de crecida es una interpretación del equipo: no hay una capa
+            oficial publicada; el relato y sus fuentes están en
+            <a href={withBase("/escenarios")}>Escenarios</a>. Poechos y el canal Daniel
+            Escobar son geometría esquemática. Los lugares y cuerpos de agua provienen
+            de OpenStreetMap (ODbL). El relieve es Copernicus DEM GLO-30 (30 m).
+          </p>
+        </details>
       </aside>
     </div>
     <noscript>
@@ -78,6 +104,8 @@ import { withBase } from "../lib/url";
 
   let model: THREE.Object3D | null = null;
   const panel = document.querySelector(".map-panel") as HTMLElement | null;
+  const status = document.getElementById("scene-status");
+  if (status) status.textContent = "Cargando maqueta…";
   const lastSize = { w: 0, h: 0 };
 
   function frame(object: THREE.Object3D) {
@@ -184,7 +212,6 @@ import { withBase } from "../lib/url";
   // inclinación que los mantiene por encima del terreno.
   type LabelPivot = { pivot: THREE.Group; base: THREE.Vector3; yaw0: number };
   const labels: LabelPivot[] = [];
-  const _v = new THREE.Vector3();
   const _q = new THREE.Quaternion();
 
   const draco = new DRACOLoader();
@@ -192,37 +219,56 @@ import { withBase } from "../lib/url";
 
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
-  loader.load(withBase("/models/piura.glb"), (gltf) => {
-    model = gltf.scene;
-    scene.add(model);
-    scene.updateMatrixWorld(true);
-    // Se recogen primero y se recolocan después: no se puede mutar el árbol
-    // mientras se recorre.
-    const found: THREE.Object3D[] = [];
-    model.traverse((child) => {
-      if (child.name.startsWith("GEO-Etiqueta")) found.push(child);
-    });
-    const pivots = new Map<string, LabelPivot>();
-    for (const child of found) {
-      // La placa y el texto de un mismo rótulo comparten posición: un solo pivote.
-      const key = child.name.replace(/-(placa|texto)$/, "");
-      let entry = pivots.get(key);
-      if (!entry) {
-        child.getWorldPosition(_v);
-        const pivot = new THREE.Group();
-        pivot.position.copy(_v);
-        scene.add(pivot);
-        const n = new THREE.Vector3(0, 0, 1).applyQuaternion(child.getWorldQuaternion(_q));
-        entry = { pivot, base: _v.clone(), yaw0: Math.atan2(n.x, n.z) };
-        pivots.set(key, entry);
-        labels.push(entry);
+  loader.load(
+    withBase("/models/piura.glb"),
+    (gltf) => {
+      const root = gltf.scene;
+      model = root;
+      scene.add(root);
+      scene.updateMatrixWorld(true);
+      // Se recogen primero y se recolocan después: no se puede mutar el árbol
+      // mientras se recorre.
+      const found: THREE.Object3D[] = [];
+      root.traverse((child) => {
+        if (child.name.startsWith("GEO-Etiqueta")) found.push(child);
+      });
+      const pivots = new Map<string, LabelPivot>();
+      for (const child of found) {
+        // La placa y el texto de un mismo rótulo comparten posición: un solo pivote.
+        const key = child.name.replace(/-(placa|texto)$/, "");
+        let entry = pivots.get(key);
+        if (!entry) {
+          const world = child.getWorldPosition(new THREE.Vector3());
+          const pivot = new THREE.Group();
+          // El pivote queda dentro del modelo para que el encuadre siga contando
+          // las placas. La raíz glTF no trae rotación; si la trajera, este yaw
+          // habría que convertirlo al espacio local.
+          pivot.position.copy(root.worldToLocal(world.clone()));
+          root.add(pivot);
+          // En glTF (Y-up) el frontal de la placa es +Y: la geometría está en XZ.
+          const n = new THREE.Vector3(0, 1, 0).applyQuaternion(child.getWorldQuaternion(_q));
+          entry = { pivot, base: world, yaw0: Math.atan2(n.x, n.z) };
+          pivots.set(key, entry);
+          labels.push(entry);
+        }
+        entry.pivot.attach(child);
       }
-      entry.pivot.attach(child);
-    }
-    layout();
-    frame(model);
-    animate();
-  });
+      layout();
+      frame(root);
+      if (status) status.hidden = true;
+      animate();
+    },
+    undefined,
+    () => {
+      if (!status) return;
+      status.textContent = "No se pudo cargar la maqueta. ";
+      const link = document.createElement("a");
+      link.href = withBase("/mapa");
+      link.textContent = "Usa el mapa 2D";
+      status.append(link);
+      status.hidden = false;
+    },
+  );
 
   renderer.domElement.addEventListener("dblclick", () => {
     if (model) frame(model);
