@@ -253,6 +253,17 @@ Total: **38 pruebas**, todas OK.
 | `BASE_PATH=/rio-piura-atlas npm run build` | OK |
 | `BASE_PATH=/rio-piura-atlas npm run test:e2e` | 10 pruebas OK |
 
+CI final: run **43981449273**, commit `7e52822`; jobs «Sitio web», «Datos y ETL» y
+«GitHub Pages» en éxito. Sitio en vivo:
+<https://joseamaya.github.io/rio-piura-atlas/> y `/mapa/`, `/escenarios/`, `/fuentes/`
+responden 200. El GeoJSON desplegado conserva las observaciones por fecha.
+
+Los dos primeros intentos de CI fallaron en la prueba de ficha por coordenadas:
+el encuadre de MapLibre cambiaba entre entornos. Se corrigió la interfaz con un
+botón accesible «Ver ficha de la cuenca» y se hizo que `data-ready` espere el primer
+`idle` del mapa. No se relajó ninguna aserción; la prueba actual verifica el mismo
+contenido por un camino estable.
+
 Nota de entorno: el Python del sistema de esta máquina no tiene Shapely instalado;
 las ejecuciones locales usaron `PYTHONPATH=/tmp/opencode/pylib`. CI instala
 `etl/requirements.txt` y no necesita ese ajuste. No se alteró el resultado para
