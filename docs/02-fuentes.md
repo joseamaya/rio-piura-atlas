@@ -10,7 +10,7 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 | Fuente | Uso | Escala | Estado | Licencia |
 |---|---|---|---|---|
 | ANA — Unidades Hidrográficas Pfafstetter (R.M. 033-2008-AG) | cuenca y subcuencas | 1:100 000 | ✅ | dato público |
-| Copernicus DEM GLO-30 | relieve, sombreado, cortes | 30 m | ✅ | libre con atribución |
+| Copernicus DEM GLO-30 | relieve, sombreado, cortes | 30 m (producto); malla ~140 m | ✅ | libre con atribución |
 | HydroRIVERS v10 | red hídrica, orden, área aportante | ~500 m | ✅ | CC BY 4.0 |
 | IGN — cartas nacionales | contraste y toponimia | 1:100 000 / 1:25 000 | ⚠️ | uso con atribución |
 | OpenStreetMap — ciudades | toponimia y ubicación aproximada | punto | ✅ | ODbL 1.0 |
@@ -23,6 +23,7 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 | SENAMHI — estaciones del valle (Puente Sánchez Cerro, Tambogrande, Chulucanas, entre otras) | caudales y niveles históricos | ❗ |
 | SENAMHI — PISCO v2.1 | precipitación grillada | ❗ registro |
 | PECHP — operación de Poechos y trasvase | caudales derivados, reglas de operación | ❗ |
+| PECHP — fichas públicas de Poechos y canal | dique, longitud y capacidad del canal | ✅ |
 | ANA — inventario de infraestructura hidráulica | diques, bocatomas, canal Daniel Escobar | ❗ |
 | Río Piura Atlas — Poechos y canal Daniel Escobar | trazado esquemático para orientar; no es levantamiento | ⚠️ interpretación |
 
@@ -42,9 +43,11 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 | Fuente | Uso | Estado |
 |---|---|---|
 | INGEMMET — Estudio geodinámico de la cuenca del río Piura (1994) | geomorfología, procesos | ✅ |
-| SIAR Piura — hidrología de la cuenca | subcuencas, pendientes, longitudes | ✅ |
+| SIAR Piura — hidrología de la cuenca | subcuencas, pendientes, longitudes, avenidas | ✅ |
+| SIAR Piura — cambios de la embocadura | 1891 y 1983 | ✅ |
 | Universidad Nacional de Piura — tesis de hidrología e hidráulica | métodos y validación | ⚠️ |
-| Universidad de Piura — estudios de agua y inundaciones | contraste técnico | ❓ |
+| Universidad de Piura — estudios de agua e inundaciones | contraste técnico | ⚠️ |
+| SERNANP — Reserva Nacional Illescas | referencia de lugar, no límite | ✅ |
 | Banco Mundial / GFDRR | análisis de la inundación de 2017 | ❓ |
 
 ## Criterios para aceptar una fuente

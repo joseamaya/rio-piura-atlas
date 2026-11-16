@@ -8,12 +8,13 @@ tiene fuente, no se dibuja**.
 
 ## Implementado
 
-- Capas base: cuenca ANA, 9 subcuencas, red HydroRIVERS, lagunas y salinas OSM.
+- Capas base: cuenca ANA, 8 subcuencas oficiales + Bajo Piura derivado, red
+  HydroRIVERS recortada, lagunas y salinas OSM.
 - Mancha oficial de la inundación de marzo de 2017 (Copernicus EMSR199, AOI10 y
   AOI11), con fecha, sensores, cobertura y método declarados.
-- Capa esquemática de Poechos y del canal Daniel Escobar en el mapa 2D, marcada como
-  interpretación; no se dibujan bocatomas ni diques sin geometría.
-- Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,7 MB).
+- Referencia de Poechos como punto en el dique y del canal Daniel Escobar como recta
+  de referencia en el mapa 2D; no se dibujan el vaso, bocatomas ni diques sin geometría.
+- Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,6 MB).
 - Cortes transversales de referencia (5) y corte dibujado por el visitante.
 - Catálogo de fuentes generado desde `data/sources.yml`, con enlaces por capa.
 - Escenarios históricos documentados; la mancha de 2017 usa un vector oficial y
@@ -59,19 +60,23 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 
 ## Contradicciones y límites conocidos
 
-- **Área de la cuenca.** ANA reporta 11 021,8 km²; el atlas usa 11 022 km²
-  redondeados. Es una diferencia de redondeo, no de delimitación.
+- **Área de la cuenca.** La geometría mide **10 938,4 km²** (geodésica). ANA publica
+  11 021,8 km² en `Shape_Area`, pero ese campo está calculado en **EPSG:32718 (UTM 18S)**,
+  fuera de la zona 17S del polígono; la diferencia no es redondeo. El atlas muestra la
+  cifra medida y conserva la oficial como referencia.
 - **Bajo Piura.** La capa oficial de subcuencas no publica «Bajo Piura» como polígono
-  independiente. El atlas lo calcula como el resto de la cuenca; por eso su área varía
-  entre 4 792 y 4 795 km² según se redondeen las subcuencas. El método está declarado
-  en `data/raw/limits.json`.
-- **Red hídrica.** HydroRIVERS incluye tramos que sobresalen levemente de la ventana
-  del atlas. `build_layers.py` los recorta a la cuenca y el script de descarga usa un
-  margen de 0,05° para no cortar tramos en el borde.
-- **Poechos y canal Daniel Escobar.** Se dibujan en la maqueta y en el mapa 2D como
-  **geometría esquemática**: un polígono manual de 9 puntos y un eje de 4 puntos.
-  No son levantamientos ni provienen de ANA/PECHP. Las bocatomas y los diques no se
-  dibujan porque no hay geometría pública.
+  independiente. El atlas lo calcula como el resto de la cuenca **antes** de simplificar
+  y luego simplifica una sola vez; su área medida es **4 752,8 km²**. El método está
+  declarado en `data/raw/limits.json`. La unión deja slivers de simplificación de
+  ~1,48 km² (176 fragmentos, el mayor de 0,05 km²); no se rellenan con geometría
+  inventada y `check_data.py` los reporta como aviso, no como error.
+- **Red hídrica.** HydroRIVERS incluye tramos que sobresalen de la ventana y de la
+  cuenca. `build_layers.py` usa intersección geométrica exacta con el polígono ANA;
+  ningún tramo publicado queda fuera (solo el redondeo de 5 decimales, <2 m).
+- **Poechos y canal Daniel Escobar.** Poechos se publica como **punto en el dique**
+  (4°40′07″S, 80°30′13″W, PECHP), no como vaso inventado. El canal es una **recta de
+  referencia** Poechos–Curumuy, no su eje oficial; el PECHP documenta 54 km y 70 m³/s.
+  No hay geometría oficial publicada del vaso ni del eje: no se dibujan como si lo fueran.
 - **Inundación de 2017.** La mancha es el vector oficial de Copernicus EMSR199
   (AOI10 + AOI11), no una reconstrucción propia. Usa Radarsat-2 y Cosmo-SkyMed, no
   Sentinel-1. Cubre la llanura baja y el desierto adyacente, no toda la cuenca; el
@@ -83,10 +88,11 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 - **Lagunas.** Los polígonos son de OSM; Ramón y Las Salinas figuran como
   intermitentes. La maqueta las pinta como agua permanente por el relato y las sitúa
   a una cota simbólica (+25 m), no a un nivel medido.
-- **Rótulos del GLB.** «Naciente ~2 700 m» no coincide con el DEM en su posición
-  (1 933 m; máximo de ventana 3 019 m) y «Reserva Illescas» no dibuja el área
-  protegida. Corregirlos o retirarlos en una próxima exportación; el GLB actual no se
-  toca.
+- **Rótulos del GLB.** El rótulo de cota «Naciente ~2 700 m» fue retirado del GLB
+  regenerado: el DEM en esa posición mide ~1 935 m y el máximo de la ventana es
+  3 019 m. «Reserva Nacional Illescas» se conserva como referencia de lugar, no como
+  límite oficial; el área protegida no está dibujada. Poechos se rotula en el dique
+  real y el canal en su punto medio de referencia.
 - **ENFEN, Sentinel-1 y UNOSAT.** ENFEN aporta el relato; Sentinel-1 y UNOSAT se usan
   como contraste. La geometría publicada de 2017 es el vector oficial de Copernicus
   EMSR199. Las manchas de 1983 y 1998 siguen sin geometría pública localizada.

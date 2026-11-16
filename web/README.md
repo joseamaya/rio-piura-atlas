@@ -34,7 +34,7 @@ web/
 └── public/
     ├── data/                  # GeoJSON, relieve JPG y malla de elevación
     ├── draco/                 # decodificador Draco (Apache 2.0)
-    └── models/                # piura.glb (Draco, ~1,7 MB)
+    └── models/                # piura.glb (Draco, ~1,6 MB)
 ```
 
 El GLB se genera en el proyecto Blender hermano
@@ -48,8 +48,9 @@ El GLB se genera en el proyecto Blender hermano
 - `cuenca.geojson`, `subcuencas.geojson`, `red_hidrica.geojson`, `agua.geojson`,
   `lugares.geojson`, `obras.geojson` y `flood_2017.geojson` se generan con
   `etl/build_layers.py`.
-- `obras.geojson` contiene solo Poechos y el canal Daniel Escobar, marcados con
-  `esquematico: true`; no es un inventario de ANA/PECHP.
+- `obras.geojson` contiene Poechos como punto en el dique y el canal Daniel Escobar
+  como recta de referencia, marcados con `esquematico: true`; no es un inventario
+  de ANA/PECHP ni el eje oficial del canal.
 - `flood_2017.geojson` es el vector oficial de Copernicus EMSR199 (AOI10 + AOI11),
   simplificado. Cubre la llanura baja y el desierto adyacente, no toda la cuenca.
 - `flood_2017.jpg` es la figura estática de `/escenarios`, generada por
@@ -64,29 +65,30 @@ El GLB se genera en el proyecto Blender hermano
 - Portada y páginas de texto: carga inicial < 1 MB.
 - `/mapa`: MapLibre comprimido (~220 kB) y datos iniciales (~650 kB); la mancha de
   2017 (~518 kB) y el DEM de cortes (~443 kB) se descargan aparte, solo al activarlos.
-- `/maqueta`: 1,7 MB de GLB, ~250 kB de decodificador Draco y Three.js; se asume como
+- `/maqueta`: 1,6 MB de GLB, ~250 kB de decodificador Draco y Three.js; se asume como
   excepción y no contamina la carga de las demás páginas.
 - Mapa utilizable en 4G en menos de 3 s.
 - Sin fuentes externas bloqueantes.
 - Funciona sin JavaScript para leer los textos.
 
-La malla de elevación pesa ~443 kB y se descarga a demanda. El modelo 3D pesa 1,7 MB
+La malla de elevación pesa ~443 kB y se descarga a demanda. El modelo 3D pesa 1,6 MB
 y el decodificador Draco ~250 kB; solo se descargan al abrir `/maqueta`.
 
 ## Accesibilidad
 
 - Contraste mínimo AA.
 - Enlace «Saltar al contenido» y foco visible en todos los controles.
-- Navegación por teclado en mapa, capas y fichas.
+- Navegación por teclado en mapa, capas, fichas y maqueta (flechas, +/− y Home).
 - Texto alternativo y resumen para el mapa y la maqueta.
 - Los escenarios se pueden leer como tabla, no solo como mapa.
 - El perfil del corte se ofrece como gráfico SVG con etiqueta accesible.
 - Respeta `prefers-reduced-motion`.
 - `npm run check` (Astro/TypeScript), `npm run build`, `npm run check:links`
-  (enlaces y anclas internas) y `npm run check:a11y` (axe WCAG A/AA en Chrome
-  headless). `npm run verify` encadena las cuatro.
-- Auditoría automática WCAG A/AA con axe: sin violaciones en las cinco páginas y el
-  404.
+  (enlaces y anclas internas), `npm run check:a11y` (axe WCAG A/AA en Chrome
+  headless) y `npm run test:e2e` (Playwright, escritorio y móvil). `npm run verify`
+  encadena la secuencia completa.
+- Auditoría automática WCAG A/AA con axe: sin violaciones en las cinco páginas, el
+  404 y los visores en móvil.
 
 Pendiente: prueba con teclado real, lector de pantalla y personas de los tres
 públicos.

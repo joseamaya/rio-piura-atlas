@@ -86,17 +86,19 @@ El presupuesto se mide por página. La portada y las páginas de texto no cargan
 librerías 3D. `/mapa` añade MapLibre (~220 kB comprimidos) y las capas vectoriales
 (~650 kB iniciales); la mancha de 2017 (~518 kB) se carga solo al activar esa capa,
 y la malla de elevación para cortes (~443 kB) solo al dibujar un corte. `/maqueta`
-es la excepción declarada: 1,7 MB de GLB, ~250 kB de decodificador Draco y Three.js;
+es la excepción declarada: 1,6 MB de GLB, ~250 kB de decodificador Draco y Three.js;
 solo se descarga al abrir esa página.
 
 ## Calidad
 
-- `python3 etl/check_data.py` valida fuentes, capas, cortes, resoluciones, malla de
-  elevación y presupuesto de datos.
+- `python3 etl/check_data.py` valida fuentes, topología (validez, huecos, solapamientos,
+  líneas fuera de cuenca), áreas geodésicas, cortes, resolución efectiva, malla de
+  elevación, GLB y presupuesto de datos.
 - `python3 -m unittest discover -s etl/tests -v` prueba la geometría del ETL.
-- En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas) y
-  `npm run check:a11y` (axe WCAG A/AA en Chrome headless). `npm run verify` ejecuta
-  la secuencia completa.
+- En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas),
+  `npm run check:a11y` (axe WCAG A/AA en Chrome headless) y `npm run test:e2e`
+  (Playwright: mapa, móvil, fallo de red y maqueta). `npm run verify` ejecuta la
+  secuencia completa.
 - GitHub Actions compila el sitio, valida datos y ejecuta las tres comprobaciones web
   en cada push.
 
@@ -105,7 +107,7 @@ solo se descarga al abrir esa página.
 | Página | Contenido |
 |---|---|
 | `/` | qué es el atlas y qué no es |
-| `/mapa` | relieve, cuenca ANA, 9 subcuencas, red hídrica, inundación 2017, obras esquemáticas, cortes transversales, lagunas y ciudades |
+| `/mapa` | relieve, cuenca ANA, 8 subcuencas + Bajo Piura derivado, red hídrica, inundación 2017, referencias de obras, cortes transversales, lagunas y ciudades |
 | `/maqueta` | la cuenca, el desierto y el mar en un bloque 3D (Three.js + Draco) |
 | `/escenarios` | los eventos documentados, la mancha de 2017 y lo que falta |
 | `/fuentes` | catálogo generado desde `data/sources.yml`, con enlaces por capa |
@@ -125,6 +127,6 @@ fuente; ver [`LICENSES/DATOS.md`](LICENSES/DATOS.md).
 
 Nace como pieza hermana del laboratorio [Del Trazo al Modelo](../blender), que aporta
 el diorama 3D de la cuenca (`projects/piura`). La versión web se exporta con
-compresión Draco desde `projects/piura/scripts/export_web.py` (21 MB → 1,7 MB); el
+compresión Draco desde `projects/piura/scripts/export_web.py` (21 MB → 1,6 MB); el
 resultado (`projects/piura/exports/piura-web.glb`) se copia a
 `web/public/models/piura.glb`.

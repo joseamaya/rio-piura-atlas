@@ -41,8 +41,8 @@ modifican `data/processed/`.
 ## Construcción de capas
 
 `build_layers.py` convierte los JSON crudos (cuenca, subcuencas, red, agua) en
-GeoJSON simplificado, genera las obras esquemáticas, la mancha de 2017 y el relieve
-sombreado para la web.
+GeoJSON simplificado, recorta la red con intersección exacta, genera las referencias
+de Poechos y del canal, la mancha de 2017 y el relieve sombreado para la web.
 
 ```bash
 python3 etl/build_layers.py
@@ -84,11 +84,9 @@ python3 etl/check_data.py
 python3 -m unittest discover -s etl/tests -v
 ```
 
-`check_data.py` verifica que las fuentes tengan los campos obligatorios, que cada
-capa apunte a un `id` existente, que la mancha de 2017 declare fecha, sensores,
-cobertura y área, que las obras estén marcadas como esquemáticas, que los cortes
-tengan perfil, que la malla de elevación coincida con su metadata y que el
-presupuesto de datos no se dispare. No necesita DEM ni conexión.
+`check_data.py` verifica fuentes, validez y topología de las capas, áreas
+geodésicas, líneas fuera de cuenca, perfiles y su resolución efectiva, malla de
+elevación, estructura del GLB y presupuesto de datos. No necesita DEM ni conexión.
 
 Los scripts del laboratorio (`../blender/projects/piura/scripts/`) resolvieron el
 DEM y la textura del diorama; este ETL reutiliza esos productos. Los límites y la

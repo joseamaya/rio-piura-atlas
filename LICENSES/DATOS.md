@@ -18,8 +18,11 @@ licencia de su fuente original.
 | `sentinel-1-2017` | Copernicus / ESA | libre con atribución | sí, citando |
 | `unosat-copernicus-ems` | UNOSAT / Copernicus EMS | libre con atribución | citar; verificar términos del producto |
 | `siar-piura` | SIAR Piura / SENAMHI | dato público | citar |
+| `siar-cambios-cauce` | SIAR Piura / Gobierno Regional Piura | dato público | citar |
+| `sernanp-illescas` | SERNANP | documento público | citar; no se copia el polígono |
 | `senamhi-*` | SENAMHI | por definir | **no** hasta confirmar |
 | `pechp-poechos` | PECHP | por definir | **no** hasta confirmar |
+| `pechp-infraestructura` | PECHP — fichas públicas | documento público; citar | sí, citando; no se copia geometría |
 | `ana-infraestructura` | ANA | por definir | **no** hasta confirmar |
 | `arcc-plan-inundaciones` | ARCC / ANA | por definir | **no** hasta confirmar |
 | `cenepred-riesgo` | CENEPRED | por definir | **no** hasta confirmar |

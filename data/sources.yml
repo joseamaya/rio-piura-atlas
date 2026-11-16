@@ -19,19 +19,24 @@ fuentes:
     estado: disponible
     metodo: descarga GeoJSON desde el servicio
     grupo: Límites, relieve y red
-    notas: R.M. N.° 033-2008-AG. Cuenca 11 022 km² y 9 subcuencas.
+    notas: >
+      R.M. N.° 033-2008-AG. Cuenca medida: 10 938,4 km² geodésicos. ANA publica
+      11 021,8 km² en Shape_Area, calculado en EPSG:32718 (UTM 18S), fuera de la
+      zona 17S del polígono. Ocho subcuencas oficiales; Bajo Piura es derivada.
 
   - id: copernicus-dem-30
     titulo: Copernicus DEM GLO-30 (tiles Terrarium)
     institucion: ESA / Airbus (AWS Open Data)
     url: https://registry.opendata.aws/copernicus-dem/
     fecha: "2021-01-01"
-    escala: 30 m
+    escala: 30 m (producto); malla de trabajo ~140 m
     licencia: libre con atribución
     estado: disponible
-    metodo: descarga por teselas
+    metodo: descarga de teselas Terrarium z11 y remuestreo a malla local
     grupo: Límites, relieve y red
-    notas: Usado para relieve, sombreado, cortes y malla de elevación.
+    notas: >
+      Usado para relieve, sombreado, cortes y malla de elevación. La malla de
+      trabajo del atlas es de ~143 × 134 m; no se publican perfiles a 30 m.
 
   - id: hydrorivers
     titulo: HydroRIVERS v10.0
@@ -76,9 +81,11 @@ fuentes:
     escala: punto
     licencia: ODbL 1.0
     estado: disponible
-    metodo: consulta manual y contraste con cartas nacionales
+    metodo: consulta de nodos de localidad OSM y contraste con cartas nacionales
     grupo: Límites, relieve y red
-    notas: Coordenadas aproximadas; no sustituyen cartografía oficial.
+    notas: >
+      Coordenadas de nodos de localidad (no centroides de distrito), aproximadas;
+      no sustituyen cartografía oficial. Paita se marca fuera de la cuenca.
 
   - id: obras-esquematicas
     titulo: Poechos y canal Daniel Escobar — trazado esquemático
@@ -88,11 +95,12 @@ fuentes:
     escala: aproximada
     licencia: CC BY 4.0
     estado: disponible
-    metodo: trazado manual a partir de coordenadas aproximadas
+    metodo: punto del dique y recta de referencia Poechos–Curumuy
     grupo: Agua
     notas: >
-      Geometría esquemática para orientar al visitante; no es un levantamiento
-      ni proviene del inventario de ANA/PECHP. Bocatomas y diques no se dibujan.
+      Poechos se publica como punto en el dique, no como embalse: no hay geometría
+      oficial del vaso. El canal es una recta de referencia, no el eje oficial; el
+      PECHP documenta 54 km y 70 m³/s. No proviene del inventario de ANA/PECHP.
 
   - id: senamhi-aforos
     titulo: Caudales y niveles de estaciones del valle
@@ -127,6 +135,21 @@ fuentes:
     estado: por_solicitar
     metodo: solicitud institucional
     grupo: Agua
+
+  - id: pechp-infraestructura
+    titulo: PECHP — Poechos y canal Daniel Escobar (fichas públicas)
+    institucion: Proyecto Especial Chira-Piura
+    url: https://www.gob.pe/23915-proyecto-especial-chira-piura-resena-historica
+    fecha: "2026-11-13"
+    escala: punto / obra
+    licencia: documento público (citación)
+    estado: disponible
+    metodo: consulta de fichas institucionales
+    grupo: Agua
+    notas: >
+      Dique de Poechos 4°40′07″S, 80°30′13″W. Canal Daniel Escobar: 54 km y
+      70 m³/s, desde el dique hasta Curumuy. No publica el eje del canal ni la
+      geometría del vaso; el atlas no los inventa.
 
   - id: ana-infraestructura
     titulo: Inventario de infraestructura hidráulica
@@ -173,8 +196,8 @@ fuentes:
     metodo: descarga de vectores oficiales; disolución, filtrado y simplificación
     grupo: Inundaciones y riesgo
     notas: >
-      AOI10 Piura y AOI11 Parachique. Sensores Radarsat-2 (26/03) y
-      Cosmo-SkyMed (30/03). Cubre la llanura baja y el desierto adyacente, no
+      AOI10 Piura: Radarsat-2 (26/03) y Cosmo-SkyMed (30/03). AOI11 Parachique:
+      solo Radarsat-2 (26/03). Cubre la llanura baja y el desierto adyacente, no
       toda la cuenca. DOI de la activación: 10.2905/JRC.GKDVN10.
 
   - id: sentinel-1-2017
@@ -229,26 +252,58 @@ fuentes:
   - id: siar-piura
     titulo: SIAR Piura — hidrología de la cuenca
     institucion: SENAMHI / Gobierno Regional Piura
-    url: https://www.senamhi.gob.pe/
+    url: https://siar.regionpiura.gob.pe/documentos/normativa/204.pdf
     fecha: null
     escala: cuenca
     licencia: dato público
     estado: disponible
-    metodo: consulta y descarga
+    metodo: consulta de documentos técnicos
     grupo: Estudios
-    notas: Subcuencas, pendientes y longitudes; se usa como contraste.
+    notas: >
+      Apéndice D de hidrología: cuenca, pendientes, cauce y descargas de 1983/1998.
+      Complemento: documentos/200.pdf (evaluación hidrológica 1998).
+
+  - id: siar-cambios-cauce
+    titulo: SIAR Piura — cambios de la embocadura del río Piura
+    institucion: Gobierno Regional Piura
+    url: https://siar.regionpiura.gob.pe/documentos/repositorio/1392.pdf
+    fecha: null
+    escala: cuenca / valle
+    licencia: dato público
+    estado: disponible
+    metodo: consulta de presentación técnica
+    grupo: Estudios
+    notas: >
+      «Cambios de la embocadura del cauce principal: al mar antes de 1891 y en
+      1983; a laguna San Ramón desde 1891».
 
   - id: udep-estudios
     titulo: Universidad de Piura — estudios de agua e inundaciones
     institucion: Universidad de Piura
-    url: null
+    url: http://pirhua.udep.edu.pe/handle/123456789/1170
     fecha: null
     escala: cuenca / valle
     licencia: uso académico con atribución
     estado: por_verificar
     metodo: consulta bibliográfica
     grupo: Estudios
-    notas: Contraste técnico; no se reutilizan figuras sin permiso.
+    notas: >
+      Contraste técnico (p. ej. picos de 3 200 y 4 424 m³/s); no se reutilizan
+      figuras sin permiso.
+
+  - id: sernanp-illescas
+    titulo: SERNANP — Reserva Nacional Illescas
+    institucion: SERNANP
+    url: https://cdn.www.gob.pe/uploads/document/file/2002543/Expediente%20Categorizaci%C3%B3n%20Zona%20Reservada%20Illescas.pdf.pdf
+    fecha: "2021-12-24"
+    escala: "1:100 000"
+    licencia: documento público
+    estado: disponible
+    metodo: consulta de expediente de categorización
+    grupo: Estudios
+    notas: >
+      Área protegida de 36 550,70 ha; centro aproximado 5°58′S, 81°05′O.
+      No se usa como límite dibujado.
 
   - id: banco-mundial-gfdrr
     titulo: Banco Mundial / GFDRR — análisis de la inundación de 2017

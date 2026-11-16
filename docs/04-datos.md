@@ -10,7 +10,8 @@ data/
 ```
 
 `raw/` es inmutable: si una fuente se actualiza, se guarda como versión nueva.
-`processed/` se puede borrar y regenerar.
+`processed/` se puede borrar y regenerar. `limits.json` conserva `ring`/`holes` y,
+si la fuente trae varios polígonos, `polygons`; los agujeros no se descartan.
 
 Los archivos crudos se pueden reconstruir con `etl/download_ana.py`,
 `etl/download_hydrorivers.py`, `etl/download_osm_water.py` y

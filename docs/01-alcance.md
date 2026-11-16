@@ -16,7 +16,7 @@ dato público» explícito.
 
 | Nivel | Alcance | Qué se puede afirmar | Dato mínimo |
 |---|---|---|---|
-| Cuenca | 1:100 000 – 1:150 000 | divisoria, subcuencas, red, pendientes, obras mayores | ANA 1:100k + DEM 30 m |
+| Cuenca | 1:100 000 – 1:150 000 | divisoria, subcuencas, red, pendientes, obras mayores | ANA 1:100k + DEM de trabajo ~140 m (origen GLO-30) |
 | Valle | 1:10 000 – 1:25 000 | llanura, diques, bocatomas, ancho de cauce | cartografía 1:25k, imágenes, batimetría |
 | Ciudad | 1:1 000 – 1:5 000 | calles afectadas, cotas locales | levantamiento local y modelo hidráulico |
 
