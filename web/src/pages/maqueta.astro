@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/url";
 ---
 
 <Base
@@ -32,7 +33,7 @@ import Base from "../layouts/Base.astro";
       </aside>
     </div>
     <noscript>
-      <p style="padding: 20px;">La maqueta necesita JavaScript. El <a href="/mapa">mapa</a> funciona igual.</p>
+      <p style="padding: 20px;">La maqueta necesita JavaScript. El <a href={withBase("/mapa")}>mapa</a> funciona igual.</p>
     </noscript>
   </main>
 </Base>
@@ -41,6 +42,7 @@ import Base from "../layouts/Base.astro";
   import * as THREE from "three";
   import { OrbitControls } from "three/addons/controls/OrbitControls.js";
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+  import { withBase } from "../lib/url";
 
   const container = document.getElementById("scene")!;
 
@@ -167,7 +169,7 @@ import Base from "../layouts/Base.astro";
   if (panel) observer.observe(panel);
   layout();
 
-  new GLTFLoader().load("/models/piura-cuenca.glb", (gltf) => {
+  new GLTFLoader().load(withBase("/models/piura-cuenca.glb"), (gltf) => {
     model = gltf.scene;
     scene.add(model);
     layout();

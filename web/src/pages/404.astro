@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/url";
 ---
 
 <Base
@@ -15,9 +16,9 @@ import Base from "../layouts/Base.astro";
       solo publica lo que tiene fuente y revisión.
     </p>
     <p>
-      <a href="/">Volver al inicio</a> ·
-      <a href="/mapa">Ir al mapa</a> ·
-      <a href="/fuentes">Ver las fuentes</a>
+      <a href={withBase("/")}>Volver al inicio</a> ·
+      <a href={withBase("/mapa")}>Ir al mapa</a> ·
+      <a href={withBase("/fuentes")}>Ver las fuentes</a>
     </p>
   </main>
 </Base>

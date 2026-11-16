@@ -19,6 +19,9 @@ jobs:
     defaults:
       run:
         working-directory: web
+    env:
+      SITE_URL: https://${{ github.repository_owner }}.github.io
+      BASE_PATH: /${{ github.event.repository.name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,6 +36,11 @@ jobs:
       - run: npm run check:a11y
         env:
           CHROME_PATH: /usr/bin/google-chrome
+      - name: Preparar artefacto de Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
 
   etl:
     name: Datos y ETL
@@ -47,3 +55,22 @@ jobs:
       - run: pip install -r etl/requirements.txt
       - run: python -m unittest discover -s etl/tests -v
       - run: python etl/check_data.py
+
+  deploy:
+    name: GitHub Pages
+    needs: [web, etl]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

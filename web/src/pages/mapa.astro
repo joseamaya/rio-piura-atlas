@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/url";
 ---
 
 <Base
@@ -45,11 +46,11 @@ import Base from "../layouts/Base.astro";
         </details>
         <hr />
         <p class="src">
-          Base: <a href="/fuentes#copernicus-dem-30">Copernicus DEM 30 m</a>.
-          Límites: <a href="/fuentes#ana-subcuencas">ANA 1:100 000</a>.
-          Red: <a href="/fuentes#hydrorivers">HydroSHEDS</a>.
-          Agua: <a href="/fuentes#osm-agua">OpenStreetMap</a>.
-          Lugares: <a href="/fuentes#osm-lugares">OpenStreetMap</a>.
+          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM 30 m</a>.
+          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>.
+          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroSHEDS</a>.
+          Agua: <a href={withBase("/fuentes#osm-agua")}>OpenStreetMap</a>.
+          Lugares: <a href={withBase("/fuentes#osm-lugares")}>OpenStreetMap</a>.
         </p>
       </aside>
 
@@ -74,6 +75,7 @@ import Base from "../layouts/Base.astro";
 <script>
   import maplibregl from "maplibre-gl";
   import "maplibre-gl/dist/maplibre-gl.css";
+  import { withBase } from "../lib/url";
 
   const BBOX: [number, number, number, number] = [-81.45, -6.25, -79.30, -4.55];
 
@@ -126,7 +128,7 @@ import Base from "../layouts/Base.astro";
     fitBoundsOptions: { padding: mapPadding() },
     attributionControl: {
       compact: true,
-      customAttribution: '<a href="/fuentes#copernicus-dem-30">Copernicus DEM GLO-30 © ESA/Airbus</a>',
+      customAttribution: `<a href="${withBase("/fuentes#copernicus-dem-30")}">Copernicus DEM GLO-30 © ESA/Airbus</a>`,
     },
     maxZoom: 14,
     minZoom: 6,
@@ -224,7 +226,7 @@ import Base from "../layouts/Base.astro";
     corteTitle.textContent = perfil.nombre;
     corteMeta.innerHTML =
       `${perfil.longitud_km.toFixed(1)} km · cota <strong>${Math.round(perfil.elev_min_m)}–${Math.round(perfil.elev_max_m)} m</strong> · ` +
-      `<a href="/fuentes#copernicus-dem-30">Copernicus DEM</a>`;
+      `<a href="${withBase("/fuentes#copernicus-dem-30")}">Copernicus DEM</a>`;
     chart.innerHTML = profileSvg(perfil);
 
     if (opts.dibujado) {
@@ -255,8 +257,8 @@ import Base from "../layouts/Base.astro";
   async function loadGrid() {
     if (grid) return grid;
     const [meta, buffer] = await Promise.all([
-      get("/data/dem_grid.meta.json") as Promise<GridMeta>,
-      fetch("/data/dem_grid.bin").then((r) => r.arrayBuffer()),
+      get(withBase("/data/dem_grid.meta.json")) as Promise<GridMeta>,
+      fetch(withBase("/data/dem_grid.bin")).then((r) => r.arrayBuffer()),
     ]);
     grid = { meta, view: new DataView(buffer) };
     return grid;
@@ -327,13 +329,13 @@ import Base from "../layouts/Base.astro";
   map.on("load", async () => {
     fitBasin();
     const [cuenca, subcuencas, rios, agua, lugares, cortes, perfilesData] = await Promise.all([
-      get("/data/cuenca.geojson"),
-      get("/data/subcuencas.geojson"),
-      get("/data/red_hidrica.geojson"),
-      get("/data/agua.geojson"),
-      get("/data/lugares.geojson"),
-      get("/data/cortes.geojson"),
-      get("/data/cortes_perfiles.json"),
+      get(withBase("/data/cuenca.geojson")),
+      get(withBase("/data/subcuencas.geojson")),
+      get(withBase("/data/red_hidrica.geojson")),
+      get(withBase("/data/agua.geojson")),
+      get(withBase("/data/lugares.geojson")),
+      get(withBase("/data/cortes.geojson")),
+      get(withBase("/data/cortes_perfiles.json")),
     ]);
     perfiles = perfilesData.perfiles || {};
 
@@ -354,27 +356,27 @@ import Base from "../layouts/Base.astro";
     map.addSource("cuenca", {
       type: "geojson",
       data: cuenca,
-      attribution: '<a href="/fuentes#ana-subcuencas">ANA 1:100 000</a>',
+      attribution: `<a href="${withBase("/fuentes#ana-subcuencas")}">ANA 1:100 000</a>`,
     });
     map.addSource("subcuencas", {
       type: "geojson",
       data: subcuencas,
-      attribution: '<a href="/fuentes#ana-subcuencas">ANA 1:100 000</a>',
+      attribution: `<a href="${withBase("/fuentes#ana-subcuencas")}">ANA 1:100 000</a>`,
     });
     map.addSource("rios", {
       type: "geojson",
       data: rios,
-      attribution: '<a href="/fuentes#hydrorivers">HydroRIVERS (CC BY 4.0)</a>',
+      attribution: `<a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS (CC BY 4.0)</a>`,
     });
     map.addSource("agua", {
       type: "geojson",
       data: agua,
-      attribution: '<a href="/fuentes#osm-agua">© OpenStreetMap (ODbL)</a>',
+      attribution: `<a href="${withBase("/fuentes#osm-agua")}">© OpenStreetMap (ODbL)</a>`,
     });
     map.addSource("cortes", {
       type: "geojson",
       data: cortes,
-      attribution: '<a href="/fuentes#copernicus-dem-30">Cortes del Copernicus DEM</a>',
+      attribution: `<a href="${withBase("/fuentes#copernicus-dem-30")}">Cortes del Copernicus DEM</a>`,
     });
 
     map.addLayer({
@@ -429,7 +431,7 @@ import Base from "../layouts/Base.astro";
     // El relieve va debajo de todo: se inserta antes de la primera capa vectorial.
     map.addSource("relieve", {
       type: "image",
-      url: "/data/relieve.jpg",
+      url: withBase("/data/relieve.jpg"),
       coordinates: [
         [-81.45, -4.55],
         [-79.30, -4.55],
@@ -443,7 +445,7 @@ import Base from "../layouts/Base.astro";
     map.addSource("corte-usuario", {
       type: "geojson",
       data: { type: "FeatureCollection", features: [] },
-      attribution: '<a href="/fuentes#copernicus-dem-30">Corte del Copernicus DEM</a>',
+      attribution: `<a href="${withBase("/fuentes#copernicus-dem-30")}">Corte del Copernicus DEM</a>`,
     });
     map.addLayer({
       id: "corte-usuario-line",
@@ -527,14 +529,14 @@ import Base from "../layouts/Base.astro";
       const p = hits[0].properties || {};
       if (p.nombre && p.area_km2) {
         show(`<h3>${p.nombre}</h3><p>Área: <strong>${Math.round(p.area_km2).toLocaleString("es-PE")} km²</strong></p>
-              <p class="muted">Fuente: <a href="/fuentes#${p.fuente}">${p.fuente === "ana-subcuencas" ? "ANA, 1:100 000" : "OpenStreetMap"}</a></p>`);
+              <p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${p.fuente === "ana-subcuencas" ? "ANA, 1:100 000" : "OpenStreetMap"}</a></p>`);
       } else if (p.aporte_km2) {
         show(`<h3>Tramo de río</h3><p>Área aportante: <strong>${Math.round(p.aporte_km2).toLocaleString("es-PE")} km²</strong></p>
-              <p class="muted">Fuente: <a href="/fuentes#hydrorivers">HydroRIVERS</a></p>`);
+              <p class="muted">Fuente: <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS</a></p>`);
       } else if (p.nombre) {
-        show(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="/fuentes#${p.fuente}">OpenStreetMap</a></p>`);
+        show(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">OpenStreetMap</a></p>`);
       } else {
-        show('<h3>Cuenca del río Piura</h3><p>11 022 km²</p><p class="muted">Fuente: <a href="/fuentes#ana-subcuencas">ANA, 1:100 000</a></p>');
+        show(`<h3>Cuenca del río Piura</h3><p>11 022 km²</p><p class="muted">Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a></p>`);
       }
     });
 

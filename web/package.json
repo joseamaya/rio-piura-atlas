@@ -13,6 +13,7 @@
     "verify": "npm run check && npm run build && npm run check:links && npm run check:a11y"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.5",
     "astro": "^5.6.1",
     "js-yaml": "^4.1.0",
     "maplibre-gl": "^4.7.1",

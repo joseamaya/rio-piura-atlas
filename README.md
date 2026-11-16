@@ -3,6 +3,8 @@
 Atlas interactivo, documentado y citable de la cuenca del río Piura: qué es, cómo
 funciona, dónde se desborda y qué se construyó para contenerlo.
 
+> **Sitio publicado:** <https://joseamaya.github.io/rio-piura-atlas/>
+>
 > **Estado:** fase 1 en curso. El sitio ya funciona con las capas verificadas
 > (cuenca, subcuencas, red, agua, relieve, cortes transversales y maqueta 3D).
 > Faltan las capas que dependen de datos por solicitar: caudales, obras y manchas de
@@ -70,7 +72,13 @@ cd web
 npm install
 npm run dev        # http://localhost:4321
 npm run build      # estático en web/dist
+
+# build con las rutas de GitHub Pages
+SITE_URL=https://joseamaya.github.io BASE_PATH=/rio-piura-atlas npm run build
 ```
+
+El despliegue es automático: cada push a `main` pasa las comprobaciones y publica
+en GitHub Pages.
 
 El presupuesto se mide por página. La portada y las páginas de texto no cargan
 librerías 3D. `/mapa` añade MapLibre (~220 kB comprimidos) y las capas vectoriales

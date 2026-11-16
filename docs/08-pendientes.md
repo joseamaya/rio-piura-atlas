@@ -23,6 +23,9 @@ tiene fuente, no se dibuja**.
 - Comprobación automática de tipos (`astro check`) y de enlaces/anclas internas en CI.
 - Página 404, `robots.txt` y metadatos Open Graph/Twitter.
 - `CITATION.cff` con los metadatos de la versión 0.1.0.
+- Sitio publicado en GitHub Pages (`https://joseamaya.github.io/rio-piura-atlas/`)
+  con despliegue automático desde `main` y comprobaciones previas de tipos, enlaces
+  y accesibilidad.
 
 ## Desbloqueado
 
@@ -31,10 +34,10 @@ tiene fuente, no se dibuja**.
    tenga geometría oficial. El inventario completo sigue en ANA / PECHP.
 2. **Mancha 2017 con Sentinel-1.** Descargar escenas de marzo de 2017, aplicar umbral
    de agua, contrastar con UNOSAT / Copernicus EMS y documentar el método.
-3. **Despliegue.** Dominio real (`SITE_URL`), hosting, sitemap y verificación en
-   producción. El build y el 404 ya están listos.
-4. **Versión citable.** Tag `v0.1.0`, DOI Zenodo y sustitución de placeholders en
-   `docs/06-como-citar.md`.
+3. **Dominio propio (opcional).** Sustituir `joseamaya.github.io` por un dominio
+   definitivo y actualizar `SITE_URL`.
+4. **DOI Zenodo.** El tag `v0.1.0` ya existe; falta publicarlo y añadir el DOI a
+   `CITATION.cff` y `docs/06-como-citar.md`.
 5. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
    falta teclado real, lector de pantalla y prueba con los tres públicos.
 6. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales y
@@ -74,5 +77,6 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 - Una persona sin formación técnica entiende, en menos de 10 minutos, por qué el río
   no llega al mar.
 - Toda capa visible tiene fuente consultable en dos clics.
-- El sitio funciona en móvil y con conexión lenta (< 2 MB de carga inicial).
+- El sitio funciona en móvil y con conexión lenta: portada y páginas de texto
+  por debajo de 1 MB; `/maqueta` es la excepción declarada por el GLB.
 - Existe una versión etiquetada y citable.

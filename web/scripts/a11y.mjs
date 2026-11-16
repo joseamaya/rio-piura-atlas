@@ -12,6 +12,7 @@ import puppeteer from "puppeteer-core";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "dist");
+const base = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
 const require = createRequire(import.meta.url);
 
 const MIME = {
@@ -29,7 +30,9 @@ const MIME = {
   ".glb": "model/gltf-binary",
 };
 
-const pages = ["/", "/mapa/", "/maqueta/", "/escenarios/", "/fuentes/", "/404.html"];
+const pages = ["/", "/mapa/", "/maqueta/", "/escenarios/", "/fuentes/", "/404.html"].map(
+  (route) => `${base}${route}`,
+);
 
 function chromePath() {
   const candidates = [
@@ -45,7 +48,10 @@ function chromePath() {
 }
 
 async function resolveFile(urlPath) {
-  const clean = decodeURIComponent(urlPath.split("?")[0]);
+  let clean = decodeURIComponent(urlPath.split("?")[0]);
+  if (base && (clean === base || clean.startsWith(`${base}/`))) {
+    clean = clean.slice(base.length) || "/";
+  }
   const candidate = path.join(root, clean);
   if (!candidate.startsWith(root)) return null;
   const options = clean.endsWith("/")

@@ -89,5 +89,5 @@ públicos.
 - Manchas de inundación de 1983, 1998 y 2017.
 - Caudales y niveles (SENAMHI).
 - Sustituir las capas GeoJSON por PMTiles/COG si el volumen crece.
-- Configurar el dominio real (`SITE_URL`), sitemap y despliegue. El CI ya compila y
-  valida el sitio.
+- Dominio propio (opcional). El despliegue en GitHub Pages ya está activo en
+  `https://joseamaya.github.io/rio-piura-atlas/`.

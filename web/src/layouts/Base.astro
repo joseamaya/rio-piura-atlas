@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { withBase } from "../lib/url";
 
 interface Props {
   title: string;
@@ -12,6 +13,12 @@ const {
   description = "Atlas documentado de la cuenca del río Piura: mapa, relieve 3D, cortes transversales y escenarios históricos.",
 } = Astro.props;
 const fullTitle = `${title} · Río Piura Atlas`;
+const canonical = new URL(
+  Astro.url.pathname.startsWith(import.meta.env.BASE_URL)
+    ? Astro.url.pathname
+    : withBase(Astro.url.pathname),
+  Astro.site ?? "https://joseamaya.github.io",
+).href;
 const nav = [
   { href: "/", label: "Inicio", key: "inicio" },
   { href: "/mapa", label: "Mapa", key: "mapa" },
@@ -29,8 +36,10 @@ const nav = [
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f7f4ea" />
+    <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Río Piura Atlas" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="es_PE" />
@@ -43,10 +52,10 @@ const nav = [
     <a class="skip-link" href="#main">Saltar al contenido</a>
     <header class="site-header">
       <div class="inner">
-        <a class="brand" href="/">Río Piura <span>Atlas</span></a>
+        <a class="brand" href={withBase("/")}>Río Piura <span>Atlas</span></a>
         <nav class="main" aria-label="Navegación principal">
           {nav.map((item) => (
-            <a href={item.href} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>
+            <a href={withBase(item.href)} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>
           ))}
         </nav>
       </div>
@@ -57,7 +66,7 @@ const nav = [
     <footer class="site">
       <div class="inner">
         <span>Atlas de la cuenca del río Piura · versión 0.1.0 · CC BY 4.0</span>
-        <span>Datos: ANA, Copernicus, HydroSHEDS, OpenStreetMap. <a href="/fuentes">Ver fuentes</a></span>
+        <span>Datos: ANA, Copernicus, HydroSHEDS, OpenStreetMap. <a href={withBase("/fuentes")}>Ver fuentes</a></span>
         <span><strong>No es un sistema de alerta ni un pronóstico.</strong></span>
       </div>
     </footer>

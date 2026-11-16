@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/url";
 ---
 
 <Base
@@ -18,22 +19,22 @@ import Base from "../layouts/Base.astro";
     </p>
 
     <div class="cards">
-      <a class="card" href="/mapa">
+      <a class="card" href={withBase("/mapa")}>
         <span class="tag">Explorar</span>
         <h3>Mapa de la cuenca</h3>
         <p>Relieve real, subcuencas oficiales, red hídrica, cortes transversales y cuerpos de agua.</p>
       </a>
-      <a class="card" href="/maqueta">
+      <a class="card" href={withBase("/maqueta")}>
         <span class="tag">3D</span>
         <h3>Maqueta</h3>
         <p>La cuenca como bloque recortado, con exageración vertical declarada.</p>
       </a>
-      <a class="card" href="/escenarios">
+      <a class="card" href={withBase("/escenarios")}>
         <span class="tag">Historia</span>
         <h3>Escenarios</h3>
         <p>Qué se documentó de 1983, 1998 y 2017. Documentado, no pronosticado.</p>
       </a>
-      <a class="card" href="/fuentes">
+      <a class="card" href={withBase("/fuentes")}>
         <span class="tag">Trazabilidad</span>
         <h3>Fuentes</h3>
         <p>Cada capa con su institución, escala, fecha y licencia.</p>

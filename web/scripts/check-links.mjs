@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist");
+const base = (process.env.BASE_PATH ?? "").replace(/\/$/, "");
 
 async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -63,7 +64,10 @@ for (const page of await walk(root)) {
     checked += 1;
 
     const [beforeHash, rawHash = ""] = href.split("#");
-    const pathname = beforeHash.split("?")[0];
+    let pathname = beforeHash.split("?")[0];
+    if (base && (pathname === base || pathname.startsWith(`${base}/`))) {
+      pathname = pathname.slice(base.length) || "/";
+    }
     const hash = rawHash ? decodeURIComponent(rawHash) : "";
 
     let targetFile;

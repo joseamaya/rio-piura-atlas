@@ -11,6 +11,8 @@ authors:
 version: "0.1.0"
 date-released: "2026-11-16"
 license: CC-BY-4.0
+repository-code: "https://github.com/joseamaya/rio-piura-atlas"
+url: "https://joseamaya.github.io/rio-piura-atlas/"
 keywords:
   - Piura
   - hidrografía

@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/url";
 ---
 
 <Base
@@ -65,7 +66,7 @@ import Base from "../layouts/Base.astro";
     </table>
 
     <p style="margin-top: 28px;">
-      Mientras tanto, el <a href="/mapa">mapa</a> y la <a href="/maqueta">maqueta</a>
+      Mientras tanto, el <a href={withBase("/mapa")}>mapa</a> y la <a href={withBase("/maqueta")}>maqueta</a>
       muestran lo que sí está verificado: la forma de la cuenca, su red y sus límites.
     </p>
   </main>

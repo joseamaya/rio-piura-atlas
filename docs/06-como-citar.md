@@ -10,7 +10,8 @@ metadatos de la versión actual y sirve para que GitHub y Zenodo los muestren.
 ### Texto
 
 > Río Piura Atlas (2026). *Atlas de la cuenca del río Piura*. Versión 0.1.0.
-> https://github.com/<usuario>/rio-piura-atlas
+> https://github.com/joseamaya/rio-piura-atlas
+> Sitio: https://joseamaya.github.io/rio-piura-atlas/
 
 ### BibTeX
 
@@ -20,7 +21,7 @@ metadatos de la versión actual y sirve para que GitHub y Zenodo los muestren.
   author = {{Río Piura Atlas}},
   year   = {2026},
   note   = {Versión 0.1.0},
-  url    = {https://github.com/<usuario>/rio-piura-atlas}
+  url    = {https://github.com/joseamaya/rio-piura-atlas}
 }
 ```
 
