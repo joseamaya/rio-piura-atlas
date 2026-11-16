@@ -83,8 +83,8 @@ en GitHub Pages.
 El presupuesto se mide por página. La portada y las páginas de texto no cargan
 librerías 3D. `/mapa` añade MapLibre (~220 kB comprimidos) y las capas vectoriales
 (~630 kB); la malla de elevación para cortes (~443 kB) solo se descarga al dibujar
-un corte. `/maqueta` es la excepción declarada: 6,3 MB de GLB más Three.js, y por eso
-solo se descarga al abrir esa página.
+un corte. `/maqueta` es la excepción declarada: 1,7 MB de GLB, ~250 kB de decodificador
+Draco y Three.js; solo se descarga al abrir esa página.
 
 ## Calidad
 
@@ -114,11 +114,14 @@ Versión citable pendiente de publicación (Zenodo) al cerrar la fase 1.
 
 ## Licencias
 
-Contenido y textos: CC BY 4.0. Código: MIT. Los datos conservan la licencia de su
+Contenido y textos: CC BY 4.0. Código propio: MIT. Dependencias de terceros:
+[`LICENSES/CODIGO.md`](LICENSES/CODIGO.md). Los datos conservan la licencia de su
 fuente; ver [`LICENSES/DATOS.md`](LICENSES/DATOS.md).
 
 ## Contexto
 
 Nace como pieza hermana del laboratorio [Del Trazo al Modelo](../blender), que aporta
 el diorama 3D de la cuenca (`projects/piura`). La versión web se exporta con
-compresión Draco desde `projects/piura/scripts/export_web.py` (21 MB → 1,7 MB).
+compresión Draco desde `projects/piura/scripts/export_web.py` (21 MB → 1,7 MB); el
+resultado (`projects/piura/exports/piura-web.glb`) se copia a
+`web/public/models/piura.glb`.

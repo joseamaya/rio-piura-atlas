@@ -40,8 +40,7 @@ tiene fuente, no se dibuja**.
    `CITATION.cff` y `docs/06-como-citar.md`.
 5. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
    falta teclado real, lector de pantalla y prueba con los tres públicos.
-6. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales y
-   optimizar el GLB de la maqueta.
+6. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales.
 
 ## Bloqueado por solicitudes
 

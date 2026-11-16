@@ -33,8 +33,15 @@ web/
 │   └── styles/global.css
 └── public/
     ├── data/                  # GeoJSON, relieve JPG y malla de elevación
+    ├── draco/                 # decodificador Draco (Apache 2.0)
     └── models/                # piura.glb (Draco, ~1,7 MB)
 ```
+
+El GLB se genera en el proyecto Blender hermano
+(`../blender/projects/piura/scripts/export_web.py`) y se copia a
+`public/models/piura.glb`. El decodificador de `public/draco/` se copia de
+`three/examples/jsm/libs/draco/gltf/` y conserva su licencia Apache 2.0; ver
+[`../LICENSES/CODIGO.md`](../LICENSES/CODIGO.md).
 
 ## Capas y datos
 
@@ -50,14 +57,14 @@ web/
 - Portada y páginas de texto: carga inicial < 1 MB.
 - `/mapa`: MapLibre comprimido (~220 kB) y datos (~630 kB); el DEM de cortes se
   descarga aparte, solo al dibujar.
-- `/maqueta`: 6,3 MB de GLB más Three.js; se asume como excepción y no contamina la
-  carga de las demás páginas.
+- `/maqueta`: 1,7 MB de GLB, ~250 kB de decodificador Draco y Three.js; se asume como
+  excepción y no contamina la carga de las demás páginas.
 - Mapa utilizable en 4G en menos de 3 s.
 - Sin fuentes externas bloqueantes.
 - Funciona sin JavaScript para leer los textos.
 
-La malla de elevación pesa ~443 kB y se descarga a demanda. El modelo 3D pesa 6,3 MB
-y solo se descarga al abrir `/maqueta`.
+La malla de elevación pesa ~443 kB y se descarga a demanda. El modelo 3D pesa 1,7 MB
+y el decodificador Draco ~250 kB; solo se descargan al abrir `/maqueta`.
 
 ## Accesibilidad
 
