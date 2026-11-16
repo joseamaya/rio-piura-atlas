@@ -37,8 +37,9 @@ tiene fuente, no se dibuja**.
 
 1. **Dominio propio (opcional).** Sustituir `joseamaya.github.io` por un dominio
    definitivo y actualizar `SITE_URL`.
-2. **DOI Zenodo.** El tag `v0.1.0` es anterior al diorama actual; publicar `v0.2.0`
-   sobre esta versión y añadir el DOI a `CITATION.cff` y `docs/06-como-citar.md`.
+2. **DOI Zenodo.** El release `v0.2.0` ya está creado sobre esta versión. Falta
+   depositarlo en Zenodo y añadir el DOI a `CITATION.cff` y
+   `docs/06-como-citar.md`. El tag `v0.1.0` es anterior al diorama actual.
 3. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
    falta teclado real, lector de pantalla y prueba con los tres públicos.
 4. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales.

@@ -9,8 +9,8 @@ contiene los metadatos de la versión actual y sirve para que GitHub y Zenodo lo
 muestren.
 
 La versión **0.2.0** añade la mancha oficial de la inundación de 2017 (Copernicus
-EMSR199) y las obras esquemáticas. El DOI de esta versión queda pendiente de la
-publicación del release en Zenodo.
+EMSR199) y las obras esquemáticas. El release `v0.2.0` ya está publicado en GitHub;
+el DOI queda pendiente de depositar esa versión en Zenodo y añadirlo aquí.
 
 ### Texto
 
