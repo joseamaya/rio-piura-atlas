@@ -37,6 +37,15 @@ fuentes:
     grupo: Límites, relieve y red
     certeza: medido
     tipo: dataset
+    disponibilidad: validada
+    tipo_evidencia: [oficial]
+    periodo: "2008"
+    formato: "GeoJSON"
+    crs: "EPSG:32717 (origen) / EPSG:4326 (publicado)"
+    descarga: "https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_CARACTERIZACI%C3%93N_DEL_TERRITORIO_PIURA/MapServer/18"
+    limitaciones: >
+      Polígono oficial ANA 1:100 000; la capa fuente declara EPSG:32718 en Shape_Area, pero la geometría está en la zona 17S. El atlas usa la superficie medida en EPSG:32717.
+    capas: [cuenca, subcuencas]
     documento: Unidades Hidrográficas Pfafstetter, R.M. N.° 033-2008-AG
     consultado: "2026-11-16"
     notas: >
@@ -57,6 +66,15 @@ fuentes:
     grupo: Límites, relieve y red
     certeza: derivado
     tipo: elaboracion_propia
+    disponibilidad: validada
+    tipo_evidencia: [reconstruccion_cartografica]
+    periodo: "2026"
+    formato: "GeoJSON"
+    crs: "EPSG:4326"
+    descarga: null
+    limitaciones: >
+      No es una subcuenca oficial de ANA; es el resto de la cuenca antes de simplificar. Se atribuye al atlas, no a la institución.
+    capas: [subcuencas]
     documento: Bajo Piura como resto de la cuenca ANA
     consultado: "2026-11-16"
     notas: >
@@ -76,6 +94,15 @@ fuentes:
     grupo: Límites, relieve y red
     certeza: derivado
     tipo: dataset
+    disponibilidad: validada
+    tipo_evidencia: [observacion_satelital]
+    periodo: "2021"
+    formato: "GeoTIFF/Terrarium"
+    crs: "EPSG:4326"
+    descarga: "https://registry.opendata.aws/copernicus-dem/"
+    limitaciones: >
+      Producto de 30 m remuestreado a una malla de trabajo de ~143 m; no se publican perfiles a 30 m.
+    capas: [relieve, cortes, dem_grid]
     documento: Copernicus DEM GLO-30
     consultado: "2026-11-16"
     notas: >
@@ -94,6 +121,15 @@ fuentes:
     grupo: Límites, relieve y red
     certeza: derivado
     tipo: dataset
+    disponibilidad: validada
+    tipo_evidencia: [cientifica]
+    periodo: "2020"
+    formato: "Shapefile/GeoJSON"
+    crs: "EPSG:4326"
+    descarga: "https://www.hydrosheds.org/products/hydrorivers"
+    limitaciones: >
+      Red derivada de HydroSHEDS a ~500 m; en la llanura el DEM no resuelve el cauce y el trazo procede del vector.
+    capas: [red_hidrica]
     documento: HydroRIVERS Technical Documentation v10
     consultado: "2026-11-16"
     notas: >
@@ -113,6 +149,8 @@ fuentes:
     grupo: Límites, relieve y red
     certeza: por_verificar
     tipo: dataset
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial]
     documento: Cartas nacionales 1:100 000 y 1:25 000
     notas: Toponimia y contraste de límites; no se copia al repositorio.
 
@@ -128,6 +166,15 @@ fuentes:
     grupo: Agua
     certeza: documentado
     tipo: dataset
+    disponibilidad: validada
+    tipo_evidencia: [colaborativa]
+    periodo: "2026-11-16"
+    formato: "GeoJSON"
+    crs: "EPSG:4326"
+    descarga: "https://www.openstreetmap.org/"
+    limitaciones: >
+      Datos colaborativos; las lagunas Ramón y Las Salinas figuran como intermitentes. No sustituyen cartografía oficial.
+    capas: [agua]
     documento: Consulta Overpass natural=water del 2026-11-16
     consultado: "2026-11-16"
     notas: Laguna Ramón, Ñapique, La Niña, Las Salinas. La fecha es la de consulta.
@@ -144,6 +191,15 @@ fuentes:
     grupo: Límites, relieve y red
     certeza: documentado
     tipo: dataset
+    disponibilidad: validada
+    tipo_evidencia: [colaborativa]
+    periodo: "2026-11-16"
+    formato: "GeoJSON"
+    crs: "EPSG:4326"
+    descarga: "https://www.openstreetmap.org/"
+    limitaciones: >
+      Coordenadas de nodos de localidad, no centroides de distrito; son aproximadas.
+    capas: [lugares]
     documento: Nodos de localidad OSM consultados el 2026-11-16
     consultado: "2026-11-16"
     notas: >
@@ -162,6 +218,15 @@ fuentes:
     grupo: Agua
     certeza: interpretacion
     tipo: elaboracion_propia
+    disponibilidad: validada
+    tipo_evidencia: [reconstruccion_cartografica]
+    periodo: "2026"
+    formato: "GeoJSON"
+    crs: "EPSG:4326"
+    descarga: null
+    limitaciones: >
+      Poechos es un punto en el dique y el canal Daniel Escobar una recta de referencia; no son el vaso ni el eje oficial.
+    capas: [obras]
     documento: Trazo de referencia Poechos–Curumuy
     consultado: "2026-11-16"
     notas: >
@@ -172,32 +237,71 @@ fuentes:
   - id: senamhi-aforos
     titulo: Caudales y niveles de estaciones del valle
     institucion: SENAMHI
-    url: https://www.senamhi.gob.pe/
+    url: https://www.senamhi.gob.pe/?p=monitoreo-piura
     fecha: null
     escala: punto
     licencia: por definir
     estado: por_solicitar
-    metodo: solicitud de acceso a la información pública
+    metodo: solicitud de acceso a la información pública; consulta del monitoreo PHISIS
     grupo: Agua
     certeza: por_verificar
     tipo: dataset
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial, dato_medido]
+    periodo: "por definir; el monitoreo PHISIS es actual"
+    formato: "serie tabular (CSV/Excel) por solicitar"
+    crs: "no aplica (datos tabulares)"
+    descarga: null
     documento: Series de caudales y niveles de las estaciones del valle
-    notas: Puente Sánchez Cerro, Tambogrande, Chulucanas. Ver docs/07-solicitudes.md.
+    consultado: "2026-11-17"
+    limitaciones: >
+      El monitoreo PHISIS muestra el estado actual, no una serie histórica
+      descargable. Las series diarias de 1983, 1998, 2017 y 2023 siguen
+      requiriendo solicitud institucional. No se usa el monitoreo actual como
+      si fuera una serie.
+    capas: []
+    notas: >
+      Puente Sánchez Cerro, Tambogrande y Chulucanas. Ver docs/07-solicitudes.md.
+      El PECHP publica reportes diarios desde 2015 en
+      `pechp-hidrometeorologia-diaria`; no sustituyen la serie oficial de
+      SENAMHI ni cubren 1983/1998.
 
   - id: senamhi-pisco
-    titulo: PISCO v2.1 — precipitación grillada
-    institucion: SENAMHI
-    url: https://www.senamhi.gob.pe/
-    fecha: null
-    escala: 0.1°
-    licencia: por definir
+    titulo: PISCOp v3.0 — precipitación diaria y mensual grillada
+    institucion: SENAMHI — Dirección de Hidrología
+    url: https://doi.org/10.3390/hydrology13110306
+    fecha: "2026-11-17"
+    escala: "0,1° (~10 km)"
+    licencia: "artículo CC BY 4.0; conjunto de datos en Figshare declara GPL 3.0+ (por aclarar)"
     estado: por_solicitar
-    metodo: registro y descarga
+    metodo: descarga de NetCDF desde Figshare; verificación de metadatos y del artículo
     grupo: Agua
-    certeza: por_verificar
+    certeza: derivado
     tipo: dataset
-    documento: PISCO v2.1 — precipitación grillada
-    notas: Requiere registro institucional.
+    disponibilidad: pendiente
+    tipo_evidencia: [cientifica]
+    periodo: "1981–2025"
+    formato: "NetCDF: diario (1,5 GB), mensual (54 MB) y climatología (1,8 MB)"
+    crs: "EPSG:4326 (malla regular de 0,1°)"
+    descarga: https://figshare.com/articles/dataset/High-resolution_grids_of_rainfall_for_Peru_-_PISCOp_v3_0_dataset/32411886
+    documento: "Gutierrez, L., Huerta, A., Vásquez, S., Rau, P. y Lavado-Casimiro, W. (2026). Updating a High-Resolution Gridded Rainfall Dataset for Peru (PISCOp v3.0). Hydrology 13(11):306."
+    pagina: "artículo y readme del conjunto de datos"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es una estimación grillada, no una medición directa en cada punto. La
+      resolución de 0,1° (~10 km) no resuelve por sí sola la cuenca alta, media
+      y baja con el mismo detalle; una media por subcuenca debe declarar cuántas
+      celdas usa y cómo pondera. El artículo es CC BY 4.0, pero el conjunto de
+      datos en Figshare declara GPL 3.0+; la licencia de los datos no está
+      clara. No se publica una serie derivada hasta aclararla.
+    capas: []
+    notas: >
+      PISCOp v3.0 cubre 1981–2025 con resolución 0,1° y paso diario y mensual.
+      La ficha de sequías de SENAMHI menciona ~5 km, pero el producto PISCOp
+      documenta 0,1° (~10 km); no son la misma ficha. La versión v2.1 también
+      era de 0,1°, cubría 1981–2018 y su soporte cuasi tiempo real está
+      suspendido. No se debe citar 5 km ni 1981–2016 para v3.0. La prioridad
+      sigue siendo una serie por subcuenca, no un ráster decorativo.
 
   - id: pechp-poechos
     titulo: Operación de la represa de Poechos y trasvase
@@ -211,6 +315,8 @@ fuentes:
     grupo: Agua
     certeza: por_verificar
     tipo: dataset
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial, dato_medido]
     documento: Operación de Poechos y trasvase
     notas: Caudales derivados y reglas de operación.
 
@@ -226,6 +332,8 @@ fuentes:
     grupo: Agua
     certeza: documentado
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial]
     documento: Fichas públicas del PECHP sobre Poechos y el canal Daniel Escobar
     consultado: "2026-11-13"
     notas: >
@@ -245,6 +353,8 @@ fuentes:
     grupo: Agua
     certeza: por_verificar
     tipo: dataset
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial]
     documento: Inventario de infraestructura hidráulica
     notas: Bocatomas, diques y canales.
 
@@ -260,6 +370,8 @@ fuentes:
     grupo: Inundaciones y riesgo
     certeza: por_verificar
     tipo: dataset
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial]
     documento: Escenarios de riesgo por inundación — Piura
     notas: No se usa como geometría publicada.
 
@@ -275,6 +387,8 @@ fuentes:
     grupo: Inundaciones y riesgo
     certeza: por_verificar
     tipo: documento
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial, cientifica]
     documento: Informe técnico ENFEN (edición pendiente de identificar)
     notas: >
       Se usa solo como contexto general. Las cifras de 1983, 1998 y 2017 se
@@ -292,6 +406,15 @@ fuentes:
     grupo: Inundaciones y riesgo
     certeza: medido
     tipo: dataset
+    disponibilidad: validada
+    tipo_evidencia: [observacion_satelital]
+    periodo: "2017-03"
+    formato: "Shapefile/GeoJSON"
+    crs: "EPSG:32717"
+    descarga: "https://mapping.emergency.copernicus.eu/activations/EMSR199/"
+    limitaciones: >
+      La capa publica la unión de observaciones por fecha, no una mancha simultánea. No es un modelo hidráulico ni una predicción.
+    capas: [flood_2017]
     documento: EMSR199 10PIURA v2 y 11PARACHIQUE v1 — Delineation Overview
     pagina: Producto 10PIURA v2 / 11PARACHIQUE v1
     consultado: "2026-11-16"
@@ -321,6 +444,8 @@ fuentes:
     grupo: Inundaciones y riesgo
     certeza: documentado
     tipo: dataset
+    disponibilidad: documental
+    tipo_evidencia: [observacion_satelital]
     documento: Imágenes Sentinel-1 de marzo de 2017
     consultado: "2026-11-16"
     notas: >
@@ -340,6 +465,8 @@ fuentes:
     grupo: Inundaciones y riesgo
     certeza: documentado
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [observacion_satelital]
     documento: "UNOSAT — Efectos del Niño Costero: inundaciones en Piura y Lambayeque"
     consultado: "2026-11-16"
     notas: >
@@ -358,6 +485,8 @@ fuentes:
     grupo: Inundaciones y riesgo
     certeza: por_verificar
     tipo: documento
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial]
     documento: Plan de Control de Inundaciones Río Piura (2018)
     notas: Obras, diagnóstico y defensas ribereñas. Fecha exacta pendiente.
 
@@ -373,6 +502,8 @@ fuentes:
     grupo: Estudios
     certeza: documentado
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial, cientifica]
     documento: Estudio geodinámico de la cuenca del río Piura (1994)
     consultado: "2026-11-16"
     notas: Geomorfología y procesos; no se usa para las cifras hidrológicas.
@@ -389,6 +520,8 @@ fuentes:
     grupo: Estudios
     certeza: medido
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [historica, dato_medido]
     documento: Estudio para el Tratamiento Integral del Río Piura — Apéndice D, Información Hidrológica y del Modelo Hidrológico
     pagina: "13, 27, 49"
     consultado: "2026-11-16"
@@ -411,6 +544,8 @@ fuentes:
     grupo: Estudios
     certeza: medido
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [historica, dato_medido]
     documento: Evaluación hidrológica y erosión-sedimentación del Río Piura
     pagina: "1, 15"
     consultado: "2026-11-16"
@@ -434,6 +569,8 @@ fuentes:
     grupo: Estudios
     certeza: documentado
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [historica]
     documento: Cambios de la embocadura del río Piura
     pagina: "5, 7, 8"
     consultado: "2026-11-16"
@@ -457,6 +594,8 @@ fuentes:
     grupo: Estudios
     certeza: por_verificar
     tipo: documento
+    disponibilidad: pendiente
+    tipo_evidencia: [academica, modelamiento]
     documento: Orellana Cabello, R. E. (2021). Modelamiento hidrológico e hidráulico para el análisis de inundaciones en la ciudad de Piura utilizando HEC-HMS y HEC-RAS
     consultado: "2026-11-16"
     notas: >
@@ -478,6 +617,8 @@ fuentes:
     grupo: Estudios
     certeza: por_verificar
     tipo: documento
+    disponibilidad: pendiente
+    tipo_evidencia: [academica]
     documento: Estudios de agua e inundaciones (documento pendiente de identificar)
     notas: >
       Contraste técnico; no se usa para las cifras de 1983/1998. No se
@@ -495,6 +636,8 @@ fuentes:
     grupo: Estudios
     certeza: documentado
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial]
     documento: Expediente de categorización de la Zona Reservada Illescas
     consultado: "2026-11-16"
     notas: >
@@ -513,6 +656,8 @@ fuentes:
     grupo: Estudios
     certeza: medido
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [cientifica, observacion_satelital]
     documento: Escudero L. & Xu H. (2019). Formación y evolución de la laguna La Niña 2017. Bol. Inst. Mar Perú 34(1):105-114
     pagina: "105-114"
     consultado: "2026-11-16"
@@ -534,6 +679,8 @@ fuentes:
     grupo: Estudios
     certeza: documentado
     tipo: prensa
+    disponibilidad: documental
+    tipo_evidencia: [prensa_documentacion_secundaria]
     documento: "Emergencia por lluvias: piden priorizar obras en río Piura ante desborde de laguna La Niña"
     consultado: "2026-11-16"
     notas: >
@@ -554,6 +701,8 @@ fuentes:
     grupo: Estudios
     certeza: documentado
     tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [observacion_satelital]
     documento: Warming Water and Downpours in Peru
     consultado: "2026-11-16"
     notas: >
@@ -573,5 +722,364 @@ fuentes:
     grupo: Estudios
     certeza: por_verificar
     tipo: documento
+    disponibilidad: pendiente
+    tipo_evidencia: [academica, cientifica]
     documento: Análisis de la inundación de 2017 (documento pendiente)
     notas: Análisis de riesgo y daños. No se usa como geometría publicada.
+
+  - id: ana-tratamiento-cauce-2014
+    titulo: Tratamiento del cauce del río Piura para el control de inundaciones
+    institucion: Autoridad Nacional del Agua — Dirección de Estudios de Proyectos Hidráulicos Multisectoriales
+    url: https://hdl.handle.net/20.500.12543/2254
+    fecha: "2014-05-01"
+    escala: "1:100 000 / tramos"
+    licencia: CC BY-NC-ND 4.0 (metadatos del repositorio ANA); acceso abierto
+    estado: disponible
+    metodo: descarga del PDF desde SIGRID; revisión de índice, capítulos 2–7 y tablas
+    grupo: Inundaciones y riesgo
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "2014 (aprobado por resolución directoral en 2018)"
+    formato: "PDF (199 pp, 13,4 MB)"
+    crs: "UTM WGS84 17S en las tablas de puntos críticos; mapas en PDF"
+    descarga: https://sigrid.cenepred.gob.pe/sigridv3/documento/972/descargar
+    documento: Estudio «Tratamiento del cauce del río Piura para el control de inundaciones»
+    pagina: "índice, capítulos 2–7 y anexos"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es un estudio técnico y una propuesta de medidas; no acredita obras
+      ejecutadas. No publica archivos GIS. La licencia CC BY-NC-ND impide
+      redistribuir versiones modificadas o digitalizar sus mapas como capas
+      publicadas sin permiso. Las coordenadas de la tabla de 89 peligros son
+      una transcripción de la base de INGEMMET y no se usan como geometría
+      propia.
+    capas: []
+    notas: >
+      Contiene 8 capítulos y anexos. Identifica tramos críticos, erosión,
+      sedimentación, secciones, defensas ribereñas y medidas propuestas
+      (descolmatación, diques, espigones, reforestación, ordenamiento
+      territorial, alerta temprana). No se encontraron shapefiles descargables.
+      Una resolución directoral de 2018 aprueba el estudio; la ficha de ALICIA
+      consigna el número «002-2028», una probable errata. La fecha del documento
+      es 2014. No se convierte ninguna propuesta en infraestructura ejecutada.
+
+  - id: indeci-piura-castilla-2009
+    titulo: Estudio Mapa de peligros de la ciudad de Piura (con la ciudad de Castilla)
+    institucion: INDECI / OEA / PNUD / Municipalidades de Piura y Castilla
+    url: https://sigrid.cenepred.gob.pe/sigridv3/documento/2594
+    fecha: "2009-06-01"
+    escala: "1:5 000–1:10 000 (urbano)"
+    licencia: documento público; citar; sin licencia explícita de reutilización
+    estado: disponible
+    metodo: descarga de Vol. I y Vol. II desde SIGRID; revisión de índice, hidrogramas y planos
+    grupo: Inundaciones y riesgo
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial, dato_medido, historica]
+    periodo: "2009 (trabajos de campo diciembre 2008–febrero 2009)"
+    formato: "PDF (Vol. I: 320 pp; Vol. II: 419 pp)"
+    crs: "UTM WGS84 17S en los planos y tablas"
+    descarga: https://sigrid.cenepred.gob.pe/sigridv3/documento/2594/descargar
+    documento: Estudio «Mapa de peligros de la ciudad de Piura», Vol. I y Vol. II (anexos)
+    pagina: "Vol. I, capítulos 2–3 y planos 1–16; Vol. II, anexos"
+    consultado: "2026-11-17"
+    limitaciones: >
+      El título de portada es «Mapa de peligros de la ciudad de Piura», aunque
+      el capítulo III y los planos incluyen Piura y Castilla. No publica
+      shapefiles: los planos son imágenes/PDF y no están georreferenciados de
+      forma directa. No se digitalizan sin documentar escala, georreferenciación
+      e incertidumbre. El estudio separa inundación fluvial, pluvial, cuencas
+      ciegas y escorrentía; no se mezclan en una sola capa.
+    capas: []
+    notas: >
+      Documenta 1983 y 1998 con hidrogramas y caudales medios diarios; incluye
+      precipitación, drenaje pluvial urbano, cuencas ciegas y mapas de peligros.
+      El pico de 1998 aparece el 12 de marzo en varios pasajes y el de 1983 el
+      21 de abril. Es una corroboración documental de las cifras de SIAR, no una
+      serie diaria publicada. El estudio separado de Castilla de 2001 es otra
+      fuente y no se fusiona con esta ficha.
+
+  - id: lund-sediment-2024
+    titulo: "Sediment Transport in the Piura River. Piura, Peru. An application with the HEC-RAS model"
+    institucion: Lund University — Division of Water Resources Engineering; autora Ann Katrin Ladewig Piscoya
+    url: https://lup.lub.lu.se/student-papers/record/9170911
+    fecha: "2024-07-29"
+    escala: "modelo 1D; secciones transversales"
+    licencia: acceso abierto; derechos de la autora; citar; no reutilizar figuras sin permiso
+    estado: disponible
+    metodo: descarga del PDF desde LUP; revisión de metodología, resultados y discusión
+    grupo: Estudios
+    certeza: derivado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [academica, modelamiento]
+    periodo: "2024"
+    formato: "PDF (tesis de maestría, TVVR24/5008, 11 MB)"
+    crs: "no aplica al documento; el modelo usa geometría local"
+    descarga: https://lup.lub.lu.se/student-papers/record/9170911/file/9170913.pdf
+    documento: Ladewig Piscoya, A. K. (2024). Sediment Transport in the Piura River. Piura, Peru. An application with the HEC-RAS model. TVVR24/5008.
+    pagina: "resumen, capítulos 6–9"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es una tesis de maestría, no un artículo revisado por pares ni una
+      decisión oficial. Modelo 1D en estado estacionario, calibrado con el
+      evento de 2017; topografía ASTER/LiDAR y supuestos declarados; sin
+      batimetría detallada del estuario, con una cota de fondo asumida. Los
+      resultados de transporte de sedimentos dependen de la fórmula y de los
+      parámetros; no se presentan como solución demostrada.
+    capas: []
+    notas: >
+      Compara la ruta actual por Virrilá con una ruta alternativa hacia
+      Sechura. Con caudales de 1 000 y 3 200 m³/s encuentra una tendencia al
+      depósito en el tramo bajo de Virrilá y un mayor exceso de esfuerzo
+      cortante hacia Sechura. La calibración usa un caudal de 3 468 m³/s de
+      2017. Es evidencia académica para futuras investigaciones; no una
+      decisión sobre la desembocadura.
+
+  - id: ingemmet-carta-geologica-100k
+    titulo: Carta Geológica Nacional 1:100 000
+    institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
+    url: https://portal.ingemmet.gob.pe/web/guest/carta-geologica-nacional
+    fecha: "1999-12-31"
+    escala: "1:100 000"
+    licencia: uso y acceso público según escala de trabajo (INGEMMET); verificar términos
+    estado: por_verificar
+    metodo: consulta del portal y del índice de cartas; sin descarga de las hojas de Piura
+    grupo: Estudios
+    certeza: documentado
+    tipo: dataset
+    disponibilidad: localizada
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "1960–1999"
+    formato: "PDF/JPG por cuadrángulo; no vectorial"
+    crs: "variable según la hoja; verificar antes de usar"
+    descarga: https://geocatminapp.ingemmet.gob.pe/complementos/Descargas/Mapas/publicaciones/serie_a/mapas/indice.htm
+    documento: Carta Geológica Nacional, 501 cuadrángulos a 1:100 000
+    consultado: "2026-11-17"
+    limitaciones: >
+      Son mapas en PDF/JPG, no capas vectoriales. No se verificó la descarga
+      de las hojas específicas de Piura ni su georreferenciación. La licencia
+      institucional no es una licencia Creative Commons: dice «de uso y acceso
+      público según escala de trabajo». No se integra al mapa hasta confirmar
+      términos y georreferenciación.
+    capas: []
+    notas: >
+      La Carta Geológica Nacional a 1:100 000 está formada por 501
+      cuadrángulos cartografiados entre 1960 y 1999. Es la base geológica
+      oficial, pero no una capa de susceptibilidad a inundaciones. Para el
+      atlas se priorizaría geología superficial, geomorfología y depósitos
+      aluviales, no la geología estructural regional.
+
+  - id: ingemmet-geologia-integrada-100k
+    titulo: Geología Integrada 1:100 000
+    institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
+    url: https://www.arcgis.com/home/item.html?id=6219264c683649ae864de0442c047d35
+    fecha: "2016-06-01"
+    escala: "1:100 000"
+    licencia: de uso y acceso público según escala de trabajo (INGEMMET); verificar términos
+    estado: por_verificar
+    metodo: consulta del ítem y del servicio de teselas de ArcGIS
+    grupo: Estudios
+    certeza: documentado
+    tipo: dataset
+    disponibilidad: localizada
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "2014–2016"
+    formato: "servicio de mapa de teselas (ArcGIS); sin descarga vectorial verificada"
+    crs: "Web Mercator en el servicio; verificar el CRS de origen"
+    descarga: null
+    documento: Geología Integrada 1:100 000 (27 mapas digitales; 15 integrados según la ficha)
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es un servicio de visualización, no un conjunto vectorial descargable.
+      No se encontró una capa de atributos ni un paquete de descarga. Usarlo
+      en runtime añadiría una dependencia externa al sitio estático. No se
+      integra como capa.
+    capas: []
+    notas: >
+      La ficha del ítem describe 15 mapas integrados (2014 y 2016) y el resumen
+      menciona 27 mapas. La discrepancia se conserva. El servicio declara
+      cobertura nacional y licencia de uso público «según escala de trabajo»,
+      sin una licencia formal de reutilización.
+
+  - id: ingemmet-peligros-geologicos
+    titulo: GEOCATMIN — Peligros Geológicos del Perú
+    institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
+    url: https://www.arcgis.com/home/item.html?id=0df56a7235ff4dd88aad635fc949c4c9
+    fecha: "2013-02-01"
+    escala: "inventario nacional; escala variable"
+    licencia: sin licencia explícita; acceso institucional INGEMMET
+    estado: por_verificar
+    metodo: consulta del ítem y del servicio de mapa de ArcGIS
+    grupo: Estudios
+    certeza: documentado
+    tipo: dataset
+    disponibilidad: localizada
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "2011–2013 (última actualización declarada: enero de 2012)"
+    formato: "servicio de mapa (ArcGIS); no se descargó una capa vectorial"
+    crs: "Web Mercator en el servicio; verificar el CRS de origen"
+    descarga: null
+    documento: GEOCATMIN — Peligros Geológicos del Perú, febrero de 2013
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es un inventario de peligros geológicos, no una probabilidad hidrológica
+      de inundación ni un mapa de susceptibilidad a inundaciones. No se
+      localizó una capa vectorial específica para Piura. El servicio es de
+      visualización y no tiene licencia formal declarada. No se usa como
+      geometría publicada.
+    capas: []
+    notas: >
+      El ítem declara 32 019 eventos registrados y actualización de enero de
+      2012; la edición es de 2011 y el ítem se modificó en 2013. El estudio de
+      ANA (2014) usa 89 ocurrencias de esta base para la cuenca del Piura. No
+      se confunde susceptibilidad geológica con probabilidad hidrológica.
+
+  - id: pechp-inspeccion-2026
+    titulo: "PECHP garantiza libre desembocadura al mar del río Piura — inspección del 26/02/2026"
+    institucion: Proyecto Especial Chira-Piura (PECHP), con MIDAGRI-DGIHR, PSI y ANA
+    url: https://www.gob.pe/institucion/pechp/noticias/1361521-pechp-garantiza-libre-desembocadura-al-mar-del-rio-piura
+    fecha: "2026-03-04"
+    escala: "punto / tramo"
+    licencia: documento público; citar; fotografías del PECHP
+    estado: disponible
+    metodo: consulta de la nota institucional y de su enlace de contexto
+    grupo: Agua
+    certeza: documentado
+    tipo: prensa
+    disponibilidad: documental
+    tipo_evidencia: [oficial, prensa_documentacion_secundaria]
+    periodo: "2026-02-26"
+    formato: "nota web con dos fotografías; sin mapas ni coordenadas"
+    crs: "no aplica"
+    descarga: null
+    documento: Nota de prensa del PECHP, 4 de marzo de 2026
+    pagina: "nota completa"
+    consultado: "2026-11-17"
+    limitaciones: >
+      No publica coordenadas ni mapas. El título afirma «libre desembocadura al
+      mar», pero el cuerpo verifica el paso del agua bajo el puente de la
+      carretera Bayóvar y el tránsito por Tapa de Cuy, Virrilá y Chutuque; no
+      demuestra un cambio de desembocadura ni una conexión permanente. Los
+      caudales son puntuales y reportados, no una serie. No se convierten las
+      fotografías en geometrías.
+    capas: []
+    notas: >
+      La inspección fue el jueves 26 de febrero de 2026. Participaron PECHP,
+      la Dirección General de Infraestructura Hidráulica y Riego (DGIHR) del
+      MIDAGRI, el PSI y la ANA. Se reporta un brazo aguas abajo de La Niña, en
+      Tapa de Cuy, con ~280 m³/s; picos de hasta 300 m³/s en la presa Los
+      Ejidos; geobolsas de ANA en Virrilá; paso despejado bajo el puente de
+      Bayóvar; y condiciones favorables en el tramo medio del canal Chutuque.
+      El reporte diario del PECHP del 26/02/2026 registra 304 m³/s en Puente
+      Sánchez Cerro: es otra estación y no se promedia con el dato de Tapa de
+      Cuy.
+
+  - id: peruverde-expedicion-2002
+    titulo: Expedición en la cuenca baja del río Piura, junio del 2002
+    institucion: Asociación Perú Verde / Comité Holandés de la IUCN; autores Manuel Apaza, Guido Seminario, Carolina Tovar y Pablo Martínez
+    url: https://rsis.ramsar.org/RISapp/files/54275910/documents/PE2455_lit210522_7.pdf
+    fecha: "2003-06-01"
+    escala: "tramo de 108 km entre Puente Independencia y Puente Virrilá"
+    licencia: documento público; citar; no reutilizar mapas o figuras sin permiso
+    estado: disponible
+    metodo: descarga del PDF desde el archivo Ramsar; revisión de texto, mapas y anexo de coordenadas
+    grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [historica, dato_medido]
+    periodo: "2002-06-22/24 (trabajo de campo); documento de 2003"
+    formato: "PDF (27 pp)"
+    crs: "GPS WGS84 convertido a PSAD56 (Venezuela/Perú) para los mapas; UTM"
+    descarga: https://rsis.ramsar.org/RISapp/files/54275910/documents/PE2455_lit210522_7.pdf
+    documento: "Apaza, M., Seminario, G., Tovar, C. y Martínez, P. (2003). Expedición en la cuenca baja del río Piura, junio del 2002. Lima: Asociación Perú Verde y Comité Holandés de la IUCN."
+    pagina: "pp. 1–27; mapas 1–2; anexo 2"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es una navegación de estiaje de 2002, no un aforo continuo ni un eje
+      oficial. Los 178 puntos GPS del anexo están en PSAD56 y fueron
+      registrados con GPS navegador; una reconstrucción cartográfica requeriría
+      documentar la transformación, el orden y la incertidumbre. No se dibuja
+      automáticamente. El documento describe rutas y condiciones de un momento;
+      no prueba que todas estuvieran activas simultáneamente ni que sigan
+      activas.
+    capas: []
+    notas: >
+      Recorrió 108 km del 22 al 24 de junio de 2002, con tirantes de 50–60 cm
+      en los tramos menos profundos. Describe la salida principal por el
+      Manglar de San Pedro, un aporte parcial por Virrilá y una tercera salida
+      por la quebrada Reventazón en episodios excepcionales de El Niño. Registra
+      Tres Bocas (Chutuque, Ñapique y Ramón), Tapa del Cuy y Tapa de Márquez,
+      acumulación de sedimentos en la laguna Ramón y defensas ribereñas. Es la
+      fuente más concreta para el futuro módulo «El recorrido del agua».
+
+  - id: pechp-hidrometeorologia-diaria
+    titulo: Informe hidrometeorológico diario del sistema de ríos Chira-Piura
+    institucion: Proyecto Especial Chira-Piura (PECHP) / Gobierno Regional Piura
+    url: https://servicios.regionpiura.gob.pe/datosh
+    fecha: null
+    escala: "punto de estación"
+    licencia: dato público; citar; términos de reutilización por confirmar
+    estado: disponible
+    metodo: consulta de la API JSON y descarga de CSV de ejemplo
+    grupo: Agua
+    certeza: medido
+    tipo: dataset
+    disponibilidad: descargable
+    tipo_evidencia: [oficial, dato_medido]
+    periodo: "2015–2026"
+    formato: "CSV, PDF y XLS por fecha"
+    crs: "no aplica (datos tabulares)"
+    descarga: https://servicios.regionpiura.gob.pe/datosh
+    documento: Reportes diarios del estado hidrometeorológico de la cuenca Chira-Piura
+    consultado: "2026-11-17"
+    limitaciones: >
+      El servicio no documenta una API pública estable ni una licencia de
+      reutilización. La cadena TLS del servidor está incompleta y la descarga
+      puede requerir tolerancia a certificados. No cubre 1983/1998. Los datos
+      son reportes diarios de estaciones; no sustituyen una serie oficial
+      validada por SENAMHI/ANA. No se publica el CSV crudo mientras no se
+      aclaren los términos.
+    capas: []
+    notas: >
+      La API devuelve las fechas disponibles por mes y los archivos por fecha.
+      Columnas del CSV: FECHA, CUENCA, ESTACION, UNIDAD_MEDIDA, TIPO_ESTACION,
+      DEPARTAMENTO, PROVINCIA, DISTRITO, UBIGEO, CAUDAL07H, PROMEDIO24H,
+      MAXIMO24H y PRECIP24H. Incluye Puente Sánchez Cerro y la presa Los
+      Ejidos. Es una fuente útil para comparar 2017, 2023 y 2026 con PISCO,
+      pero no reemplaza la solicitud de series históricas a SENAMHI.
+
+  - id: pechp-topobatimetria-2026
+    titulo: PECHP ejecuta levantamiento topobatimétrico en el río Piura
+    institucion: Proyecto Especial Chira-Piura (PECHP) / Gobierno Regional Piura
+    url: https://www.gob.pe/institucion/pechp/noticias/1418316-pechp-ejecuta-levantamiento-topobatimetrico-em-el-rio-piura-para-fortalecer-la-prevencion-ante-un-posible-fenomeno-de-el-nino
+    fecha: "2026-07-04"
+    escala: "tramo fluvial"
+    licencia: documento público; datos no publicados
+    estado: por_solicitar
+    metodo: consulta de la nota institucional
+    grupo: Agua
+    certeza: por_verificar
+    tipo: prensa
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial]
+    periodo: "2026-07"
+    formato: "nota web; sin datos descargables"
+    crs: "no aplica"
+    descarga: null
+    documento: Nota de prensa del PECHP, 4 de julio de 2026
+    consultado: "2026-11-17"
+    limitaciones: >
+      La nota anuncia un levantamiento topobatimétrico, pero no publica los
+      datos, el método, la fecha de levantamiento ni la cobertura. No se usa
+      como geometría. Se mantiene como solicitud institucional.
+    capas: []
+    notas: >
+      Es una fuente de contexto para la prioridad de sedimentación y capacidad
+      hidráulica. Si se obtiene, permitiría superponer secciones y batimetría
+      al DEM, distinguiendo dato medido de modelo. No se dibuja nada con la
+      nota.

@@ -1,13 +1,21 @@
 ---
 import Base from "../layouts/Base.astro";
 import { withBase } from "../lib/url";
+import fs from "node:fs";
+import yaml from "js-yaml";
 import "../styles/editorial.css";
+
+const sourcesFile = new URL("../../../data/sources.yml", import.meta.url);
+const sourcesData = yaml.load(fs.readFileSync(sourcesFile, "utf8")) as {
+  fuentes: Array<{ id: string; disponibilidad?: string }>;
+};
+const totalFuentes = sourcesData.fuentes.length;
 ---
 
 <Base
   title="Escenarios"
   current="escenarios"
-  description="Eventos históricos documentados de la cuenca del río Piura: 1891, 1983, 1998 y 2017, con una nota sobre la laguna La Niña en 2023. Escenarios documentados, no pronósticos."
+  description="Eventos históricos documentados de la cuenca del río Piura: 1891, 1983, 1998, 2017 y 2023, con registros de la cuenca baja de 2002, 2024 y 2026. Escenarios documentados, no pronósticos."
 >
   <main id="main" class="wide">
     <div class="container">
@@ -278,6 +286,79 @@ import "../styles/editorial.css";
             </div>
           </section>
 
+          <section class="chapter" id="registros-cuenca-baja">
+            <div class="chapter-head">
+              <div class="chapter-year">2002 · 2024 · 2026</div>
+              <div>
+                <div class="chapter-kicker">La cuenca baja, documentada</div>
+                <h2>Tres registros, ninguna ruta dibujada</h2>
+              </div>
+            </div>
+            <div class="chapter-body">
+              <div class="chapter-prose">
+                <p>
+                  La cuenca baja aparece en una expedición de 2002, en un modelo
+                  académico de 2024 y en una inspección institucional de 2026. Los
+                  tres hablan de rutas, lagunas y canales, pero ninguno publica una
+                  geometría oficial del cauce o de las conexiones. Por eso se
+                  registran como evidencia documental: no se dibuja una línea que
+                  sugiera un eje oficial ni una conexión permanente.
+                </p>
+                <p>
+                  La expedición de 2002 sí tiene 178 puntos GPS y mapas. Una
+                  reconstrucción cartográfica sería posible, pero requiere declarar
+                  la transformación PSAD56, el orden de los puntos y la
+                  incertidumbre. Queda como candidata para el futuro módulo «El
+                  recorrido del agua», no para esta fase.
+                </p>
+              </div>
+              <aside class="chapter-margin">
+                <span class="status documentary"><span class="mark"></span>documental</span>
+                <p class="margin-note"><strong>Fuentes:</strong> expedición de 2002; tesis de Lund de 2024; nota del PECHP de 2026. <a href={withBase("/fuentes#peruverde-expedicion-2002")}>Ver fichas</a>.</p>
+                <p class="margin-note"><strong>Sin geometría:</strong> no se dibujan rutas, canales ni conexiones a partir de estos documentos.</p>
+              </aside>
+            </div>
+            <div class="lowbasin-records">
+              <article class="lowbasin-record">
+                <div class="chapter-kicker">2002 · expedición</div>
+                <h3>San Pedro, Virrilá y Reventazón</h3>
+                <p>
+                  La expedición navegó 108 km entre el Puente Independencia y el
+                  Puente Virrilá en junio de 2002, en estiaje. Describe la salida
+                  principal por el Manglar de San Pedro, un aporte parcial por
+                  Virrilá y una tercera salida por Reventazón en episodios
+                  excepcionales. También registra Tres Bocas, Chutuque, Ñapique y
+                  Ramón, y la sedimentación de la laguna.
+                </p>
+                <p class="source-line"><a href={withBase("/fuentes#peruverde-expedicion-2002")}>Perú Verde / IUCN, 2003</a></p>
+              </article>
+              <article class="lowbasin-record">
+                <div class="chapter-kicker">2024 · modelo</div>
+                <h3>Virrilá deposita; Sechura transporta más</h3>
+                <p>
+                  La tesis de maestría de Lund compara la ruta actual por Virrilá
+                  con una ruta alternativa hacia Sechura mediante HEC-RAS 1D. Con
+                  1 000 y 3 200 m³/s encuentra una tendencia al depósito en el tramo
+                  bajo de Virrilá y un mayor exceso de esfuerzo cortante hacia
+                  Sechura. Es un modelo académico, no una decisión oficial.
+                </p>
+                <p class="source-line"><a href={withBase("/fuentes#lund-sediment-2024")}>Ladewig Piscoya, 2024</a></p>
+              </article>
+              <article class="lowbasin-record">
+                <div class="chapter-kicker">2026 · inspección</div>
+                <h3>Tapa de Cuy, La Niña y Chutuque</h3>
+                <p>
+                  El 26 de febrero de 2026, PECHP, MIDAGRI, PSI y ANA recorrieron la
+                  cuenca baja. Reportan un brazo erosionado aguas abajo de La Niña,
+                  en Tapa de Cuy, con ~280 m³/s; geobolsas en Virrilá; paso
+                  despejado bajo el puente de Bayóvar; y condiciones favorables en
+                  el tramo medio de Chutuque. No publican coordenadas ni mapas.
+                </p>
+                <p class="source-line"><a href={withBase("/fuentes#pechp-inspeccion-2026")}>PECHP, 04/03/2026</a></p>
+              </article>
+            </div>
+          </section>
+
           <section class="evidence" aria-labelledby="evidence-title">
             <div class="evidence-head">
               <h3 id="evidence-title">Qué se puede comparar</h3>
@@ -296,7 +377,7 @@ import "../styles/editorial.css";
                 </tbody>
               </table>
             </div>
-            <p class="source-line" style="margin-top:14px;">No se puede construir una comparación geométrica 1983/1998/2017 con los datos actuales. El atlas no simula esa comparación. <a href={withBase("/fuentes")}>Ver las 30 fuentes</a>.</p>
+            <p class="source-line" style="margin-top:14px;">No se puede construir una comparación geométrica 1983/1998/2017 con los datos actuales. El atlas no simula esa comparación. <a href={withBase("/fuentes")}>Ver las {totalFuentes} fuentes</a>.</p>
           </section>
         </div>
       </div>

@@ -68,6 +68,22 @@ requieren firma, datos personales y registro de expediente.
 | Informe ENFEN concreto | ENFEN | Edición exacta de los informes 1982-83, 1997-98 y 2017, con páginas | Sustituir la ficha genérica |
 | Documento UDEP exacto | Universidad de Piura | Tesis o informe que sustente los picos de 3 200 y 4 424 m³/s | Dejar de usar un handle genérico |
 
+## Pedidos específicos de la fase 2
+
+Estos pedidos nacen de la auditoría de fuentes de 2026. No se han enviado: faltan
+firma, datos personales y registro de expediente.
+
+| Dato | Entidad | Pedido concreto | Uso |
+|---|---|---|---|
+| Licencia de PISCOp v3.0 | SENAMHI | Confirmación escrita de la licencia de los NetCDF de PISCOp v3.0 (Figshare declara GPL 3.0+; el artículo, CC BY 4.0) | Publicar o no una serie derivada por subcuenca |
+| Topobatimetría 2026 | PECHP | Archivo, método, fecha, cobertura y secciones del levantamiento topobatimétrico del río Piura | Superponer batimetría al DEM y documentar capacidad |
+| Carta Geológica de Piura | INGEMMET | Shapefiles de las hojas 1:100 000 que cubren la cuenca, con metadatos, CRS y licencia | Geología superficial y geomorfología |
+| Ejes de canales y diques | ANA / PECHP | Geometrías oficiales de canal Daniel Escobar, Chutuque, drenes, diques y bocatomas, con año y estado | Dejar de usar rectas de referencia |
+| Coordenadas de la inspección 2026 | PECHP / ANA | Puntos, mapas y fichas técnicas de Tapa de Cuy, La Niña, Virrilá, puente de Bayóvar y Chutuque | Georreferenciar el registro documental |
+| Serie diaria 2017 y 2023 | SENAMHI | Caudales y niveles diarios de Puente Sánchez Cerro y estaciones del Bajo Piura | Comparar con PISCO y con las notas de prensa |
+| Serie diaria 1983 y 1998 | SENAMHI | Caudales y niveles diarios, con hora del máximo instantáneo | Resolver la fecha de 1998 y la duración de 1983 |
+| Cartografía vectorial 1983/1998 | ANA / INDECI | Manchas oficiales en shapefile o GeoPackage, con metadatos y método | Publicar geometrías históricas |
+
 ## Seguimiento
 
 | # | Entidad | Pedido | Fecha | Expediente | Estado | Respuesta |
@@ -79,5 +95,11 @@ requieren firma, datos personales y registro de expediente.
 | 5 | ANA | informe hidrológico La Niña 2023 | — | — | pendiente | — |
 | 6 | ENFEN | informe técnico concreto | — | — | pendiente | — |
 | 7 | UDEP | documento exacto de contraste | — | — | pendiente | — |
+| 8 | SENAMHI | licencia de PISCOp v3.0 | — | — | pendiente | — |
+| 9 | PECHP | topobatimetría 2026 | — | — | pendiente | — |
+| 10 | INGEMMET | shapefiles de la Carta Geológica de Piura | — | — | pendiente | — |
+| 11 | ANA / PECHP | ejes de canales, diques y bocatomas | — | — | pendiente | — |
+| 12 | PECHP / ANA | coordenadas de la inspección de 2026 | — | — | pendiente | — |
+| 13 | SENAMHI | series diarias 2017 y 2023 | — | — | pendiente | — |
 
 Actualizar esta tabla al enviar y al recibir cada respuesta.

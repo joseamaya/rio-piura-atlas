@@ -11,7 +11,7 @@ Documentación de la auditoría y la propuesta de rediseño del Atlas del río P
 | [06-estabilizacion-accesibilidad.md](06-estabilizacion-accesibilidad.md) | Foco, teclado, panel móvil y semántica del mapa (UI-02) |
 | [07-qa-responsive.md](07-qa-responsive.md) | Cinco resoluciones, canvas, orientación y rendimiento (UI-02) |
 | [08-coherencia-3d.md](08-coherencia-3d.md) | Paleta del GLB y propuesta de reexportación (UI-02) |
-| [evidencia/](evidencia/) | Capturas del estado actual y de la QA `ui02-*` |
+| [evidencia/](evidencia/) | Capturas del estado actual, de la QA `ui02-*` y de la fase 2 (`fase2-*`) |
 
 **Prototipos:** [`../../design-proposal/index.html`](../../design-proposal/index.html)
 

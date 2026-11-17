@@ -9,14 +9,23 @@ import "../styles/home.css";
 const version = (pkg as { version?: string }).version ?? "sin versión";
 const sourcesFile = new URL("../../../data/sources.yml", import.meta.url);
 const sourcesData = yaml.load(fs.readFileSync(sourcesFile, "utf8")) as {
-  fuentes: Array<{ estado: string }>;
+  fuentes: Array<{ estado: string; disponibilidad?: string; tipo?: string }>;
 };
 const sources = sourcesData.fuentes;
+const disponibilidad = (f: { estado: string; disponibilidad?: string; tipo?: string }) =>
+  f.disponibilidad ??
+  (f.estado === "disponible"
+    ? f.tipo === "documento" || f.tipo === "prensa"
+      ? "documental"
+      : "validada"
+    : f.estado === "por_solicitar"
+      ? "pendiente"
+      : "localizada");
 const counts = {
   total: sources.length,
-  disponible: sources.filter((f) => f.estado === "disponible").length,
-  porSolicitar: sources.filter((f) => f.estado === "por_solicitar").length,
-  porVerificar: sources.filter((f) => f.estado === "por_verificar").length,
+  validadas: sources.filter((f) => disponibilidad(f) === "validada").length,
+  documentales: sources.filter((f) => disponibilidad(f) === "documental").length,
+  pendientes: sources.filter((f) => disponibilidad(f) === "pendiente").length,
 };
 ---
 
@@ -52,7 +61,7 @@ const counts = {
           </div>
           <div class="hero-meta">
             <span><span class="dot"></span>{counts.total} fuentes registradas</span>
-            <span>{counts.disponible} disponibles</span>
+            <span>{counts.validadas} validadas</span>
             <span>Versión {version}</span>
           </div>
         </div>
@@ -141,7 +150,7 @@ const counts = {
           </div>
           <div class="entry-top"><span class="index-no">04 · Verificar</span><span class="entry-arrow">→</span></div>
           <h3 class="entry-title">De dónde sale cada dato</h3>
-          <p class="entry-text">{counts.total} fuentes con institución, escala, fecha, licencia, método y estado. {counts.disponible} disponibles; las pendientes se declaran y no se dibujan.</p>
+          <p class="entry-text">{counts.total} fuentes con institución, escala, fecha, licencia, método y disponibilidad. {counts.validadas} validadas y {counts.documentales} documentales; las pendientes se declaran y no se dibujan.</p>
         </a>
       </div>
     </div>
@@ -236,9 +245,9 @@ const counts = {
           </p>
           <div class="method-stats">
             <div class="method-stat"><div class="v">{counts.total}</div><div class="l">fuentes</div></div>
-            <div class="method-stat"><div class="v">{counts.disponible}</div><div class="l">disponibles</div></div>
-            <div class="method-stat"><div class="v">{counts.porSolicitar}</div><div class="l">por solicitar</div></div>
-            <div class="method-stat"><div class="v">{counts.porVerificar}</div><div class="l">por verificar</div></div>
+            <div class="method-stat"><div class="v">{counts.validadas}</div><div class="l">validadas</div></div>
+            <div class="method-stat"><div class="v">{counts.documentales}</div><div class="l">documentales</div></div>
+            <div class="method-stat"><div class="v">{counts.pendientes}</div><div class="l">pendientes</div></div>
           </div>
           <div class="method-actions">
             <a class="btn btn-primary" href={withBase("/fuentes")}>Ver las fuentes <span class="arrow">→</span></a>

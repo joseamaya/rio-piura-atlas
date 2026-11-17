@@ -1,6 +1,6 @@
-# 08 · Pendientes de la fase 1
+# 08 · Pendientes de la fase 2
 
-Actualizado: 2026-11-16.
+Actualizado: 2026-11-17.
 
 Este documento separa lo que ya está implementado, lo que se puede hacer sin datos
 externos y lo que está bloqueado por solicitudes. La regla sigue siendo: **lo que no
@@ -20,6 +20,16 @@ tiene fuente, no se dibuja**.
 - Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,6 MB).
 - Cortes transversales de referencia (5) y corte dibujado por el visitante.
 - Catálogo de fuentes generado desde `data/sources.yml`, con enlaces por capa.
+- **Fase 2:** catálogo ampliado a **40 fuentes**, con `disponibilidad` (7 estados),
+  `tipo_evidencia` (10 categorías), periodo, formato, CRS, descarga, limitaciones y
+  capas respaldadas.
+- **Fase 2:** auditoría individual de las siete fuentes prioritarias y de las
+  fuentes complementarias en `docs/11`; catálogo de evidencia en `docs/12`; plan de
+  integración en `docs/13`; documento de cuenca baja en `docs/14`.
+- **Fase 2:** registro documental de la expedición de 2002, el modelo de Lund de
+  2024 y la inspección de 2026 en `/escenarios`, sin geometría nueva.
+- **Fase 2:** PISCOp v3.0 catalogado y condicionado a la aclaración de licencia; no
+  se publicó ninguna serie derivada.
 - Escenarios históricos documentados; la mancha de 2017 usa un vector oficial y
   1983/1998 siguen como texto. Sin manchas inventadas.
 - ETL reproducible para capas y cortes.
@@ -28,8 +38,8 @@ tiene fuente, no se dibuja**.
 - Validación de datos (`etl/check_data.py`) con auditoría por par de subcuencas,
   superficie fuera por subcuenca, huecos por componente, agujeros interiores,
   validación antes de reparar y fidelidad (IoU, diferencia simétrica, Hausdorff,
-  media y p95); 52 pruebas de Python y pruebas Playwright de mapa, móvil, fallo de
-  red y maqueta.
+  media y p95); 89 pruebas de Python (79 de la estabilización + 10 de esquema de
+  fuentes) y pruebas Playwright de mapa, móvil, fallo de red y maqueta.
 - Catálogo de fuentes con `certeza` y `tipo`: distingue dato medido, derivado,
   documentado, interpretación y pendiente de verificación.
 - CI que compila el sitio y valida datos en cada push.
@@ -60,13 +70,17 @@ tiene fuente, no se dibuja**.
 | Dato | Entidad | Uso |
 |---|---|---|
 | Caudales y niveles diarios | SENAMHI | hidrogramas, duración y fecha exacta de 1998 |
-| Precipitación PISCO | SENAMHI | contexto climático |
-| Cartografía de inundación 1983/1998 | ANA | manchas históricas |
-| Bocatomas y diques | ANA / PECHP | capa de obras completa |
+| Licencia de PISCOp v3.0 | SENAMHI | publicar o no una serie derivada |
+| Cartografía de inundación 1983/1998 | ANA / INDECI | manchas históricas |
+| Bocatomas, diques y ejes de canales | ANA / PECHP | capa de obras completa |
 | Operación de Poechos | PECHP | trasvase y regulación |
 | Escenarios de riesgo | CENEPRED / SIGRID | exposición |
 | Informe hidrológico de La Niña 2023 | SENAMHI / ANA | área y volumen del evento |
 | Informe ENFEN concreto | ENFEN | edición exacta de 1982-83, 1997-98 o 2017 |
+| Topobatimetría 2026 | PECHP | secciones y capacidad del cauce |
+| Shapefiles de la Carta Geológica de Piura | INGEMMET | geología y geomorfología |
+| Coordenadas de la inspección 2026 | PECHP / ANA | georreferenciar el registro documental |
+| Series diarias 2017 y 2023 | SENAMHI | comparar con PISCO y notas de prensa |
 
 Mientras no lleguen, esas capas se muestran como «sin dato público» y no se dibujan.
 
@@ -145,6 +159,28 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   contraste, no como geometría. Las manchas de 1983 y 1998 siguen sin geometría pública
   localizada.
 
+### Límites añadidos en la fase 2
+
+- **PISCOp v3.0.** Es 0,1° (~10 km), 1981–2025, no 5 km ni 1981–2016. El artículo
+  es CC BY 4.0, pero el conjunto de datos en Figshare declara GPL 3.0+; no se
+  publica una serie derivada hasta aclarar la licencia.
+- **Expedición de 2002.** Describe una salida principal por San Pedro, Virrilá como
+  segunda salida y Reventazón como tercera salida excepcional. No prueba que las
+  tres estuvieran activas a la vez ni que sigan activas. Es una navegación de
+  estiaje, no un eje oficial.
+- **Inspección de 2026.** La nota titula «libre desembocadura al mar», pero el
+  cuerpo verifica el paso del agua en Tapa de Cuy, Virrilá, el puente de Bayóvar y
+  Chutuque. No publica coordenadas ni mapas; no se infiere una conexión permanente.
+- **INDECI 2009.** El título exacto es *Estudio Mapa de peligros de la ciudad de
+  Piura*; Castilla aparece en el capítulo III y en los planos. El estudio separado
+  de Castilla de 2001 no se fusiona.
+- **INGEMMET.** No se localizó una capa vectorial de susceptibilidad a inundaciones
+  para Piura. La Carta Geológica es PDF/JPG y la Geología Integrada es un servicio
+  de teselas; no se integran como capas.
+- **Ruta 2002.** Los 178 puntos GPS están en PSAD56 y son un track de navegación.
+  Una reconstrucción exigiría documentar la transformación, el orden y la
+  incertidumbre; no se dibuja en esta fase.
+
 ## Criterios para cerrar la fase 1
 
 - Una persona sin formación técnica entiende, en menos de 10 minutos, por qué el río
@@ -156,3 +192,17 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   por debajo de 1 MB; `/maqueta` es la excepción declarada por el GLB y la mancha de
   2017 se carga a demanda en `/mapa`.
 - Existe una versión etiquetada y citable.
+
+## Criterios de cierre de la fase 2
+
+- Las siete fuentes prioritarias tienen ficha individual y estado de disponibilidad.
+- Los documentos descargables están recuperados o se explica por qué no.
+- Se revisaron índices, capítulos, tablas y anexos; no solo resúmenes.
+- El catálogo no duplica fuentes y distingue disponibilidad, certeza y tipo de
+  evidencia.
+- PISCO no se publica como serie hasta aclarar su licencia.
+- No se agregaron capas geométricas sin escala, licencia y metadatos.
+- La ruta de 2002 y la inspección de 2026 quedan como registro documental, no como
+  geometría.
+- `check_data.py`, las pruebas Python y `npm run verify` pasan.
+- La dirección visual «Lámina y margen» no cambia.

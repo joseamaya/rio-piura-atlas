@@ -498,7 +498,8 @@ idénticos a la línea base.
 | Publicación | reproyección, coordenadas WGS84, área publicada, redondeo, fidelidad, Hausdorff dirigido |
 | Componentes de `limits.json` | separados, contacto por límite, solapamiento antes de unir, inválido, vacío, compuesto inválido, un solo componente |
 
-Resultado: **79 pruebas Python**, 27 más que la línea base de 52.
+Resultado de v0.2.3: **79 pruebas Python**, 27 más que la línea base de 52.
+La fase 2 añadió 10 pruebas de esquema de fuentes; el total actual es **89**.
 
 ### 12.7 Resultados de validación
 

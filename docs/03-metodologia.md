@@ -207,3 +207,23 @@ en el diorama es un recurso visual, no el ancho real.
 
 `etl/` debe poder reconstruir `data/processed/` desde `data/raw/` con un comando.
 Si un paso depende de una decisión manual, se documenta en el propio script.
+
+## Fuentes, disponibilidad y evidencia
+
+Desde la fase 2, el catálogo distingue tres ejes que no se sustituyen entre sí:
+
+- **disponibilidad:** `localizada`, `descargable`, `procesada`, `validada`,
+  `documental`, `pendiente` o `descartada`;
+- **certeza:** `medido`, `derivado`, `documentado`, `interpretacion` o
+  `por_verificar`;
+- **tipo de evidencia:** oficial, académica, científica, histórica, observación
+  satelital, dato medido, reconstrucción cartográfica, modelamiento,
+  prensa/documentación secundaria o colaborativa.
+
+Una fuente `documental` puede sostener una afirmación o una ficha, pero no una
+geometría publicada. Una capa publicada solo referencia fuentes `validada` o
+`procesada`. Lo que está `pendiente` se declara y no se dibuja.
+
+La fase 2 no incorporó capas geométricas nuevas. Las fuentes ANA 2014, INDECI 2009,
+Lund 2024, INGEMMET, la inspección de 2026 y la expedición de 2002 quedan como
+evidencia documental. PISCOp v3.0 queda condicionado a la aclaración de su licencia.

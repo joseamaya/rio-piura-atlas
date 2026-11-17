@@ -1,36 +1,60 @@
 ---
 import Base from "../layouts/Base.astro";
-import { withBase } from "../lib/url";
 import fs from "node:fs";
 import yaml from "js-yaml";
 import "../styles/editorial.css";
 
-const file = new URL("../../../data/sources.yml", import.meta.url);
-const data = yaml.load(fs.readFileSync(file, "utf8")) as {
-  fuentes: Array<{
-    id: string;
-    titulo: string;
-    institucion: string;
-    url: string | null;
-    fecha: string | null;
-    escala: string | null;
-    licencia: string;
-    estado: string;
-    metodo?: string;
-    grupo?: string;
-    notas?: string;
-    documento?: string | null;
-    pagina?: string | null;
-    consultado?: string | null;
-    certeza?: string;
-    tipo?: string;
-  }>;
+type Fuente = {
+  id: string;
+  titulo: string;
+  institucion: string;
+  url: string | null;
+  fecha: string | null;
+  escala: string | null;
+  licencia: string;
+  estado: string;
+  disponibilidad?: string;
+  tipo_evidencia?: string[];
+  periodo?: string | null;
+  formato?: string | null;
+  crs?: string | null;
+  descarga?: string | null;
+  limitaciones?: string | null;
+  capas?: string[];
+  metodo?: string;
+  grupo?: string;
+  notas?: string;
+  documento?: string | null;
+  pagina?: string | null;
+  consultado?: string | null;
+  certeza?: string;
+  tipo?: string;
 };
 
-const estado = (e: string) =>
-  e === "disponible" ? ["status available", "disponible"]
-  : e === "por_solicitar" ? ["status requested", "por solicitar"]
-  : ["status verify", "por verificar"];
+const file = new URL("../../../data/sources.yml", import.meta.url);
+const data = yaml.load(fs.readFileSync(file, "utf8")) as {
+  fuentes: Fuente[];
+};
+
+const disponibilidadDe = (f: Fuente) =>
+  f.disponibilidad ??
+  (f.estado === "disponible"
+    ? f.tipo === "documento" || f.tipo === "prensa"
+      ? "documental"
+      : "validada"
+    : f.estado === "por_solicitar"
+      ? "pendiente"
+      : "localizada");
+
+const disponibilidad = (d: string) =>
+  d === "validada" ? ["status validated", "validada"]
+  : d === "procesada" ? ["status processed", "procesada"]
+  : d === "documental" ? ["status documentary", "documental"]
+  : d === "descargable" ? ["status downloadable", "descargable"]
+  : d === "localizada" ? ["status localized", "localizada"]
+  : d === "pendiente" ? ["status pending-state", "pendiente"]
+  : d === "descartada" ? ["status discarded", "descartada"]
+  : ["status localized", "sin clasificar"];
 
 const certeza = (c: string | undefined) => {
   if (c === "medido") return ["status", "dato medido"];
@@ -46,6 +70,19 @@ const tipo = (t: string | undefined) =>
   : t === "prensa" ? "prensa"
   : t === "elaboracion_propia" ? "elaboración propia"
   : "registro";
+
+const evidencia = (e: string) =>
+  e === "oficial" ? "oficial"
+  : e === "academica" ? "académica"
+  : e === "cientifica" ? "científica"
+  : e === "historica" ? "histórica"
+  : e === "observacion_satelital" ? "observación satelital"
+  : e === "dato_medido" ? "dato medido"
+  : e === "reconstruccion_cartografica" ? "reconstrucción cartográfica"
+  : e === "modelamiento" ? "modelamiento"
+  : e === "prensa_documentacion_secundaria" ? "prensa / documentación secundaria"
+  : e === "colaborativa" ? "colaborativa"
+  : e;
 
 const orden = ["Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"];
 const intros: Record<string, string> = {
@@ -68,16 +105,18 @@ const resto = fuentes.filter((f) => !orden.includes(f.grupo ?? ""));
 if (resto.length) groups.push({ titulo: "Otras fuentes", id: "grupo-otras", intro: "Registros no clasificados en los grupos principales.", fuentes: resto });
 const counts = {
   total: fuentes.length,
-  disponible: fuentes.filter((f) => f.estado === "disponible").length,
-  porSolicitar: fuentes.filter((f) => f.estado === "por_solicitar").length,
-  porVerificar: fuentes.filter((f) => f.estado === "por_verificar").length,
+  validadas: fuentes.filter((f) => disponibilidadDe(f) === "validada").length,
+  documentales: fuentes.filter((f) => disponibilidadDe(f) === "documental").length,
+  pendientes: fuentes.filter((f) => disponibilidadDe(f) === "pendiente").length,
+  descargables: fuentes.filter((f) => disponibilidadDe(f) === "descargable").length,
+  localizadas: fuentes.filter((f) => disponibilidadDe(f) === "localizada").length,
 };
 ---
 
 <Base
   title="Fuentes"
   current="fuentes"
-  description="Catálogo de fuentes del Atlas del río Piura: institución, escala, licencia y estado de cada dato, con enlaces directos a la fuente original."
+  description="Catálogo de fuentes del Atlas del río Piura: institución, escala, licencia, disponibilidad y tipo de evidencia de cada dato, con enlaces directos a la fuente original."
 >
   <main id="main" class="wide">
     <div class="container">
@@ -88,23 +127,35 @@ const counts = {
             <h1>De dónde sale cada dato</h1>
             <p class="lead">
               Toda capa del atlas apunta a una fuente con institución, escala,
-              fecha —cuando existe— y licencia. Si un dato no está confirmado,
-              figura como pendiente y no se publica.
+              fecha —cuando existe— y licencia. La disponibilidad dice si el dato
+              se puede usar; la certeza, qué tipo de evidencia es. Lo que no está
+              confirmado no se dibuja.
             </p>
           </div>
           <div class="sources-stats" aria-label="Resumen del catálogo">
             <div><div class="v">{counts.total}</div><div class="l">fuentes</div></div>
-            <div><div class="v">{counts.disponible}</div><div class="l">disponibles</div></div>
-            <div><div class="v">{counts.porSolicitar}</div><div class="l">por solicitar</div></div>
-            <div><div class="v">{counts.porVerificar}</div><div class="l">por verificar</div></div>
+            <div><div class="v">{counts.validadas}</div><div class="l">validadas</div></div>
+            <div><div class="v">{counts.documentales}</div><div class="l">documentales</div></div>
+            <div><div class="v">{counts.pendientes}</div><div class="l">pendientes</div></div>
           </div>
         </div>
+        <p class="source-line" style="margin-top:10px;">El resto del catálogo: {counts.descargables} descargable{counts.descargables === 1 ? "" : "s"} y {counts.localizadas} localizada{counts.localizadas === 1 ? "" : "s"}.</p>
         <div class="sources-key" aria-label="Clave de certeza">
           <div class="key-item"><span class="status"><span class="mark"></span><strong>Dato medido</strong></span>Serie, imagen o geometría medida por la institución.</div>
           <div class="key-item"><span class="status derived"><span class="mark"></span><strong>Derivado</strong></span>Producto calculado: modelo, red o DEM.</div>
           <div class="key-item"><span class="status documented"><span class="mark"></span><strong>Documentado</strong></span>Informe, tesis o nota con referencia verificable.</div>
           <div class="key-item"><span class="status interpretation"><span class="mark"></span><strong>Interpretación</strong></span>Geometría elaborada por el atlas.</div>
           <div class="key-item"><span class="status pending"><span class="mark"></span><strong>Por verificar</strong></span>Falta confirmar el documento o el dato.</div>
+        </div>
+        <div class="availability-key" aria-label="Estados de disponibilidad">
+          <span class="key-label">Disponibilidad:</span>
+          <span class="status validated"><span class="mark"></span>validada</span>
+          <span class="status processed"><span class="mark"></span>procesada</span>
+          <span class="status documentary"><span class="mark"></span>documental</span>
+          <span class="status downloadable"><span class="mark"></span>descargable</span>
+          <span class="status localized"><span class="mark"></span>localizada</span>
+          <span class="status pending-state"><span class="mark"></span>pendiente</span>
+          <span class="status discarded"><span class="mark"></span>descartada</span>
         </div>
       </header>
 
@@ -113,9 +164,11 @@ const counts = {
         <p>
           No se distinguen «fuentes primarias» y «secundarias»: esa clasificación no
           está definida en el proyecto. Se usan el <strong>tipo</strong> de registro
-          (dataset, documento, prensa o elaboración propia) y la
-          <strong>certeza</strong> declarada en <code>data/sources.yml</code>. Los
-          estados se refieren a la disponibilidad del dato para el atlas.
+          (dataset, documento, prensa o elaboración propia), la
+          <strong>certeza</strong> y la <strong>disponibilidad</strong> declaradas en
+          <code>data/sources.yml</code>. <em>Documental</em> significa que la fuente
+          sirve para contextualizar pero no tiene geometría incorporable;
+          <em>pendiente</em>, que falta un dato, una licencia o una solicitud.
         </p>
       </div>
 
@@ -137,11 +190,15 @@ const counts = {
             <button class="filter-button" type="button" data-group="Agua" aria-pressed="false">Agua</button>
             <button class="filter-button" type="button" data-group="Inundaciones y riesgo" aria-pressed="false">Inundaciones</button>
             <button class="filter-button" type="button" data-group="Estudios" aria-pressed="false">Estudios</button>
-            <select class="filter-search" id="stateFilter" aria-label="Filtrar por estado">
-              <option value="all">Todos los estados</option>
-              <option value="disponible">Disponible</option>
-              <option value="por_solicitar">Por solicitar</option>
-              <option value="por_verificar">Por verificar</option>
+            <select class="filter-search" id="availabilityFilter" aria-label="Filtrar por disponibilidad">
+              <option value="all">Toda la disponibilidad</option>
+              <option value="validada">Validada</option>
+              <option value="procesada">Procesada</option>
+              <option value="documental">Documental</option>
+              <option value="descargable">Descargable</option>
+              <option value="localizada">Localizada</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="descartada">Descartada</option>
             </select>
             <select class="filter-search" id="certaintyFilter" aria-label="Filtrar por certeza">
               <option value="all">Toda la certeza</option>
@@ -160,11 +217,12 @@ const counts = {
                 <div class="row-between"><h2>{g.titulo}</h2><span class="group-count">{g.fuentes.length} fuentes</span></div>
                 <p class="group-intro">{g.intro}</p>
                 {g.fuentes.map((f) => {
-                  const [estadoClass, estadoLabel] = estado(f.estado);
+                  const dispValue = disponibilidadDe(f);
+                  const [estadoClass, estadoLabel] = disponibilidad(dispValue);
                   const [certClass, certLabel] = certeza(f.certeza);
                   const meta = [f.institucion, f.fecha ?? "sin fecha", f.escala ?? "escala no declarada", f.licencia].join(" · ");
                   return (
-                    <article class="record" id={f.id} data-state={f.estado} data-certainty={f.certeza ?? "por_verificar"}>
+                    <article class="record" id={f.id} data-state={dispValue} data-certainty={f.certeza ?? "por_verificar"}>
                       <div class="record-head">
                         <span class="record-id">{f.id}</span>
                         <span class="record-kind">{tipo(f.tipo)}</span>
@@ -177,10 +235,21 @@ const counts = {
                         <span class={estadoClass}><span class="mark"></span>{estadoLabel}</span>
                         <span class={certClass}><span class="mark"></span>{certLabel}</span>
                       </div>
+                      {f.tipo_evidencia?.length ? (
+                        <div class="record-evidence" aria-label="Tipo de evidencia">
+                          {f.tipo_evidencia.map((e) => <span class="badge">{evidencia(e)}</span>)}
+                        </div>
+                      ) : null}
                       <details class="record-details">
-                        <summary>Método, notas y documento</summary>
+                        <summary>Método, metadatos y documento</summary>
                         {f.metodo && <p><strong>Método:</strong> {f.metodo}.</p>}
+                        {f.periodo && <p><strong>Periodo:</strong> {f.periodo}.</p>}
+                        {f.formato && <p><strong>Formato:</strong> {f.formato}.</p>}
+                        {f.crs && <p><strong>CRS:</strong> {f.crs}.</p>}
+                        {f.descarga && <p><strong>Descarga:</strong> <a href={f.descarga} target="_blank" rel="noopener">archivo original</a>.</p>}
                         {f.documento && <p><strong>Documento:</strong> {f.documento}{f.pagina ? ` · p. ${f.pagina}` : ""}.</p>}
+                        {f.limitaciones && <p><strong>Limitaciones:</strong> {f.limitaciones}</p>}
+                        {f.capas?.length ? <p><strong>Capas:</strong> {f.capas.join(", ")}.</p> : null}
                         {f.notas && <p><strong>Notas:</strong> {f.notas}</p>}
                         {f.consultado && <p><strong>Consultado:</strong> {f.consultado}.</p>}
                         {!f.metodo && !f.documento && !f.notas && <p>Sin notas adicionales.</p>}
@@ -198,7 +267,7 @@ const counts = {
   </main>
 
   <script>
-    const filterState = { group: "all", estado: "all", certeza: "all", text: "" };
+    const filterState = { group: "all", disponibilidad: "all", certeza: "all", text: "" };
     const records = [...document.querySelectorAll<HTMLElement>(".record")];
     const groupEls = [...document.querySelectorAll<HTMLElement>(".source-group")];
     const filterCount = document.getElementById("filterCount");
@@ -210,7 +279,7 @@ const counts = {
       for (const record of records) {
         const group = record.closest<HTMLElement>(".source-group")!;
         const groupOk = filterState.group === "all" || group.dataset.group === filterState.group;
-        const stateOk = filterState.estado === "all" || record.dataset.state === filterState.estado;
+        const stateOk = filterState.disponibilidad === "all" || record.dataset.state === filterState.disponibilidad;
         const certOk = filterState.certeza === "all" || record.dataset.certainty === filterState.certeza;
         const textOk = !filterState.text || record.textContent!.toLowerCase().includes(filterState.text);
         const show = groupOk && stateOk && certOk && textOk;
@@ -233,8 +302,8 @@ const counts = {
         applyFilters();
       });
     });
-    document.getElementById("stateFilter")?.addEventListener("change", (event) => {
-      filterState.estado = (event.target as HTMLSelectElement).value;
+    document.getElementById("availabilityFilter")?.addEventListener("change", (event) => {
+      filterState.disponibilidad = (event.target as HTMLSelectElement).value;
       applyFilters();
     });
     document.getElementById("certaintyFilter")?.addEventListener("change", (event) => {

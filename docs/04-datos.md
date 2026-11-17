@@ -67,7 +67,19 @@ Cada entrada:
   fecha: 2008-01-05
   escala: 1:100000
   licencia: dato público
-  estado: disponible        # disponible | por_solicitar | por_verificar
+  estado: disponible        # disponible | por_solicitar | por_verificar (heredado)
+  disponibilidad: validada  # localizada | descargable | procesada | validada |
+                            # documental | pendiente | descartada
+  tipo_evidencia: [oficial] # oficial | academica | cientifica | historica |
+                            # observacion_satelital | dato_medido |
+                            # reconstruccion_cartografica | modelamiento |
+                            # prensa_documentacion_secundaria | colaborativa
+  periodo: "2008"
+  formato: "GeoJSON"
+  crs: "EPSG:32717 / EPSG:4326"
+  descarga: https://...
+  limitaciones: "Escala 1:100 000; el área oficial se calculó en otra proyección."
+  capas: [cuenca, subcuencas]
   metodo: descarga directa
   grupo: Límites, relieve y red
   certeza: medido           # medido | derivado | documentado | interpretacion | por_verificar
@@ -76,6 +88,11 @@ Cada entrada:
   consultado: "2026-11-16"
   notas: R.M. 033-2008-AG
 ```
+
+`estado` se conserva por compatibilidad con el frontend y las pruebas anteriores.
+`disponibilidad` es el estado operativo de la fase 2. Una capa publicada solo
+puede referenciar fuentes `validada` o `procesada`; una fuente `documental` puede
+sostener texto o una ficha, pero no una geometría publicada.
 
 `documento`, `pagina` y `consultado` son opcionales. `pagina` solo se usa cuando hay
 un `documento` concreto. Una fuente de `tipo: elaboracion_propia` debe atribuirse a

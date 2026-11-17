@@ -5,11 +5,15 @@ funciona, dónde se desborda y qué se construyó para contenerlo.
 
 > **Sitio publicado:** <https://joseamaya.github.io/rio-piura-atlas/>
 >
-> **Estado:** fase 1 en curso. El sitio ya funciona con las capas verificadas
-> (cuenca, subcuencas, red, agua, relieve, cortes transversales y maqueta 3D), la
-> mancha oficial de la inundación de 2017 y las obras esquemáticas de Poechos y el
-> canal Daniel Escobar. Faltan las capas que dependen de datos por solicitar:
-> caudales, bocatomas/diques y las manchas de 1983 y 1998.
+> **Estado:** fase 2 cerrada en su parte documental. El sitio mantiene las capas
+> verificadas (cuenca, subcuencas, red, agua, relieve, cortes transversales y
+> maqueta 3D), la mancha oficial de la inundación de 2017 y las obras esquemáticas
+> de Poechos y el canal Daniel Escobar. El catálogo reúne **40 fuentes** con
+> disponibilidad y tipo de evidencia. No se agregaron capas nuevas: PISCOp v3.0
+> queda condicionado a la aclaración de su licencia; la ruta de 2002 y la
+> inspección de 2026 se registran como documentos, no como geometrías. Faltan las
+> capas que dependen de datos por solicitar: caudales, bocatomas/diques, geología
+> vectorial y las manchas de 1983 y 1998.
 
 ## Para quién
 
@@ -42,9 +46,13 @@ fuente, no se dibuja; lo que es interpretación, se marca como tal.
 ```
 docs/                 por qué y cómo (empezar por 01-alcance.md)
 docs/00-plan-fase-0.md  plan de trabajo inmediato
-docs/08-pendientes.md   estado y pendientes de la fase 1
+docs/08-pendientes.md   estado y pendientes de la fase 2
 docs/09-auditoria-estabilizacion.md  auditoría, evidencias y límites
 docs/10-contexto-historico.md  registro de afirmaciones históricas y fuentes
+docs/11-auditoria-fuentes-ampliacion.md  auditoría de las siete fuentes de fase 2
+docs/12-catalogo-evidencia-territorial.md  disponibilidad, certeza y tipos de evidencia
+docs/13-plan-integracion-geoespacial.md  capas candidatas y compuertas
+docs/14-historia-y-funcionamiento-cuenca-baja.md  rutas, sedimentación y vacíos
 data/sources.yml      registro maestro de fuentes
 data/raw/             datos tal como llegan (inmutables)
 data/processed/       datos derivados, reproducibles
@@ -97,9 +105,9 @@ solo se descarga al abrir esa página.
   superficie fuera por subcuenca, huecos por componente y agujeros interiores**, áreas
   geodésicas, cortes, resolución efectiva, malla de elevación, GLB y presupuesto de
   datos. Las tolerancias están justificadas a escala 1:100 000.
-- `python3 -m unittest discover -s etl/tests -v` ejecuta **52 pruebas** de geometría,
-  validación antes de reparar, topología sintética, fidelidad y contrato de datos
-  publicados.
+- `python3 -m unittest discover -s etl/tests -v` ejecuta **89 pruebas** de geometría,
+  validación antes de reparar, topología sintética, fidelidad, esquema de fuentes y
+  contrato de datos publicados.
 - En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas),
   `npm run check:a11y` (axe WCAG A/AA en Chrome headless) y `npm run test:e2e`
   (Playwright: mapa, dibujo de perfil, capas, ficha, teclado, fallo de red, móvil y
@@ -114,8 +122,25 @@ solo se descarga al abrir esa página.
 | `/` | qué es el atlas y qué no es |
 | `/mapa` | relieve, cuenca ANA, 8 subcuencas + Bajo Piura derivado, red hídrica, inundación 2017, referencias de obras, cortes transversales, lagunas y ciudades |
 | `/maqueta` | la cuenca, el desierto y el mar en un bloque 3D (Three.js + Draco) |
-| `/escenarios` | los eventos documentados, la mancha de 2017 y lo que falta |
-| `/fuentes` | catálogo generado desde `data/sources.yml`, con enlaces por capa |
+| `/escenarios` | los eventos documentados, la mancha de 2017, los registros de la cuenca baja (2002, 2024, 2026) y lo que falta |
+| `/fuentes` | catálogo de 40 fuentes generado desde `data/sources.yml`, con disponibilidad, tipo de evidencia, licencia y enlaces |
+
+## Fase 2
+
+La ampliación de fuentes se documenta en `docs/11`–`docs/14`. Las siete fuentes
+prioritarias se investigaron individualmente; ninguna se incorporó como capa nueva:
+
+- ANA 2014 y INDECI 2009 son documentos con mapas, no shapefiles; además, ANA tiene
+  licencia CC BY-NC-ND.
+- Lund 2024 es un modelo académico, no una decisión oficial.
+- INGEMMET no ofrece una capa vectorial de susceptibilidad a inundaciones para
+  Piura; su cartografía está en PDF o en un servicio de teselas.
+- PISCOp v3.0 es descargable (0,1°, 1981–2025), pero su licencia está en disputa
+  (GPL 3.0+ en Figshare, CC BY 4.0 en el artículo).
+- La inspección de 2026 y la expedición de 2002 son registros documentales sin
+  geometría oficial.
+- Los reportes diarios del PECHP (2015–2026) se catalogan como fuente
+  complementaria, sin publicar el CSV crudo hasta aclarar términos.
 
 ## Cómo citar
 

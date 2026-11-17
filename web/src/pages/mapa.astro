@@ -1,7 +1,26 @@
 ---
 import Base from "../layouts/Base.astro";
 import { withBase } from "../lib/url";
+import fs from "node:fs";
+import yaml from "js-yaml";
 import "../styles/map.css";
+
+const sourcesFile = new URL("../../../data/sources.yml", import.meta.url);
+const sourcesData = yaml.load(fs.readFileSync(sourcesFile, "utf8")) as {
+  fuentes: Array<{ estado: string; disponibilidad?: string; tipo?: string }>;
+};
+const fuentes = sourcesData.fuentes;
+const disponibilidadDe = (f: { estado: string; disponibilidad?: string; tipo?: string }) =>
+  f.disponibilidad ??
+  (f.estado === "disponible"
+    ? f.tipo === "documento" || f.tipo === "prensa"
+      ? "documental"
+      : "validada"
+    : f.estado === "por_solicitar"
+      ? "pendiente"
+      : "localizada");
+const totalFuentes = fuentes.length;
+const validadas = fuentes.filter((f) => disponibilidadDe(f) === "validada").length;
 ---
 
 <Base
@@ -206,7 +225,7 @@ import "../styles/map.css";
 
         <div class="drawer-foot">
           <a href={withBase("/fuentes")}>Fuentes y método de cada capa →</a>
-          <span class="status available"><span class="mark"></span>30 fuentes · 19 disponibles</span>
+          <span class="status available"><span class="mark"></span>{totalFuentes} fuentes · {validadas} validadas</span>
           <span class="src">No es un sistema de alerta ni un pronóstico.</span>
         </div>
       </aside>
