@@ -22,7 +22,24 @@ from pyproj import Transformer
 from shapely import set_precision
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon, mapping, shape
 from shapely.ops import transform, unary_union
-from shapely.validation import explain_validity, make_valid
+from shapely.validation import explain_validity
+
+try:  # Ejecución como módulo (`python -m etl.build_layers`)
+    from etl.topology import (
+        as_polygonal,
+        geodesic_area_km2,
+        inspect_geometry,
+        metric_area_km2,
+        repair_to_polygonal,
+    )
+except ModuleNotFoundError:  # Ejecución directa (`python etl/build_layers.py`)
+    from topology import (
+        as_polygonal,
+        geodesic_area_km2,
+        inspect_geometry,
+        metric_area_km2,
+        repair_to_polygonal,
+    )
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"
@@ -141,7 +158,7 @@ def build_limits():
         raise SystemExit(f"limits.json: la cuenca no es válida: {detail}")
 
     cuenca = feature(
-        _json_geom(basin, nd=6),
+        _json_geom(basin, nd=data.get("precision_decimales", 7)),
         {
             "nombre": "Cuenca del río Piura",
             "area_km2": data["area_km2"],
@@ -161,7 +178,7 @@ def build_limits():
         es_bajo = s["name"] == "Bajo Piura"
         subs.append(
             feature(
-                _json_geom(geom, nd=6),
+                _json_geom(geom, nd=s.get("precision_decimales", 7)),
                 {
                     "nombre": s["name"],
                     "area_km2": s["area_km2"],
@@ -221,32 +238,32 @@ def _json_geom(geom, nd: int = 5):
     }
 
 
-def _geom_from_record(record):
-    """Reconstruye Polygon/MultiPolygon desde el esquema de limits.json."""
+def _geom_from_record(record, label: str = "registro"):
+    """Reconstruye Polygon/MultiPolygon sin reparar en silencio.
+
+    Si el registro es inválido, el build se detiene con el motivo. Una reparación
+    automática solo puede ocurrir en el ETL que produce el registro, no aquí.
+    """
     if not record:
         return None
-    polygons = record.get("polygons")
-    if polygons:
-        parts = [
-            Polygon(p["ring"], p.get("holes") or [])
-            for p in polygons
-            if p.get("ring")
-        ]
-    elif record.get("ring"):
-        parts = [Polygon(record["ring"], record.get("holes") or [])]
-    else:
-        return None
-    clean_parts = []
-    for part in parts:
-        clean_parts.extend(_only_polygons(make_valid(part)))
-    clean_parts = [p for p in clean_parts if not p.is_empty]
-    if not clean_parts:
-        return None
-    merged = clean_parts[0] if len(clean_parts) == 1 else unary_union(clean_parts)
-    polygonal = _only_polygons(merged)
-    if not polygonal:
-        return None
-    return polygonal[0] if len(polygonal) == 1 else MultiPolygon(polygonal)
+    try:
+        polygons = record.get("polygons")
+        if polygons:
+            parts = [
+                Polygon(p["ring"], p.get("holes") or [])
+                for p in polygons
+                if p.get("ring")
+            ]
+        elif record.get("ring"):
+            parts = [Polygon(record["ring"], record.get("holes") or [])]
+        else:
+            return None
+        if not parts:
+            return None
+        merged = parts[0] if len(parts) == 1 else unary_union(parts)
+        return as_polygonal(merged)
+    except Exception as exc:
+        raise SystemExit(f"{label}: no se pudo reconstruir la geometría: {exc}") from exc
 
 
 def _line_parts(geom):
@@ -318,14 +335,19 @@ def build_water():
     for b in data["bodies"]:
         if b.get("manual"):
             continue
-        geom = _geom_from_record(b)
+        nombre = b.get("name") or "(sin nombre)"
+        geom = _geom_from_record(b, f"water.json: {nombre}")
         if geom is None:
             continue
-        geom = make_valid(geom)
         if not geom.is_valid or geom.is_empty:
             detail = explain_validity(geom)
-            raise SystemExit(f"water.json: cuerpo {b.get('name') or '(sin nombre)'} inválido: {detail}")
+            raise SystemExit(f"water.json: cuerpo {nombre} inválido: {detail}")
         simplified = geom.simplify(0.0005, preserve_topology=True)
+        if not simplified.is_valid or simplified.is_empty:
+            raise SystemExit(
+                f"water.json: cuerpo {nombre}: la simplificación produjo una "
+                f"geometría inválida: {explain_validity(simplified)}"
+            )
         feats.append(
             feature(
                 _json_geom(simplified),
@@ -428,23 +450,33 @@ def _fecha_texto(fechas) -> str:
     )
 
 
-def _flood_records(shp_path: Path):
+def _flood_records(shp_path: Path, label: str):
     """Lee `crisis_information_poly` y conserva solo `Flooded Area`.
 
     Devuelve cada polígono con la fecha de imagen (`src_date`) y el sensor
     (`source_nam`) que declara el atributo del vector. No se deduce el sensor
     del pie del PDF: el propio producto puede tener metadatos discrepantes.
+
+    Si un registro del shapefile es inválido, se repara solo con registro
+    explícito; el shapefile oficial no debería necesitarlo.
     """
     reader = shapefile.Reader(str(shp_path), encoding="latin1")
     fields = [f[0] for f in reader.fields[1:]]
     records = []
+    repairs = []
     for sr in reader.iterShapeRecords():
         props = dict(zip(fields, sr.record))
         if props.get("interpret") != "Flooded Area":
             continue
-        geom = _polygonal(make_valid(shape(sr.shape.__geo_interface__)))
-        if geom is None:
-            continue
+        raw = shape(sr.shape.__geo_interface__)
+        audit = inspect_geometry(raw, label)
+        geom = raw
+        if audit.empty or not audit.valid or raw.geom_type not in {"Polygon", "MultiPolygon"}:
+            geom, repair_audit = repair_to_polygonal(raw, label, allow_repair=True)
+            if geom is None:
+                print(f"  aviso: {label}: {repair_audit.note or 'geometría no poligonal'}; se omite")
+                continue
+            repairs.append(repair_audit)
         parts = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
         for part in parts:
             records.append(
@@ -454,7 +486,7 @@ def _flood_records(shp_path: Path):
                     "sensor": _sensor_label(props.get("source_nam")),
                 }
             )
-    return records
+    return records, repairs
 
 
 def _keep_parts(geom, min_area_m2: float):
@@ -478,7 +510,7 @@ def build_flood():
         if not shp_files:
             print(f"  (sin shapefile para {aoi['id']}; se omite)")
             continue
-        records = _flood_records(shp_files[0])
+        records, repairs = _flood_records(shp_files[0], f"EMSR199 {aoi['id']}")
         if not records:
             print(f"  ({aoi['id']} sin polígonos 'Flooded Area'; se omite)")
             continue
@@ -488,10 +520,12 @@ def build_flood():
             grouped.setdefault((record["fecha"], record["sensor"]), []).append(record["geom"])
 
         observaciones = []
+        observation_unions = []
         for (fecha, sensor), geoms in sorted(
             grouped.items(), key=lambda item: (item[0][0] or "", item[0][1])
         ):
             raw_union = unary_union(geoms)
+            observation_unions.append(raw_union)
             observaciones.append(
                 {
                     "fecha": fecha,
@@ -509,24 +543,51 @@ def build_flood():
             if o["fecha"]
         )
 
+        observation_sum = sum(o["area_original_km2"] for o in observaciones)
+        observation_overlap = 0.0
+        for i in range(len(observation_unions)):
+            for j in range(i + 1, len(observation_unions)):
+                observation_overlap += (
+                    observation_unions[i].intersection(observation_unions[j]).area / 1e6
+                )
+
         merged = unary_union([record["geom"] for record in records])
-        raw_area_km2 = merged.area / 1e6
+        union_original = merged.area / 1e6
         kept = _keep_parts(merged, FLOOD_MIN_AREA_M2)
         if kept is None:
             print(f"  ({aoi['id']} sin partes por encima del área mínima; se omite)")
             continue
+        filtered = kept.area / 1e6
         simplified = kept.simplify(FLOOD_SIMPLIFY_M, preserve_topology=True)
-        simplified = _polygonal(make_valid(simplified))
+        simplified_audit = inspect_geometry(simplified, f"EMSR199 {aoi['id']} simplificada")
+        if simplified_audit.empty or not simplified_audit.valid:
+            raise SystemExit(
+                f"EMSR199 {aoi['id']}: la simplificación produjo una geometría "
+                f"inválida: {simplified_audit.reason or 'vacía'}"
+            )
+        simplified = _polygonal(simplified)
         if simplified is None:
-            print(f"  ({aoi['id']} no quedó geometría válida; se omite)")
-            continue
+            raise SystemExit(f"EMSR199 {aoi['id']}: la simplificación no es poligonal")
+        simplified_area = simplified.area / 1e6
 
-        area_km2 = simplified.area / 1e6
         wgs = transform(transformer.transform, simplified)
-        wgs = _polygonal(make_valid(set_precision(wgs, 1e-5)))
+        wgs = _polygonal(set_precision(wgs, 1e-5))
         if wgs is None:
-            print(f"  ({aoi['id']} no se pudo reproyectar; se omite)")
-            continue
+            raise SystemExit(f"EMSR199 {aoi['id']}: no se pudo reproyectar")
+        wgs_audit = inspect_geometry(wgs, f"EMSR199 {aoi['id']} publicada")
+        if wgs_audit.empty or not wgs_audit.valid:
+            raise SystemExit(
+                f"EMSR199 {aoi['id']}: la geometría publicada no es válida: "
+                f"{wgs_audit.reason or 'vacía'}"
+            )
+
+        published_utm = metric_area_km2(wgs)
+        published_geo = geodesic_area_km2(wgs)
+        if abs((observation_sum - observation_overlap) - union_original) > 0.02:
+            raise SystemExit(
+                f"EMSR199 {aoi['id']}: la unión no cierra con las observaciones "
+                f"({observation_sum - observation_overlap:.3f} vs {union_original:.3f} km²)"
+            )
 
         feats.append(
             feature(
@@ -540,12 +601,22 @@ def build_flood():
                     "sensores": sensores,
                     "observaciones": observaciones,
                     "clase": "Flooded Area",
-                    "area_km2": round(area_km2, 1),
-                    "area_original_km2": round(raw_area_km2, 3),
+                    "area_km2": round(published_utm, 3),
+                    "area_original_km2": round(union_original, 3),
+                    "area_observaciones_sum_km2": round(observation_sum, 3),
+                    "solapamiento_observaciones_km2": round(observation_overlap, 3),
+                    "area_union_original_km2": round(union_original, 3),
+                    "area_filtrada_km2": round(filtered, 3),
+                    "area_simplificada_km2": round(simplified_area, 3),
+                    "area_publicada_utm_km2": round(published_utm, 3),
+                    "area_publicada_geodesica_km2": round(published_geo, 3),
+                    "reparaciones": [audit.as_dict() for audit in repairs],
                     "fuente": "copernicus-ems-emsr199",
                     "metodo": (
                         "vector oficial EMSR199; unión de observaciones por fecha; "
-                        "disuelto, filtrado y simplificado; no es una mancha simultánea"
+                        "disuelto, filtrado (<0,5 ha) y simplificado (25 m); "
+                        "reproyectado a WGS84 y redondeado a 5 decimales; "
+                        "no es una mancha simultánea"
                     ),
                     "esquematico": False,
                     "cobertura": (
@@ -554,16 +625,19 @@ def build_flood():
                         "extensión máxima simultánea."
                     ),
                     "advertencia": (
-                        "El PDF del producto declara Sentinel-1A; los atributos del vector "
+                        "La ficha del PDF v2 declara Sentinel-1A; los atributos del vector "
                         "declaran Radarsat (26/03) y Cosmo-SkyMed (30/03). Se usan los "
-                        "atributos del vector."
+                        "atributos del vector. En esta auditoría no se reabrió el PDF: la "
+                        "discrepancia queda pendiente de confirmación documental. La cifra "
+                        "publicada es la unión simplificada, no la suma de observaciones."
                     ),
                 },
             )
         )
         print(
             f"  {aoi['id']}: {len(records)} polígonos · "
-            f"{len(observaciones)} observación(es) → {area_km2:.1f} km²"
+            f"{len(observaciones)} observación(es) · unión {union_original:.3f} km² · "
+            f"publicada {published_utm:.3f} km²"
         )
 
     if feats:
