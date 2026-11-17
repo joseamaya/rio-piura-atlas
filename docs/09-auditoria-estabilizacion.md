@@ -343,3 +343,217 @@ de `package.json`.
 
 El DOI de Zenodo sigue pendiente. La prueba manual de accesibilidad con personas
 también.
+
+## 12. Estabilización v0.2.3
+
+Fecha: 2026-11-17.
+Rama: `quality/stabilization-v0.2.3`, creada desde `main` en `29b2ba2`.
+Base pública: `v0.2.2` (`188c4ba`).
+Alcance: auditoría geométrica de la inundación, validación de componentes de
+`limits.json`, pruebas sintéticas y advertencia de subcuencas. No se publicó, no se
+desplegó y no se hizo merge a `main`.
+
+### 12.1 Problemas encontrados
+
+| # | Hallazgo | Evidencia | Estado |
+|---|---|---|---|
+| 1 | La capa de 2017 medía áreas por etapa, pero no fidelidad geométrica entre ellas | `flood_2017.geojson` no tenía IoU, diferencia simétrica, Hausdorff ni media/p95; no existía informe | **CORREGIDO** |
+| 2 | `_geometry_from_record()` unía los componentes antes de auditarlos | `unary_union(parts)` precedía a `repair_to_polygonal()`; un solapamiento podía quedar disuelto | **CORREGIDO** |
+| 3 | Las pruebas de inundación eran mínimas | `test_flood.py` solo cubría filtrado, caso todo pequeño y extracción poligonal | **CORREGIDO** |
+| 4 | La partición derivada de subcuencas no era visible en la interfaz | `/mapa` solo enlazaba a «Bajo Piura derivado», sin advertencia sobre reasignación ni carácter oficial | **CORREGIDO** |
+| 5 | El defecto de componentes era latente en los datos actuales | `limits.json` tiene 1 componente por registro (cuenca + 9 subcuencas); no había solapamiento activo | **VERIFICADO** |
+| 6 | El job de Pages no depende del job de ETL | Un fallo de `check_data.py` no bloquea por sí solo el artefacto web | **PENDIENTE**, fuera de alcance |
+
+### 12.2 Archivos modificados
+
+| Archivo | Cambio |
+|---|---|
+| `etl/topology.py` | `ComponentAudit` y `audit_components()`; `fidelity_metrics(already_metric=..., hausdorff_override=...)`; `directed_hausdorff_sampled()`; `to_metric_crs()`; consultas de límite con `STRtree`; tolerancia a límites degenerados |
+| `etl/build_layers.py` | Helpers de unión, fechas/sensores, filtro, simplificación y publicación; métricas por etapa; `flood_2017_audit.json`; `auditoria_geometrica` compacta; fechas ausentes explícitas; auditoría de componentes en `_geom_from_record()` |
+| `etl/check_data.py` | Auditoría de componentes antes de la unión; validación del informe de fidelidad; fechas ausentes explícitas; validación de `auditoria_geometrica` |
+| `etl/tests/test_flood.py` | Pruebas A–E con geometrías sintéticas en EPSG:32717 |
+| `etl/tests/test_record_components.py` | Pruebas de componentes separados, contacto, solapamiento, invalidez, vacío y compuesto inválido |
+| `etl/tests/test_published_contract.py` | Contrato del informe de fidelidad y de los metadatos publicados |
+| `web/src/pages/mapa.astro` | Advertencia visible de partición derivada y nota en la ficha de Bajo Piura |
+| `web/src/styles/global.css` | Estilo compacto `.layer-note` |
+| `web/tests/e2e/atlas.spec.ts` | Prueba de visibilidad y enlace de la advertencia |
+| `docs/03-metodologia.md` | Enlace al informe de fidelidad de la inundación |
+| `web/public/data/flood_2017.geojson` | Solo el metadato `auditoria_geometrica`; geometría intacta |
+| `web/public/data/flood_2017_audit.json` | Informe nuevo de fidelidad y componentes |
+
+No se modificaron `data/raw/limits.json`, `cuenca.geojson`, `subcuencas.geojson`,
+`flood_2017.jpg`, `obras.geojson` ni `piura.glb`.
+
+### 12.3 Cambios implementados
+
+**Inundación de 2017.** `build_flood()` reconstruye ahora cuatro etapas separadas:
+
+1. unión original de las observaciones;
+2. geometría filtrada (<0,5 ha);
+3. geometría simplificada (25 m);
+4. geometría publicada (WGS84, 5 decimales).
+
+Para cada etapa se publican área, número de componentes y fidelidad contra la
+anterior: IoU, diferencia simétrica, Hausdorff, distancia media y p95 entre límites.
+El informe `flood_2017_audit.json` guarda el detalle; cada feature lleva solo un
+resumen compacto en `auditoria_geometrica`.
+
+La auditoría distingue:
+
+- **CORREGIDO:** el build ya no calcula solo áreas; mide el desplazamiento espacial
+  entre etapas.
+- **VERIFICADO:** las fechas y sensores siguen saliendo de los atributos del vector;
+  una fecha ausente queda como `null` y «fecha no declarada», sin inferencia.
+- **ADVERTENCIA:** el Hausdorff de la unión a la geometría filtrada se calcula como
+  distancia dirigida muestreada a 1 m (error máximo 0,5 m), no como el valor exacto
+  de GEOS. En AOI10 el valor exacto medido una vez fue 5489,7 m, coincidente con el
+  informe; en AOI11 no se repitió el cálculo exacto por coste.
+- **VERIFICADO:** la geometría publicada no cambió; los hashes de AOI10 y AOI11 son
+  idénticos antes y después.
+
+**Componentes de `limits.json`.** `_geometry_from_record()` ahora:
+
+1. reconstruye cada polígono;
+2. inspecciona validez, vacuidad y tipo;
+3. mide solapamientos y contactos entre componentes válidos;
+4. registra reparaciones y descartes;
+5. solo entonces construye la geometría compuesta.
+
+Un contacto por límite no se considera solapamiento: se cuenta aparte. El build usa
+el mismo auditor con `allow_repair=False`; si hay componentes inválidos o solapados,
+se detiene en lugar de publicar una unión silenciosa.
+
+**Pruebas.** Se añadieron 27 pruebas: 19 de inundación, 7 de componentes y 1 de
+contrato publicado. Las pruebas no descargan datos; usan cuadrados y polígonos
+sintéticos en EPSG:32717, cerca de Piura.
+
+**Interfaz.** `/mapa` muestra bajo la casilla «Subcuencas»:
+
+> Partición topológica derivada de las geometrías ANA. Algunas superficies se
+> reasignaron para eliminar huecos y solapamientos. «Bajo Piura» es una unidad
+> derivada; la partición publicada no es una nueva delimitación oficial de ANA.
+
+La ficha de «Bajo Piura» repite la condición de unidad derivada. La nota es visible
+en escritorio y al desplegar el panel en móvil.
+
+### 12.4 Métricas de AOI10 y AOI11
+
+Todas las áreas y distancias se midieron en EPSG:32717.
+
+**AOI10 — Piura, Catacaos y La Unión**
+
+| Etapa | Área km² | Δ área km² | Componentes | IoU | Dif. sim. km² | Hausdorff m | Media m | p95 m |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Unión → filtrada | 97,053 → 96,347 | −0,706 | 836 → 242 | 0,992723 | 0,7062 | 5489,7 | 7,0 | 0,0 |
+| Filtrada → simplificada | 96,347 → 96,507 | +0,160 | 242 → 242 | 0,943609 | 5,5954 | 44,5 | 6,1 | 17,8 |
+| Simplificada → publicada | 96,507 → 96,507 | 0,000 | 242 → 243 | 0,997982 | 0,1950 | 57,0 | 0,3 | 0,5 |
+
+**AOI11 — Parachique y llanura baja**
+
+| Etapa | Área km² | Δ área km² | Componentes | IoU | Dif. sim. km² | Hausdorff m | Media m | p95 m |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Unión → filtrada | 457,408 → 457,213 | −0,195 | 468 → 267 | 0,999574 | 0,1947 | 1185,4 | 1,5 | 0,0 |
+| Filtrada → simplificada | 457,213 → 458,975 | +1,761 | 267 → 267 | 0,973403 | 12,3480 | 39,6 | 6,5 | 18,5 |
+| Simplificada → publicada | 458,975 → 458,970 | −0,005 | 267 → 267 | 0,999107 | 0,4100 | 0,8 | 0,2 | 0,5 |
+
+Lectura:
+
+- **CORREGIDO:** la diferencia entre la unión y la publicada ya no se explica solo
+  por área; se ve que el filtro elimina fragmentos (0,706 y 0,195 km²) y que la
+  simplificación puede aumentar el área (0,160 y 1,761 km²).
+- **ADVERTENCIA:** la simplificación de AOI11 aumenta 1,761 km² (0,385 % de su área).
+  No se cambió la tolerancia de 25 m para maquillar la cifra; se reporta el efecto.
+- **ADVERTENCIA:** el p95 de la unión a la filtrada es 0,0 m porque casi todo el
+  límite es común; el máximo (5489,7 m y 1185,4 m) corresponde a fragmentos
+  eliminados. Por eso Hausdorff, media y p95 se publican juntos.
+- **VERIFICADO:** la suma de observaciones no se usa como superficie de inundación;
+  AOI10 conserva sus dos fechas y su solapamiento de 56,772 km².
+
+### 12.5 Diferencias geométricas antes y después
+
+| Comprobación | Antes | Después |
+|---|---|---|
+| Hash de geometría AOI10 | `08d336f18014bda3…` | `08d336f18014bda3…` |
+| Hash de geometría AOI11 | `01b73f24476289d4…` | `01b73f24476289d4…` |
+| Área AOI10 | 96,507 km² | 96,507 km² |
+| Área AOI11 | 458,970 km² | 458,970 km² |
+| Total | 555,477 km² | 555,477 km² |
+| `flood_2017.geojson` | 520 920 bytes | 521 708 bytes |
+| `flood_2017_audit.json` | no existía | 3 996 bytes |
+
+El único cambio en el GeoJSON es la propiedad `auditoria_geometrica`. No se
+movió ningún vértice. Los hashes de `limits.json`, `cuenca.geojson`,
+`subcuencas.geojson`, `flood_2017.jpg`, `obras.geojson` y `piura.glb` siguen
+idénticos a la línea base.
+
+### 12.6 Pruebas nuevas
+
+| Bloque | Casos |
+|---|---|
+| Unión de observaciones | sin solapamiento, con solapamiento, dos fechas, suma vs unión; la suma no se publica como superficie |
+| Fechas y sensores | conservación, agrupación por fecha/sensor, fecha ausente, fecha parcial, sensor ausente, sin inferencia |
+| Filtrado | fragmentos sobre/bajo 0,5 ha, multipartes, superficie eliminada, componentes eliminados registrados |
+| Simplificación | validez antes/después, topología, cambio de área, geometría vacía, geometría inválida |
+| Publicación | reproyección, coordenadas WGS84, área publicada, redondeo, fidelidad, Hausdorff dirigido |
+| Componentes de `limits.json` | separados, contacto por límite, solapamiento antes de unir, inválido, vacío, compuesto inválido, un solo componente |
+
+Resultado: **79 pruebas Python**, 27 más que la línea base de 52.
+
+### 12.7 Resultados de validación
+
+| Comando | Resultado |
+|---|---|
+| `python3 -m unittest discover -s etl/tests -v` | **79 pruebas OK** |
+| `python3 etl/check_data.py` | **0 errores**, 10 avisos declarados (los mismos de v0.2.2) |
+| `npm run check` | 0 errores, 0 warnings, 31 hints del Draco público |
+| `npm run build` | 6 páginas, OK |
+| `npm run check:links` | 95 enlaces internos, sin roturas |
+| `npm run check:a11y` | 0 violaciones WCAG A/AA (8 páginas, incluido móvil) |
+| `npm run test:e2e` | **11 pruebas OK** |
+
+`check_data.py` confirma:
+
+- `componentes: 10 registros · 10 partes · 0 solapamientos · 0 contactos · 0 inválidos · 0 vacíos`;
+- `flood_audit: 2 AOIs · EPSG:32717`;
+- total publicado: 555,477 km²;
+- el único aviso de la mancha sigue siendo la reparación de un anillo de AOI10.
+
+No se ocultaron avisos para obtener un resultado verde.
+
+### 12.8 Cambios de datos
+
+- **CORREGIDO:** `flood_2017.geojson` incorpora `auditoria_geometrica` con CRS,
+  informe, IoU por etapa, componentes y cambios de área. La geometría no cambió.
+- **NUEVO:** `web/public/data/flood_2017_audit.json` contiene el informe completo
+  por AOI y etapa, con observaciones, reparaciones y métricas.
+- **SIN CAMBIOS:** `limits.json`, `cuenca.geojson`, `subcuencas.geojson`,
+  `flood_2017.jpg`, `obras.geojson` y `piura.glb`.
+- No se descargaron datos nuevos. Se reutilizó el vector EMSR199 ya presente en
+  `data/raw/emsr199/` y el informe se generó con el build local.
+
+### 12.9 Limitaciones que continúan
+
+- **ADVERTENCIA:** el Hausdorff de unión → filtrada es una cota dirigida muestreada
+  a 1 m (error ≤ 0,5 m), no el Hausdorff exacto de GEOS. Se documenta el método en
+  el informe. El valor exacto de AOI10 se comprobó una vez (5489,7 m); el de AOI11
+  no se repitió por coste.
+- **ADVERTENCIA:** el build completo de la auditoría tarda 2m52s; la parte dominante
+  es el Hausdorff exacto de filtrada → simplificada en AOI11 (108 s).
+- **VERIFICADO:** los 10 registros actuales de `limits.json` tienen un solo
+  componente. La detección de solapamientos se demuestra con pruebas sintéticas,
+  no con un defecto activo en los datos actuales.
+- **PENDIENTE:** el job de Pages no está condicionado al éxito del job de ETL. No se
+  modificó el workflow en esta fase.
+- **PENDIENTE:** siguen fuera de alcance las manchas de 1983/1998, la reapertura del
+  PDF de Copernicus, la prueba manual de accesibilidad con personas y el DOI de
+  Zenodo.
+
+### 12.10 Evaluación para v0.2.3
+
+**Listo para revisión y publicación como v0.2.3, con las advertencias declaradas.**
+La geometría publicada no cambió, la validación de componentes es previa a la unión,
+las pruebas cubren los casos pedidos y la advertencia de subcuencas es visible y
+accesible.
+
+No se creó tag, release, push ni merge. La versión pública sigue siendo `0.2.2`; el
+cambio de versión y la publicación quedan pendientes de autorización expresa.
