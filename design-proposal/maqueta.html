@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Maqueta 3D · propuesta · Río Piura Atlas</title>
+    <meta name="description" content="Propuesta visual de la maqueta 3D del Atlas del río Piura: la cuenca, el desierto de Sechura y la bahía en un bloque de relieve." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f1e6'/%3E%3Cpath d='M5 23c6-2 6-8 11-10s8 1 11 1' stroke='%231c5b52' stroke-width='2.5' fill='none'/%3E%3Cpath d='M5 27c6-2 6-8 11-10s8 1 11 1' stroke='%23c9a36a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/maqueta.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="inner">
+        <a class="brand" href="home.html">Río Piura <span>Atlas</span></a>
+        <nav class="main" aria-label="Navegación principal">
+          <a href="home.html">Inicio</a>
+          <a href="mapa.html">Mapa</a>
+          <a href="maqueta.html" aria-current="page">Maqueta 3D</a>
+          <a href="escenarios.html">Escenarios</a>
+          <a href="fuentes.html">Fuentes</a>
+        </nav>
+        <div class="header-tools">
+          <button class="menu-button" id="menuButton" type="button" aria-expanded="false" aria-controls="mobileMenu">Menú</button>
+        </div>
+      </div>
+    </header>
+    <div class="mobile-menu" id="mobileMenu" hidden>
+      <ul>
+        <li><a href="home.html">Inicio <span>01</span></a></li>
+        <li><a href="mapa.html">Mapa <span>02</span></a></li>
+        <li><a href="maqueta.html">Maqueta 3D <span>03</span></a></li>
+        <li><a href="escenarios.html">Escenarios <span>04</span></a></li>
+        <li><a href="fuentes.html">Fuentes <span>05</span></a></li>
+      </ul>
+    </div>
+
+    <main id="main" class="maqueta-app">
+      <aside class="maqueta-panel" aria-label="Información de la maqueta">
+        <p class="kicker">Pieza 3D</p>
+        <h1>La cuenca y su salida al mar</h1>
+        <p class="intro">
+          La cuenca, el desierto de Sechura y la bahía en un solo bloque. La cresta
+          oscura deriva del límite de cuenca de la ANA; al oeste y al sur quedan el
+          desierto y el mar.
+        </p>
+        <p class="intro">
+          El río muere en la laguna Ramón. Las líneas punteadas son trazos aproximados
+          de rutas históricas de crecida; no son cartografía oficial.
+        </p>
+        <span class="exag">Exageración vertical ×7</span>
+
+        <div class="maqueta-legend">
+          <h2>Cómo leer el bloque</h2>
+          <div class="ramp" role="img" aria-label="Rampa hipsométrica de 0 a 3 000 metros sobre el nivel del mar."></div>
+          <div class="ramp-labels"><span>0 m</span><span>1 000</span><span>2 000</span><span>3 000</span></div>
+          <ul class="legend-list">
+            <li><span class="sym river"></span><span>Cauce y red · HydroRIVERS</span></li>
+            <li><span class="sym route"></span><span>Rutas históricas · interpretación</span></li>
+            <li><span class="sym divide"></span><span>Límite de cuenca · ANA</span></li>
+          </ul>
+        </div>
+
+        <details>
+          <summary>Ficha técnica y límites</summary>
+          <ul>
+            <li>El color del terreno es una rampa hipsométrica: indica altitud, no vegetación.</li>
+            <li>La red es HydroRIVERS v1.0 (~500 m), elevada 45 m para que se lea; no es el cauce exacto.</li>
+            <li>La laguna Ramón es un polígono OSM intermitente; el agua del modelo es narrativa.</li>
+            <li>Las rutas punteadas son una interpretación del equipo; no hay capa oficial publicada.</li>
+            <li>Las subcuencas solo aparecen como rótulos; sus límites están en el mapa 2D.</li>
+            <li>Poechos es un punto en el dique; el canal Daniel Escobar es una recta de referencia.</li>
+            <li>La maqueta no dibuja la inundación de 2017. Esa capa está en el mapa y en Escenarios.</li>
+            <li>Relieve: Copernicus GLO-30 remuestreado a ~140 m. Bordes del bloque: no son un corte geológico.</li>
+          </ul>
+        </details>
+
+        <div class="maqueta-actions">
+          <a class="btn btn-primary" href="mapa.html">Ver el mapa 2D <span class="arrow">→</span></a>
+          <a class="btn btn-secondary" href="escenarios.html">Leer los escenarios <span class="arrow">→</span></a>
+        </div>
+        <p class="source-line" style="margin-top:14px;">
+          Base: <a href="fuentes.html#copernicus-dem-30">Copernicus DEM</a> · Límites:
+          <a href="fuentes.html#ana-subcuencas">ANA 1:100 000</a> · Red:
+          <a href="fuentes.html#hydrorivers">HydroRIVERS</a> · Agua y lugares:
+          <a href="fuentes.html#osm-agua">OpenStreetMap</a>.
+        </p>
+        <p class="source-line">No es una escala real. No es un sistema de alerta ni un pronóstico.</p>
+      </aside>
+
+      <div class="maqueta-stage">
+        <div class="maqueta-note"><strong>Lámina 03</strong> · lectura del relieve</div>
+        <picture>
+          <source media="(max-width: 900px)" srcset="assets/hero-maqueta.webp" type="image/webp" />
+          <img src="assets/maqueta-key.webp" width="2400" height="1461" alt="Bloque 3D de la cuenca del río Piura: la cordillera al este, la llanura costera, el desierto de Sechura y la bahía al oeste. En escritorio se leen los rótulos Piura, Castilla, Sechura, Paita, Chulucanas, Tambogrande y la represa de Poechos." />
+        </picture>
+        <div class="maqueta-controls" aria-label="Controles de la maqueta">
+          <button type="button" aria-label="Acercar" title="Acercar">+</button>
+          <button type="button" aria-label="Alejar" title="Alejar">−</button>
+          <button type="button" aria-label="Reiniciar vista" title="Reiniciar vista">↺</button>
+          <button type="button" aria-label="Pantalla completa" title="Pantalla completa">⛶</button>
+        </div>
+        <div class="stage-caption">
+          <span><strong>La cuenca, el desierto y la bahía.</strong> Relieve Copernicus DEM, malla ~140 m. Color = altitud; no vegetación.</span>
+          <span>Render de la maqueta existente · 1,6 MB GLB</span>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const menuButton = document.getElementById("menuButton");
+      const mobileMenu = document.getElementById("mobileMenu");
+      menuButton?.addEventListener("click", () => {
+        const open = !mobileMenu.hidden;
+        mobileMenu.hidden = open;
+        menuButton.setAttribute("aria-expanded", String(!open));
+      });
+    </script>
+  </body>
+</html>

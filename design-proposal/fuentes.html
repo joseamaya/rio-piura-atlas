@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fuentes · propuesta · Río Piura Atlas</title>
+    <meta name="description" content="Propuesta de catálogo de fuentes del Atlas del río Piura: institución, escala, licencia, método y estado de cada dato." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f1e6'/%3E%3Cpath d='M5 23c6-2 6-8 11-10s8 1 11 1' stroke='%231c5b52' stroke-width='2.5' fill='none'/%3E%3Cpath d='M5 27c6-2 6-8 11-10s8 1 11 1' stroke='%23c9a36a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/editorial.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="inner">
+        <a class="brand" href="home.html">Río Piura <span>Atlas</span></a>
+        <nav class="main" aria-label="Navegación principal">
+          <a href="home.html">Inicio</a>
+          <a href="mapa.html">Mapa</a>
+          <a href="maqueta.html">Maqueta 3D</a>
+          <a href="escenarios.html">Escenarios</a>
+          <a href="fuentes.html" aria-current="page">Fuentes</a>
+        </nav>
+        <div class="header-tools">
+          <button class="menu-button" id="menuButton" type="button" aria-expanded="false" aria-controls="mobileMenu">Menú</button>
+        </div>
+      </div>
+    </header>
+    <div class="mobile-menu" id="mobileMenu" hidden>
+      <ul>
+        <li><a href="home.html">Inicio <span>01</span></a></li>
+        <li><a href="mapa.html">Mapa <span>02</span></a></li>
+        <li><a href="maqueta.html">Maqueta 3D <span>03</span></a></li>
+        <li><a href="escenarios.html">Escenarios <span>04</span></a></li>
+        <li><a href="fuentes.html">Fuentes <span>05</span></a></li>
+      </ul>
+    </div>
+
+    <main id="main">
+      <div class="container">
+        <header class="page-hero">
+          <p class="kicker">Trazabilidad</p>
+          <div class="sources-hero">
+            <div>
+              <h1>De dónde sale cada dato</h1>
+              <p class="lead">
+                Toda capa del atlas apunta a una fuente con institución, escala,
+                fecha —cuando existe— y licencia. Si un dato no está confirmado,
+                figura como pendiente y no se publica.
+              </p>
+            </div>
+            <div class="sources-stats" aria-label="Resumen del catálogo">
+              <div><div class="v" data-count="total">30</div><div class="l">fuentes</div></div>
+              <div><div class="v" data-count="disponible">19</div><div class="l">disponibles</div></div>
+              <div><div class="v" data-count="por_solicitar">5</div><div class="l">por solicitar</div></div>
+              <div><div class="v" data-count="por_verificar">6</div><div class="l">por verificar</div></div>
+            </div>
+          </div>
+          <div class="sources-key" aria-label="Clave de certeza">
+            <div class="key-item"><span class="status"><span class="mark"></span><strong>Dato medido</strong></span>Serie, imagen o geometría medida por la institución.</div>
+            <div class="key-item"><span class="status derived"><span class="mark"></span><strong>Derivado</strong></span>Producto calculado: modelo, red o DEM.</div>
+            <div class="key-item"><span class="status documented"><span class="mark"></span><strong>Documentado</strong></span>Informe, tesis o nota con referencia verificable.</div>
+            <div class="key-item"><span class="status interpretation"><span class="mark"></span><strong>Interpretación</strong></span>Geometría elaborada por el atlas.</div>
+            <div class="key-item"><span class="status pending"><span class="mark"></span><strong>Por verificar</strong></span>Falta confirmar el documento o el dato.</div>
+          </div>
+        </header>
+
+        <div class="note" style="margin-top:26px;">
+          <div class="note-title">Cómo leer esta página</div>
+          <p>
+            No se distinguen «fuentes primarias» y «secundarias»: esa clasificación no
+            está definida en el proyecto. Se usan el <strong>tipo</strong> de registro
+            (dataset, documento, prensa o elaboración propia) y la
+            <strong>certeza</strong> declarada en <code>data/sources.yml</code>. Los
+            estados se refieren a la disponibilidad del dato para el atlas.
+          </p>
+        </div>
+
+        <div class="sources-layout">
+          <aside class="sources-index" aria-label="Grupos de fuentes">
+            <div class="index-title">Grupos</div>
+            <ul id="groupIndex">
+              <li><a href="#grupo-limites">Límites, relieve y red <span>6</span></a></li>
+              <li><a href="#grupo-agua">Agua <span>7</span></a></li>
+              <li><a href="#grupo-inundaciones">Inundaciones y riesgo <span>6</span></a></li>
+              <li><a href="#grupo-estudios">Estudios <span>11</span></a></li>
+            </ul>
+            <p class="source-line" style="margin-top:14px;">Las fuentes pendientes no se dibujan. <a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/07-solicitudes.md">Ver solicitudes</a>.</p>
+          </aside>
+
+          <div>
+            <div class="filters" role="search" aria-label="Filtrar fuentes">
+              <button class="filter-button" type="button" data-group="all" aria-pressed="true">Todas</button>
+              <button class="filter-button" type="button" data-group="Límites, relieve y red" aria-pressed="false">Límites y relieve</button>
+              <button class="filter-button" type="button" data-group="Agua" aria-pressed="false">Agua</button>
+              <button class="filter-button" type="button" data-group="Inundaciones y riesgo" aria-pressed="false">Inundaciones</button>
+              <button class="filter-button" type="button" data-group="Estudios" aria-pressed="false">Estudios</button>
+              <select class="filter-search" id="stateFilter" aria-label="Filtrar por estado">
+                <option value="all">Todos los estados</option>
+                <option value="disponible">Disponible</option>
+                <option value="por_solicitar">Por solicitar</option>
+                <option value="por_verificar">Por verificar</option>
+              </select>
+              <select class="filter-search" id="certaintyFilter" aria-label="Filtrar por certeza">
+                <option value="all">Toda la certeza</option>
+                <option value="medido">Dato medido</option>
+                <option value="derivado">Derivado</option>
+                <option value="documentado">Documentado</option>
+                <option value="interpretacion">Interpretación</option>
+                <option value="por_verificar">Por verificar</option>
+              </select>
+              <input class="filter-search" id="searchFilter" type="search" placeholder="Buscar por título, institución o id…" aria-label="Buscar fuentes" />
+            </div>
+            <p class="source-line" id="filterCount" aria-live="polite"></p>
+            <div id="sourcesList"></div>
+            <p class="record-empty" id="emptyState">No hay fuentes que coincidan con el filtro.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">Río Piura Atlas</div>
+            <p>Atlas documentado de la cuenca del río Piura. Qué es, cómo funciona, dónde se desborda y qué se construyó para contenerlo.</p>
+          </div>
+          <div>
+            <div class="footer-title">Explorar</div>
+            <ul>
+              <li><a href="mapa.html">Mapa de la cuenca</a></li>
+              <li><a href="maqueta.html">Maqueta 3D</a></li>
+              <li><a href="escenarios.html">Escenarios</a></li>
+              <li><a href="fuentes.html">Fuentes</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-title">Rigor</div>
+            <ul>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/03-metodologia.md">Metodología</a></li>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/07-solicitudes.md">Solicitudes de datos</a></li>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/06-como-citar.md">Cómo citar</a></li>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas">Repositorio</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-title">Colofón</div>
+            <p>Versión 0.2.3 · contenido CC BY 4.0 · código MIT. Datos: ANA, Copernicus, HydroSHEDS y OpenStreetMap.</p>
+            <p class="footer-warning">No es un sistema de alerta ni un pronóstico.</p>
+          </div>
+        </div>
+        <div class="footer-rule"></div>
+        <div class="footer-bottom">
+          <span>Río Piura Atlas · Piura, Perú</span>
+          <span>Propuesta visual UI-01 · <a href="index.html">ver el índice de mockups</a></span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/sources.js"></script>
+    <script>
+      const menuButton = document.getElementById("menuButton");
+      const mobileMenu = document.getElementById("mobileMenu");
+      menuButton?.addEventListener("click", () => {
+        const open = !mobileMenu.hidden;
+        mobileMenu.hidden = open;
+        menuButton.setAttribute("aria-expanded", String(!open));
+      });
+
+      const GROUP_ORDER = ["Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"];
+      const GROUP_IDS = {
+        "Límites, relieve y red": "grupo-limites",
+        "Agua": "grupo-agua",
+        "Inundaciones y riesgo": "grupo-inundaciones",
+        "Estudios": "grupo-estudios",
+      };
+      const GROUP_INTRO = {
+        "Límites, relieve y red": "Límites oficiales, relieve de trabajo, red hídrica y toponimia.",
+        "Agua": "Cuerpos de agua, obras hidráulicas y datos pendientes de estaciones y operación.",
+        "Inundaciones y riesgo": "Delineaciones satelitales, escenarios de riesgo y documentos de contexto.",
+        "Estudios": "Informes técnicos, tesis y artículos que sostienen las cifras y el relato histórico.",
+      };
+      const TIPO = { dataset: "dataset", documento: "documento", prensa: "prensa", elaboracion_propia: "elaboración propia" };
+      const CERT = {
+        medido: ["status", "dato medido"],
+        derivado: ["status derived", "derivado"],
+        documentado: ["status documented", "documentado"],
+        interpretacion: ["status interpretation", "interpretación"],
+        por_verificar: ["status pending", "por verificar"],
+      };
+      const ESTADO = {
+        disponible: ["status available", "disponible"],
+        por_solicitar: ["status requested", "por solicitar"],
+        por_verificar: ["status verify", "por verificar"],
+      };
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+      const { fuentes, resumen } = window.SOURCES;
+      Object.entries(resumen).forEach(([k, v]) => {
+        const el = document.querySelector(`[data-count="${k}"]`);
+        if (el) el.textContent = v;
+      });
+
+      const groups = GROUP_ORDER.map((name) => ({
+        name,
+        id: GROUP_IDS[name],
+        intro: GROUP_INTRO[name],
+        sources: fuentes.filter((f) => f.grupo === name),
+      })).filter((g) => g.sources.length);
+
+      const list = document.getElementById("sourcesList");
+      list.innerHTML = groups.map((g) => `
+        <section class="source-group" id="${g.id}" data-group="${esc(g.name)}">
+          <div class="row-between"><h2>${esc(g.name)}</h2><span class="group-count">${g.sources.length} fuentes</span></div>
+          <p class="group-intro">${esc(g.intro)}</p>
+          <div class="records">
+            ${g.sources.map((f) => {
+              const [estadoClass, estadoLabel] = ESTADO[f.estado] || ["status", f.estado];
+              const [certClass, certLabel] = CERT[f.certeza] || ["status pending", "por verificar"];
+              const title = f.url
+                ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.titulo)}</a>`
+                : esc(f.titulo);
+              const meta = [f.institucion, f.fecha ?? "sin fecha", f.escala ?? "escala no declarada", f.licencia].filter(Boolean).join(" · ");
+              const detail = [
+                f.metodo ? `<p><strong>Método:</strong> ${esc(f.metodo)}.</p>` : "",
+                f.documento ? `<p><strong>Documento:</strong> ${esc(f.documento)}${f.pagina ? ` · p. ${esc(f.pagina)}` : ""}.</p>` : "",
+                f.notas ? `<p><strong>Notas:</strong> ${esc(f.notas)}</p>` : "",
+                f.consultado ? `<p><strong>Consultado:</strong> ${esc(f.consultado)}.</p>` : "",
+              ].join("");
+              return `
+                <article class="record" id="${esc(f.id)}" data-state="${esc(f.estado)}" data-certainty="${esc(f.certeza)}">
+                  <div class="record-head">
+                    <span class="record-id">${esc(f.id)}</span>
+                    <span class="record-kind">${esc(TIPO[f.tipo] || f.tipo || "registro")}</span>
+                  </div>
+                  <h3 class="record-title">${title}</h3>
+                  <div class="record-meta">${esc(meta)}</div>
+                  <div class="record-tags">
+                    <span class="${estadoClass}"><span class="mark"></span>${estadoLabel}</span>
+                    <span class="${certClass}"><span class="mark"></span>${certLabel}</span>
+                  </div>
+                  <details class="record-details">
+                    <summary>Método, notas y documento</summary>
+                    ${detail || "<p>Sin notas adicionales.</p>"}
+                  </details>
+                </article>`;
+            }).join("")}
+          </div>
+        </section>
+      `).join("");
+
+      // Índice de grupos con conteos reales
+      const index = document.getElementById("groupIndex");
+      index.innerHTML = groups.map((g) => `<li><a href="#${g.id}">${esc(g.name)} <span>${g.sources.length}</span></a></li>`).join("");
+
+      const state = { group: "all", estado: "all", certeza: "all", text: "" };
+      const records = [...document.querySelectorAll(".record")];
+      const groupEls = [...document.querySelectorAll(".source-group")];
+      const countEl = document.getElementById("filterCount");
+      const empty = document.getElementById("emptyState");
+
+      function applyFilters() {
+        let visible = 0;
+        for (const r of records) {
+          const parent = r.closest(".source-group");
+          const groupOk = state.group === "all" || parent.dataset.group === state.group;
+          const stateOk = state.estado === "all" || r.dataset.state === state.estado;
+          const certOk = state.certeza === "all" || r.dataset.certainty === state.certeza;
+          const text = r.textContent.toLowerCase();
+          const textOk = !state.text || text.includes(state.text);
+          const show = groupOk && stateOk && certOk && textOk;
+          r.style.display = show ? "" : "none";
+          if (show) visible++;
+        }
+        for (const g of groupEls) {
+          const any = [...g.querySelectorAll(".record")].some((r) => r.style.display !== "none");
+          g.style.display = any ? "" : "none";
+        }
+        countEl.textContent = `${visible} de ${records.length} fuentes visibles`;
+        empty.style.display = visible ? "none" : "block";
+      }
+
+      const filterButtons = [...document.querySelectorAll(".filters [data-group]")];
+      filterButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          filterButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+          btn.setAttribute("aria-pressed", "true");
+          state.group = btn.dataset.group;
+          applyFilters();
+        });
+      });
+      document.getElementById("stateFilter").addEventListener("change", (e) => { state.estado = e.target.value; applyFilters(); });
+      document.getElementById("certaintyFilter").addEventListener("change", (e) => { state.certeza = e.target.value; applyFilters(); });
+      document.getElementById("searchFilter").addEventListener("input", (e) => { state.text = e.target.value.trim().toLowerCase(); applyFilters(); });
+      applyFilters();
+
+      if (location.hash) {
+        const target = document.querySelector(location.hash);
+        if (target) setTimeout(() => target.scrollIntoView({ block: "start" }), 80);
+      }
+    </script>
+  </body>
+</html>

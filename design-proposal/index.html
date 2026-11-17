@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Propuesta visual UI-01 · Río Piura Atlas</title>
+    <meta name="description" content="Mockups y sistema visual de la propuesta «Lámina y margen» para el Atlas del río Piura." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f1e6'/%3E%3Cpath d='M5 23c6-2 6-8 11-10s8 1 11 1' stroke='%231c5b52' stroke-width='2.5' fill='none'/%3E%3Cpath d='M5 27c6-2 6-8 11-10s8 1 11 1' stroke='%23c9a36a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <style>
+      .gallery-hero { padding-block: clamp(44px, 6vw, 80px) 40px; border-bottom: 2px solid var(--ink); }
+      .gallery-hero h1 { max-width: 12ch; margin: 12px 0 16px; }
+      .gallery-hero .lead { font-size: var(--fs-lead); color: var(--muted); max-width: 62ch; line-height: 1.5; }
+      .gallery-meta { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 24px; font-family: var(--font-ui); font-size: 0.7rem; color: var(--muted); }
+      .gallery-meta strong { color: var(--ink); }
+      .gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 24px; padding-block: 44px; }
+      .gallery-card { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line-strong); padding-top: 10px; color: inherit; text-decoration: none; }
+      .gallery-card:hover { color: inherit; }
+      .gallery-card:hover h2 { color: var(--brand); }
+      .gallery-card img { width: 100%; border: 1px solid var(--line); background: var(--paper-2); }
+      .gallery-card h2 { font-size: 1.55rem; margin: 0; transition: color var(--dur) var(--ease); }
+      .gallery-card p { font-family: var(--font-ui); font-size: 0.78rem; color: var(--muted); line-height: 1.55; max-width: 52ch; }
+      .gallery-card .meta { font-family: var(--font-mono); font-size: 0.62rem; color: var(--brand); }
+      .gallery-note { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 40px; padding-block: 36px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .gallery-note h2 { font-size: 1.7rem; }
+      .gallery-note p, .gallery-note li { font-family: var(--font-ui); font-size: 0.78rem; line-height: 1.6; color: var(--muted); }
+      .gallery-note ul { margin: 0; padding-left: 16px; display: grid; gap: 4px; }
+      .gallery-note code { font-size: 0.9em; }
+      .gallery-files { padding-block: 36px 48px; }
+      .gallery-files h2 { font-size: 1.7rem; margin-bottom: 14px; }
+      .gallery-files table { max-width: 900px; }
+      .gallery-files td:first-child { font-family: var(--font-mono); font-size: 0.7rem; white-space: nowrap; }
+      .gallery-footer { border-top: 1px solid var(--line); padding-block: 18px 40px; font-family: var(--font-ui); font-size: 0.7rem; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+      @media (max-width: 820px) {
+        .gallery-grid { grid-template-columns: 1fr; }
+        .gallery-note { grid-template-columns: 1fr; gap: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="inner">
+        <a class="brand" href="home.html">Río Piura <span>Atlas</span></a>
+        <nav class="main" aria-label="Navegación principal">
+          <a href="home.html">Inicio</a>
+          <a href="mapa.html">Mapa</a>
+          <a href="maqueta.html">Maqueta 3D</a>
+          <a href="escenarios.html">Escenarios</a>
+          <a href="fuentes.html">Fuentes</a>
+        </nav>
+        <div class="header-tools"><a class="btn btn-secondary" href="sistema.html">Sistema visual <span class="arrow">→</span></a></div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="container">
+        <header class="gallery-hero">
+          <p class="kicker">Propuesta UI-01 · 17 nov 2026</p>
+          <h1>Lámina y margen</h1>
+          <p class="lead">
+            Una propuesta visual para convertir el Atlas del río Piura en una
+            publicación cartográfica contemporánea: el mapa como lámina, los datos y
+            las fuentes en el margen.
+          </p>
+          <div class="gallery-meta">
+            <span><strong>Base:</strong> v0.2.3</span>
+            <span><strong>Mockups:</strong> 6 pantallas + sistema</span>
+            <span><strong>Producción:</strong> sin cambios</span>
+            <span><strong>Estado:</strong> para aprobación</span>
+          </div>
+        </header>
+
+        <section class="gallery-grid" aria-label="Mockups de la propuesta">
+          <a class="gallery-card" href="home.html">
+            <img src="captures/home-desktop.png?v=3" alt="Mockup de la portada: titular, lámina 3D, cifras y accesos al mapa." loading="lazy" />
+            <span class="meta">01 · Inicio</span>
+            <h2>Una portada que muestra el territorio</h2>
+            <p>Titular editorial, lámina 3D real, cifras con fuente e índice asimétrico de las cuatro experiencias. En móvil, el territorio aparece antes del texto largo.</p>
+          </a>
+
+          <a class="gallery-card" href="mapa.html?capa=inundacion">
+            <img src="captures/mapa-desktop.png?v=3" alt="Mockup del mapa: panel de capas, leyenda con trama de inundación, ficha lateral y controles." loading="lazy" />
+            <span class="meta">02 · Mapa</span>
+            <h2>La cartografía vuelve al centro</h2>
+            <p>Panel en el layout, leyenda contextual, ficha solo al seleccionar y una trama que distingue la inundación del agua permanente. En móvil, hoja y encuadre del Bajo Piura.</p>
+          </a>
+
+          <a class="gallery-card" href="escenarios.html">
+            <img src="captures/escenarios-desktop.png?v=3" alt="Mockup de Escenarios: línea de tiempo, capítulos por año y lámina de la inundación de 2017." loading="lazy" />
+            <span class="meta">03 · Escenarios</span>
+            <h2>Una línea de tiempo, no un muro de prosa</h2>
+            <p>Años como anclas, estados y fuentes en el margen, 2017 como lámina y una matriz que declara qué se puede comparar y qué no.</p>
+          </a>
+
+          <a class="gallery-card" href="fuentes.html">
+            <img src="captures/fuentes-desktop.png?v=3" alt="Mockup de Fuentes: contadores, clave de certeza, filtros y registros." loading="lazy" />
+            <span class="meta">04 · Fuentes</span>
+            <h2>Confianza que se puede consultar</h2>
+            <p>30 fuentes, 19 disponibles, 5 por solicitar y 6 por verificar. Registros en una columna, filtros y anclas estables; nada de tablas rotas en móvil.</p>
+          </a>
+
+          <a class="gallery-card" href="maqueta.html">
+            <img src="captures/maqueta-desktop.png?v=3" alt="Mockup de la maqueta 3D: bloque de relieve sobre papel, panel de margen y controles." loading="lazy" />
+            <span class="meta">05 · Maqueta 3D</span>
+            <h2>El territorio como espécimen</h2>
+            <p>La maqueta sobre papel, con leyenda hipsométrica, ×7 declarado y controles explícitos. En móvil, el modelo primero y la ficha después.</p>
+          </a>
+
+          <a class="gallery-card" href="sistema.html">
+            <img src="captures/sistema-desktop.png?v=3" alt="Hoja de sistema visual: paleta, tipografía, espaciado, símbolos y componentes." loading="lazy" />
+            <span class="meta">06 · Sistema</span>
+            <h2>Tokens, tipos y símbolos</h2>
+            <p>La especificación que hace coherentes las seis pantallas: paleta de marca frente a colores semánticos, escala tipográfica, espaciado y estados.</p>
+          </a>
+        </section>
+
+        <section class="gallery-note" aria-label="Qué es real y qué es conceptual">
+          <div>
+            <p class="kicker">Transparencia</p>
+            <h2>Qué es real en estos mockups</h2>
+          </div>
+          <div>
+            <ul>
+              <li><strong>Mapa:</strong> MapLibre con los GeoJSON publicados (ANA, HydroRIVERS, OSM, Copernicus EMSR199) y el relieve derivado del mismo DEM. El color es una propuesta; la geometría no cambia.</li>
+              <li><strong>Maqueta:</strong> render del GLB existente. No se modificó el modelo; se ocultaron rótulos para la portada y se conservaron los clave en la página 3D.</li>
+              <li><strong>Inundación:</strong> vector oficial de Copernicus EMSR199. La trama es una propuesta de lectura, no una nueva geometría.</li>
+              <li><strong>Fuentes:</strong> los 30 registros se generaron desde <code>data/sources.yml</code>; no se inventó ninguno.</li>
+              <li><strong>Esquemas:</strong> la pendiente y el trasvase son diagramas conceptuales, rotulados como tales. No son geografía.</li>
+              <li><strong>Cifras:</strong> todas provienen de la documentación del proyecto y llevan fuente o límite visible.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="gallery-note" aria-label="Cómo revisar">
+          <div>
+            <p class="kicker">Revisión</p>
+            <h2>Cómo abrir los mockups</h2>
+          </div>
+          <div>
+            <p>Los mockups son HTML/CSS/JS aislados. No tocan la aplicación de producción. El mapa vivo necesita un servidor local porque carga los GeoJSON reales:</p>
+            <p><code>python3 -m http.server 4330</code></p>
+            <p>Luego abre <code>http://127.0.0.1:4330/design-proposal/index.html</code>. Las capturas de <code>captures/</code> se pueden ver sin servidor.</p>
+            <p>Para revisar móvil: 390×844 en las DevTools. Prueba el mapa con <code>mapa.html?capa=inundacion</code>, el botón «Capas», la ficha y el corte de ejemplo.</p>
+          </div>
+        </section>
+
+        <section class="gallery-files">
+          <h2>Archivos de la entrega</h2>
+          <table>
+            <caption>Documentación, prototipos y evidencia.</caption>
+            <thead><tr><th>Ruta</th><th>Contenido</th></tr></thead>
+            <tbody>
+              <tr><td>docs/ui/01-auditoria-visual.md</td><td>Auditoría, evidencia, impacto y prioridad</td></tr>
+              <tr><td>docs/ui/02-direccion-de-arte.md</td><td>Concepto, paleta, tipografía, componentes y accesibilidad</td></tr>
+              <tr><td>docs/ui/03-propuesta-redisenio.md</td><td>Propuesta página por página y diferencias con la versión actual</td></tr>
+              <tr><td>docs/ui/04-plan-implementacion.md</td><td>Fases, componentes, riesgos y criterios de aceptación</td></tr>
+              <tr><td>docs/ui/evidencia/</td><td>Capturas del estado actual v0.2.3</td></tr>
+              <tr><td>design-proposal/home.html</td><td>Mockup responsive de la portada</td></tr>
+              <tr><td>design-proposal/mapa.html</td><td>Mapa con capas reales y UI propuesta</td></tr>
+              <tr><td>design-proposal/escenarios.html</td><td>Línea de tiempo y lámina 2017</td></tr>
+              <tr><td>design-proposal/fuentes.html</td><td>Catálogo con filtros y 30 registros reales</td></tr>
+              <tr><td>design-proposal/maqueta.html</td><td>Maqueta como espécimen editorial</td></tr>
+              <tr><td>design-proposal/sistema.html</td><td>Sistema visual y símbolos</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+
+    <footer class="container gallery-footer">
+      <span>Río Piura Atlas · propuesta UI-01 · <a href="../docs/ui/03-propuesta-redisenio.md">documento de propuesta</a></span>
+      <span>No es un sistema de alerta ni un pronóstico.</span>
+    </footer>
+  </body>
+</html>
