@@ -110,6 +110,7 @@ test.describe("mapa 2D", () => {
     await page.route("**/data/cuenca.geojson", (route) => route.abort());
     await page.goto("mapa/");
     await expect(page.locator("#layer-status")).toContainText("No se pudieron cargar");
+    await expect(page.locator("#map-status")).toContainText("No se pudieron cargar");
     await expect(page.locator("#map canvas")).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -120,6 +121,9 @@ test.describe("mapa 2D", () => {
     const flood = page.locator('[data-layer="flood"]');
     await flood.click();
     await expect(page.locator("#layer-status")).toContainText(
+      "No se pudo cargar la mancha de 2017",
+    );
+    await expect(page.locator("#map-status")).toContainText(
       "No se pudo cargar la mancha de 2017",
     );
     await expect(flood).not.toBeChecked();
