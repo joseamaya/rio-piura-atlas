@@ -555,6 +555,14 @@ La versión se publica como **v0.2.3**, con las advertencias declaradas. La geom
 publicada no cambió, la validación de componentes es previa a la unión, las pruebas
 cubren los casos pedidos y la advertencia de subcuencas es visible y accesible.
 
-La rama se integra por fast-forward en `main` y el release se crea sobre el commit
-de versión. El detalle del CI y del sitio publicado se añade en el commit posterior
-a la publicación.
+La rama se integró por fast-forward en `main` y el release se creó sobre el commit
+`f43026e`.
+
+- Release: <https://github.com/joseamaya/rio-piura-atlas/releases/tag/v0.2.3>
+- CI `main`: run `44107955241`, en verde.
+- CI del tag: run `44108436676`, en verde.
+- Sitio: <https://joseamaya.github.io/rio-piura-atlas/>; `/mapa/`, `/escenarios/` y
+  `/fuentes/` responden 200 y el pie muestra `versión 0.2.3`.
+- Informe: `/data/flood_2017_audit.json` responde 200 (3996 bytes).
+
+El DOI de Zenodo sigue pendiente.
