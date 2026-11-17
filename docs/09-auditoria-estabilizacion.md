@@ -332,5 +332,14 @@ No se ocultaron para obtener un resultado verde.
 
 La auditoría se publica como **v0.2.2**. La versión `0.2.2` está en
 `web/package.json`, `web/package-lock.json` y `CITATION.cff`; el pie del sitio la lee
-de `package.json`. El release y el despliegue se hacen después de la verificación
-completa. El DOI de Zenodo sigue pendiente.
+de `package.json`.
+
+- Release: <https://github.com/joseamaya/rio-piura-atlas/releases/tag/v0.2.2>
+- Commit: `188c4ba`
+- CI `main`: run `43997545259`, en verde.
+- CI del tag: run `43997548071`, en verde.
+- Sitio: <https://joseamaya.github.io/rio-piura-atlas/>; `/mapa/`, `/escenarios/` y
+  `/fuentes/` responden 200 y el pie muestra `versión 0.2.2`.
+
+El DOI de Zenodo sigue pendiente. La prueba manual de accesibilidad con personas
+también.
