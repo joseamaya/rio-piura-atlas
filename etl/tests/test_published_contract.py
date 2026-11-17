@@ -103,8 +103,15 @@ class TestDatosPublicados(unittest.TestCase):
             self.assertEqual(props["clase"], "Flooded Area")
             obs = props["observaciones"]
             self.assertTrue(obs)
-            dates = [o["fecha"] for o in obs]
-            expected = dates[0] if len(dates) == 1 else f"{min(dates)}/{max(dates)}"
+            all_dates = [o["fecha"] for o in obs]
+            dates = [fecha for fecha in all_dates if fecha]
+            expected = (
+                None
+                if any(fecha is None for fecha in all_dates) or not dates
+                else dates[0]
+                if len(dates) == 1
+                else f"{min(dates)}/{max(dates)}"
+            )
             self.assertEqual(props["fecha"], expected)
             observed_max = max(o["area_original_km2"] for o in obs)
             observed_sum = sum(o["area_original_km2"] for o in obs)
@@ -137,6 +144,83 @@ class TestDatosPublicados(unittest.TestCase):
             total += props["area_km2"]
         self.assertGreaterEqual(total, 500)
         self.assertLessEqual(total, 600)
+
+    def test_flood_audit_report_consistente(self):
+        flood = load("flood_2017.geojson")["features"]
+        audit = load("flood_2017_audit.json")
+        self.assertEqual(audit["crs_metrico"], "EPSG:32717")
+        self.assertEqual(audit["fuente"], "copernicus-ems-emsr199")
+        self.assertEqual(len(audit["aois"]), 2)
+
+        for feature in flood:
+            props = feature["properties"]
+            aoi = props["aoi"]
+            report = audit["aois"][aoi]
+            self.assertEqual(report["observaciones"], props["observaciones"])
+            self.assertEqual(report["reparaciones"], props["reparaciones"])
+            for name in (
+                "union_original",
+                "filtrada",
+                "simplificada",
+                "publicada_utm",
+                "publicada_geodesica",
+            ):
+                self.assertIn(name, report["areas_km2"], aoi)
+            self.assertAlmostEqual(
+                report["areas_km2"]["union_original"],
+                props["area_union_original_km2"],
+                delta=0.01,
+            )
+            self.assertAlmostEqual(
+                report["areas_km2"]["filtrada"],
+                props["area_filtrada_km2"],
+                delta=0.01,
+            )
+            self.assertAlmostEqual(
+                report["areas_km2"]["simplificada"],
+                props["area_simplificada_km2"],
+                delta=0.01,
+            )
+            self.assertAlmostEqual(
+                report["areas_km2"]["publicada_utm"],
+                props["area_publicada_utm_km2"],
+                delta=0.01,
+            )
+
+            geom = shape(feature["geometry"])
+            published_parts = 1 if geom.geom_type == "Polygon" else len(geom.geoms)
+            self.assertEqual(report["componentes"]["publicada"], published_parts, aoi)
+            for stage in (
+                "union_a_filtrada",
+                "filtrada_a_simplificada",
+                "simplificada_a_publicada",
+            ):
+                metrics = report["fidelidad"][stage]
+                self.assertGreaterEqual(metrics["iou"], 0.0, aoi)
+                self.assertLessEqual(metrics["iou"], 1.0, aoi)
+                self.assertGreaterEqual(metrics["diferencia_simetrica_km2"], 0.0, aoi)
+                self.assertGreaterEqual(metrics["hausdorff_m"], 0.0, aoi)
+                self.assertGreaterEqual(metrics["distancia_media_limite_m"], 0.0, aoi)
+                self.assertGreaterEqual(metrics["distancia_p95_limite_m"], 0.0, aoi)
+
+            compact = props["auditoria_geometrica"]
+            self.assertEqual(compact["crs"], "EPSG:32717")
+            self.assertEqual(compact["informe"], "flood_2017_audit.json")
+            self.assertAlmostEqual(
+                compact["iou_union_filtrada"],
+                report["fidelidad"]["union_a_filtrada"]["iou"],
+                places=6,
+            )
+            self.assertAlmostEqual(
+                compact["iou_filtrada_simplificada"],
+                report["fidelidad"]["filtrada_a_simplificada"]["iou"],
+                places=6,
+            )
+            self.assertAlmostEqual(
+                compact["iou_simplificada_publicada"],
+                report["fidelidad"]["simplificada_a_publicada"]["iou"],
+                places=6,
+            )
 
     def test_fidelidad_declarada_en_limits(self):
         data = json.loads((RAW / "limits.json").read_text(encoding="utf-8"))
