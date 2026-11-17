@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 test.describe("catálogo de fuentes y registros documentales", () => {
   test("filtra por disponibilidad y busca una fuente", async ({ page }) => {
     await page.goto("fuentes/");
-    await expect(page.locator(".record")).toHaveCount(40);
+    await expect(page.locator(".record")).toHaveCount(48);
 
     await page.selectOption("#availabilityFilter", "documental");
-    await expect(page.locator("#filterCount")).toContainText("de 40 fuentes visibles");
+    await expect(page.locator("#filterCount")).toContainText("de 48 fuentes visibles");
     await expect(page.locator("#pechp-inspeccion-2026")).toBeVisible();
     await expect(page.locator("#ana-subcuencas")).toBeHidden();
 

@@ -262,7 +262,9 @@ fuentes:
     capas: []
     notas: >
       Puente Sánchez Cerro, Tambogrande y Chulucanas. Ver docs/07-solicitudes.md.
-      El PECHP publica reportes diarios desde 2015 en
+      La precipitación histórica por estación ya está disponible en
+      `senamhi-historico-estaciones` (1961–2015); los caudales y niveles
+      siguen pendientes. El PECHP publica reportes diarios desde 2015 en
       `pechp-hidrometeorologia-diaria`; no sustituyen la serie oficial de
       SENAMHI ni cubren 1983/1998.
 
@@ -291,17 +293,23 @@ fuentes:
       Es una estimación grillada, no una medición directa en cada punto. La
       resolución de 0,1° (~10 km) no resuelve por sí sola la cuenca alta, media
       y baja con el mismo detalle; una media por subcuenca debe declarar cuántas
-      celdas usa y cómo pondera. El artículo es CC BY 4.0, pero el conjunto de
-      datos en Figshare declara GPL 3.0+; la licencia de los datos no está
-      clara. No se publica una serie derivada hasta aclararla.
+      celdas usa y cómo pondera. El artículo es CC BY 4.0 y aclara que el
+      **código** es GPL 3.0; la ficha del dataset en Figshare declara GPL 3.0+,
+      pero la licencia específica del NetCDF no está explícita. No se publica
+      una serie derivada hasta aclararla.
     capas: []
     notas: >
       PISCOp v3.0 cubre 1981–2025 con resolución 0,1° y paso diario y mensual.
-      La ficha de sequías de SENAMHI menciona ~5 km, pero el producto PISCOp
-      documenta 0,1° (~10 km); no son la misma ficha. La versión v2.1 también
-      era de 0,1°, cubría 1981–2018 y su soporte cuasi tiempo real está
-      suspendido. No se debe citar 5 km ni 1981–2016 para v3.0. La prioridad
-      sigue siendo una serie por subcuenca, no un ráster decorativo.
+      Además de Figshare, el Observatorio de SENAMHI permite descargar por
+      punto, archivo o área en CSV/XLSX:
+      https://observatorio.senamhi.gob.pe/investigadores/descarga-pisco
+      Esa consulta usa Cloudflare Turnstile, así que no es automatizable sin
+      resolver el captcha. La ficha de sequías de SENAMHI menciona ~5 km, pero
+      el producto PISCOp documenta 0,1° (~10 km); no son la misma ficha. La
+      versión v2.1 también era de 0,1°, cubría 1981–2018 y su soporte cuasi
+      tiempo real está suspendido. No se debe citar 5 km ni 1981–2016 para
+      v3.0. La prioridad sigue siendo una serie por subcuenca, no un ráster
+      decorativo.
 
   - id: pechp-poechos
     titulo: Operación de la represa de Poechos y trasvase
@@ -874,63 +882,66 @@ fuentes:
       aluviales, no la geología estructural regional.
 
   - id: ingemmet-geologia-integrada-100k
-    titulo: Geología Integrada 1:100 000
+    titulo: Geología Integrada 1:100 000 — servicio vectorial
     institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
-    url: https://www.arcgis.com/home/item.html?id=6219264c683649ae864de0442c047d35
+    url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_100K_INTEGRADA/MapServer
     fecha: "2016-06-01"
     escala: "1:100 000"
     licencia: de uso y acceso público según escala de trabajo (INGEMMET); verificar términos
     estado: por_verificar
-    metodo: consulta del ítem y del servicio de teselas de ArcGIS
+    metodo: consulta del MapServer vectorial y muestreo de atributos
     grupo: Estudios
     certeza: documentado
     tipo: dataset
     disponibilidad: localizada
     tipo_evidencia: [oficial, cientifica]
     periodo: "2014–2016"
-    formato: "servicio de mapa de teselas (ArcGIS); sin descarga vectorial verificada"
-    crs: "Web Mercator en el servicio; verificar el CRS de origen"
-    descarga: null
-    documento: Geología Integrada 1:100 000 (27 mapas digitales; 15 integrados según la ficha)
+    formato: "servicio vectorial ArcGIS (MapServer): hojas, secciones, fallas, pliegues, contactos y geología"
+    crs: "EPSG:4326 en las capas; el servicio se publica en Web Mercator"
+    descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_100K_INTEGRADA/MapServer
+    documento: Geología Integrada 1:100 000 (27 mapas digitales)
     consultado: "2026-11-17"
     limitaciones: >
-      Es un servicio de visualización, no un conjunto vectorial descargable.
-      No se encontró una capa de atributos ni un paquete de descarga. Usarlo
-      en runtime añadiría una dependencia externa al sitio estático. No se
-      integra como capa.
+      El ítem de ArcGIS Online es una vista de teselas, pero el MapServer tiene
+      capas vectoriales con capacidades Map, Query y Data. La capa de geología
+      tiene 2.608 polígonos en el área de Piura y cubre las hojas 10d, 11d,
+      12d y 13d, entre otras. La licencia no es una licencia formal: dice «de
+      uso y acceso público según escala de trabajo». No se publica como capa
+      hasta confirmar términos, fecha y escala de cada hoja.
     capas: []
     notas: >
-      La ficha del ítem describe 15 mapas integrados (2014 y 2016) y el resumen
-      menciona 27 mapas. La discrepancia se conserva. El servicio declara
-      cobertura nacional y licencia de uso público «según escala de trabajo»,
-      sin una licencia formal de reutilización.
+      La ficha original describía 15 mapas integrados y el resumen 27; la
+      discrepancia se conserva. El servicio permite consultar geometrías y
+      atributos, pero no se encontró un paquete de descarga independiente.
+      Es la mejor base vectorial de geología 1:100 000 localizada para Piura,
+      junto con la capa ZEE de ANA/MINAM.
 
   - id: ingemmet-peligros-geologicos
-    titulo: GEOCATMIN — Peligros Geológicos del Perú
+    titulo: GEOCATMIN — Peligros Geológicos del Perú (servicio vectorial de puntos)
     institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
-    url: https://www.arcgis.com/home/item.html?id=0df56a7235ff4dd88aad635fc949c4c9
+    url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer
     fecha: "2013-02-01"
     escala: "inventario nacional; escala variable"
     licencia: sin licencia explícita; acceso institucional INGEMMET
     estado: por_verificar
-    metodo: consulta del ítem y del servicio de mapa de ArcGIS
+    metodo: consulta del MapServer vectorial y muestreo de puntos
     grupo: Estudios
     certeza: documentado
     tipo: dataset
     disponibilidad: localizada
     tipo_evidencia: [oficial, cientifica]
     periodo: "2011–2013 (última actualización declarada: enero de 2012)"
-    formato: "servicio de mapa (ArcGIS); no se descargó una capa vectorial"
-    crs: "Web Mercator en el servicio; verificar el CRS de origen"
-    descarga: null
+    formato: "servicio vectorial ArcGIS (MapServer): puntos, zonas críticas y cartografía"
+    crs: "EPSG:4326 en la capa de puntos"
+    descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer
     documento: GEOCATMIN — Peligros Geológicos del Perú, febrero de 2013
     consultado: "2026-11-17"
     limitaciones: >
       Es un inventario de peligros geológicos, no una probabilidad hidrológica
-      de inundación ni un mapa de susceptibilidad a inundaciones. No se
-      localizó una capa vectorial específica para Piura. El servicio es de
-      visualización y no tiene licencia formal declarada. No se usa como
-      geometría publicada.
+      de inundación ni un mapa de susceptibilidad a inundaciones. El servicio
+      tiene 1.729 puntos en el área de Piura. No tiene licencia formal
+      declarada y la fecha de cada registro varía. No se usa como geometría
+      publicada.
     capas: []
     notas: >
       El ítem declara 32 019 eventos registrados y actualización de enero de
@@ -1083,3 +1094,262 @@ fuentes:
       hidráulica. Si se obtiene, permitiría superponer secciones y batimetría
       al DEM, distinguiendo dato medido de modelo. No se dibuja nada con la
       nota.
+
+  - id: senamhi-historico-estaciones
+    titulo: SENAMHI — series históricas diarias por estación (API del Observatorio)
+    institucion: SENAMHI — Observatorio Nacional del Tiempo, Agua y Clima
+    url: https://observatorio.senamhi.gob.pe/investigadores/clima/descarga-datos-historicos
+    fecha: null
+    escala: "punto de estación"
+    licencia: "dato público; términos de reutilización por confirmar"
+    estado: disponible
+    metodo: consulta de la API REST y descarga de series por estación
+    grupo: Agua
+    certeza: medido
+    tipo: dataset
+    disponibilidad: descargable
+    tipo_evidencia: [oficial, dato_medido]
+    periodo: "1961–2015 (varía por estación; no cubre 2017/2023)"
+    formato: "JSON (API REST) y reporte PDF por estación"
+    crs: "punto; coordenadas geográficas WGS84 de la estación"
+    descarga: https://servicios.senamhi.gob.pe/api/researchers/historical-download/stations
+    documento: "SENAMHI — Descarga de datos históricos"
+    pagina: "catálogo de estaciones y series"
+    consultado: "2026-11-17"
+    limitaciones: >
+      20 estaciones de Piura; variables de precipitación, temperatura máxima y
+      temperatura mínima. No incluye caudales. La cobertura termina en
+      2014/2015 y no cubre 2017 ni 2023. No hay licencia explícita; no se
+      publica el CSV crudo ni una serie derivada hasta confirmar términos. Es
+      una serie observada, no una grillada: no se interpola ni se rellena.
+    capas: []
+    notas: >
+      API: /api/researchers/historical-download/stations y
+      /stations/{id}/series. Ejemplo Chulucanas (000255): 1972-01-02 a
+      2014-06-30, con 1983 y 1998 completos. Estaciones de Piura: Ayabaca,
+      Bernal, Chulucanas, Chusis, Miraflores, Morropón, San Miguel, Huarmaca,
+      Lancones, Mallares, etc. El ETL de fase 2.1 descarga y aplana estas
+      series en data/processed/senamhi/.
+
+  - id: ingemmet-geomorfologia-vector
+    titulo: INGEMMET — Geomorfología vectorial (servicio nacional)
+    institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
+    url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer
+    fecha: null
+    escala: "por confirmar; el servicio no la declara"
+    licencia: sin licencia explícita; acceso institucional INGEMMET
+    estado: por_verificar
+    metodo: consulta del MapServer y muestreo de polígonos
+    grupo: Estudios
+    certeza: documentado
+    tipo: dataset
+    disponibilidad: localizada
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "por confirmar"
+    formato: "servicio vectorial ArcGIS (MapServer): polígonos"
+    crs: "EPSG:4326 en la capa"
+    descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer
+    documento: SERV_GEOMORFOLOGIA — Mapa Geomorfológico por región
+    consultado: "2026-11-17"
+    limitaciones: >
+      La descripción menciona Tumbes, Piura, Lambayeque, Amazonas, Ucayali,
+      Ancash, Cajamarca, Huánuco, La Libertad y San Martín, pero no declara
+      escala ni fecha. Tiene 2.281 polígonos en el área de Piura. No se publica
+      como capa hasta confirmar licencia, escala y fecha.
+    capas: []
+    notas: >
+      Campos: ETIQUETA, SUBUNIDAD y CODIGO. Ejemplos: Abanico de piedemonte,
+      Vertiente o piedemonte aluvio-torrencial, Faja litoral. Es una capa
+      regional; no sustituye un levantamiento local.
+
+  - id: ingemmet-susceptibilidad-inundacion-vector
+    titulo: INGEMMET — Susceptibilidad a inundación fluvial (servicio vectorial)
+    institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
+    url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1/MapServer
+    fecha: null
+    escala: "por confirmar; el servicio no la declara"
+    licencia: sin licencia explícita; acceso institucional INGEMMET
+    estado: por_verificar
+    metodo: consulta del MapServer y muestreo de clases
+    grupo: Inundaciones y riesgo
+    certeza: por_verificar
+    tipo: dataset
+    disponibilidad: localizada
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "por confirmar"
+    formato: "servicio vectorial ArcGIS (MapServer): polígonos"
+    crs: "EPSG:4326 en la capa"
+    descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1/MapServer
+    documento: SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1
+    consultado: "2026-11-17"
+    limitaciones: >
+      Tiene 59.152 polígonos en el área de Piura, con clases Bajo, Medio y
+      Alto. La capa no declara escala, fecha, metodología ni leyenda en
+      atributos; el servicio no tiene descripción. No se usa como probabilidad
+      de inundación ni se publica hasta completar los metadatos. La
+      susceptibilidad no es un mapa de inundación observada.
+    capas: []
+    notas: >
+      El renderizador asigna GRIDCODE 2 = Bajo, 3 = Medio y 4 = Alto. Hay un
+      ImageServer asociado, SERV_IMG_SUSCEP_INUN_FLUVIAL, con píxel de 50 m,
+      pero tampoco declara escala ni fecha. Es una capa candidata, no una capa
+      validada.
+
+  - id: ana-zee-piura
+    titulo: "ANA / MINAM — ZEE Piura: geología, geomorfología y peligro de inundación"
+    institucion: Ministerio del Ambiente / Autoridad Nacional del Agua — Geoservidor
+    url: https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_POTENCIALIDADES_Y_LIMITACIONES_PIURA/MapServer
+    fecha: null
+    escala: "por confirmar (ZEE Piura)"
+    licencia: "servicio público; términos de reutilización por confirmar"
+    estado: por_verificar
+    metodo: consulta del MapServer y muestreo de capas
+    grupo: Inundaciones y riesgo
+    certeza: por_verificar
+    tipo: dataset
+    disponibilidad: localizada
+    tipo_evidencia: [oficial]
+    periodo: "por confirmar"
+    formato: "servicio vectorial ArcGIS (MapServer): polígonos"
+    crs: "EPSG:32717 / EPSG:32718"
+    descarga: https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_POTENCIALIDADES_Y_LIMITACIONES_PIURA/MapServer/3
+    documento: ZEE Piura — capas de caracterización, potencialidades y dimensión territorial
+    consultado: "2026-11-17"
+    limitaciones: >
+      La capa Peligro Inundación tiene 78 polígonos: Muy Alta 38, Alta 30,
+      Media 6 y Baja 4. El campo se llama Nivel_Vuln aunque la capa se llame
+      Peligro Inundación. El servicio no declara fecha, escala ni metodología.
+      No se usa como probabilidad ni se publica hasta localizar el estudio ZEE
+      Piura. La capa de geología tiene 1.155 polígonos y la de geomorfología
+      70; la de vulnerabilidad frente a inundaciones, 19.
+    capas: []
+    notas: >
+      Servicios: 09_CARACTERIZACIÓN_DEL_TERRITORIO_PIURA (Geología,
+      Geomorfología, Hidrogeología, Fisiografía, Acuíferos),
+      09_POTENCIALIDADES_Y_LIMITACIONES_PIURA (Peligro Inundación) y
+      09_DIMENSIÓN_DE_EVALUACIÓN_TERRITORIAL_PIURA (Vulnerabilidad frente a
+      Inundaciones, Peligros Múltiples). La capa de Infraestructura Productiva
+      es de distritos, no de ejes de canales. Es una fuente candidata; no se
+      dibuja.
+
+  - id: sigrid-sullana-inundacion-1983-1998
+    titulo: SIGRID — Mapas de áreas de inundación de 1983 y 1998 en Sullana
+    institucion: CENEPRED / SIGRID (documentos)
+    url: https://sigrid.cenepred.gob.pe/sigridv3/documento/170
+    fecha: null
+    escala: "urbana; por confirmar"
+    licencia: documento público; citar; no reutilizar mapas sin permiso
+    estado: disponible
+    metodo: descarga de PDF y revisión de mapas
+    grupo: Inundaciones y riesgo
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial, historica]
+    periodo: "1983 y 1998"
+    formato: "PDF de 1 página (mapa)"
+    crs: "no declarado"
+    descarga: https://sigrid.cenepred.gob.pe/sigridv3/documento/170/descargar
+    documento: Mapa de áreas de inundación durante el fenómeno del Niño 1983 y 1998 en la ciudad de Sullana, Piura
+    pagina: "mapa"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es un mapa en PDF, no un vector. No se declara escala, datum ni método de
+      digitalización. No se digitaliza sin georreferenciación y control de
+      error. Cubre Sullana, no toda la cuenca.
+    capas: []
+    notas: >
+      También existe el documento 3165, «Mapa de áreas de inundación de la
+      Ciudad de Sullana, Piura». Son evidencia documental de los eventos de
+      1983 y 1998 en el tramo urbano de Sullana.
+
+  - id: sigrid-cura-mori-riesgo-1998
+    titulo: SIGRID — Estudio de riesgo ante inundaciones fluviales en Cura Mori
+    institucion: CENEPRED / SIGRID (documento)
+    url: https://sigrid.cenepred.gob.pe/sigridv3/documento/9400
+    fecha: null
+    escala: "local / urbano; por confirmar"
+    licencia: documento público; citar; no reutilizar mapas sin permiso
+    estado: disponible
+    metodo: descarga del ZIP y revisión del índice de mapas
+    grupo: Inundaciones y riesgo
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial, historica]
+    periodo: "1998; estudio posterior"
+    formato: "ZIP (976 MB): 1 PDF y 48 mapas JPG"
+    crs: "no declarado"
+    descarga: https://sigrid.cenepred.gob.pe/sigridv3/documento/9400/descargar
+    documento: Estudio de Riesgo ante inundaciones Cura Mori
+    pagina: "índice del ZIP; mapas de peligro, vulnerabilidad y riesgo"
+    consultado: "2026-11-17"
+    limitaciones: >
+      El ZIP contiene 1 PDF y 48 mapas JPG, no shapefiles. Incluye altura y
+      velocidad de inundación con Niño 1998, peligro de inundación 1998,
+      sectores críticos, riesgo de líneas vitales, infraestructura agrícola y
+      canales. No se digitaliza sin georreferenciación, escala y método. Cubre
+      Cura Mori, no toda la cuenca.
+    capas: []
+    notas: >
+      Es una de las fuentes documentales más ricas para el 1998 en el Bajo
+      Piura. Los mapas están en JPG y el informe en PDF; no hay geometría
+      vectorial publicada.
+
+  - id: sigrid-piura-peligros-inundacion
+    titulo: SIGRID — Mapas de peligros por inundación de la ciudad de Piura
+    institucion: CENEPRED / SIGRID (documentos)
+    url: https://sigrid.cenepred.gob.pe/sigridv3/documento/676
+    fecha: null
+    escala: "urbana; por confirmar"
+    licencia: documento público; citar; no reutilizar mapas sin permiso
+    estado: disponible
+    metodo: descarga de PDF y revisión de mapas
+    grupo: Inundaciones y riesgo
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    tipo_evidencia: [oficial, historica]
+    periodo: "por confirmar"
+    formato: "PDF de 1 página (mapas)"
+    crs: "no declarado"
+    descarga: https://sigrid.cenepred.gob.pe/sigridv3/documento/676/descargar
+    documento: Mapa de peligros — geodinámica externa, inundaciones de la ciudad de Piura; Mapa de peligros de origen climático
+    pagina: "documentos 676 y 761"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Son mapas en PDF, no vectores. No se declara escala ni método. Se usan
+      como evidencia documental del peligro urbano; no se digitalizan.
+    capas: []
+    notas: >
+      El documento 676 cubre geodinámica externa e inundaciones; el 761, peligros
+      de origen climático. Ambos son mapas de una página.
+
+  - id: pechp-batimetria-poechos
+    titulo: PECHP — batimetría del reservorio Poechos
+    institucion: Proyecto Especial Chira-Piura (PECHP) / Gobierno Regional Piura
+    url: https://www.gob.pe/institucion/pechp/noticias/966414-batimetria-para-poechos
+    fecha: "2024-05-28"
+    escala: "reservorio"
+    licencia: documento público; datos no publicados
+    estado: por_solicitar
+    metodo: consulta de notas institucionales
+    grupo: Agua
+    certeza: por_verificar
+    tipo: prensa
+    disponibilidad: pendiente
+    tipo_evidencia: [oficial]
+    periodo: "2024–2026"
+    formato: "notas web; sin datos descargables"
+    crs: "no aplica"
+    descarga: null
+    documento: "Batimetría para Poechos; PECHP incorpora equipo de batimetría"
+    consultado: "2026-11-17"
+    limitaciones: >
+      Es batimetría del reservorio, no del cauce del río Piura. No publica
+      datos, método, fecha de levantamiento ni cobertura. Se mantiene como
+      solicitud institucional.
+    capas: []
+    notas: >
+      Las notas de 2024 y 2026 documentan estudios de batimetría en Poechos.
+      No sustituyen la topobatimetría del río Piura, que sigue pendiente.
