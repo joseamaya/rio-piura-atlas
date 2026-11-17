@@ -126,6 +126,18 @@ test.describe("mapa 2D", () => {
     await expect(page.locator("#map canvas")).toBeVisible();
   });
 
+  test("advierte que las subcuencas son una partición derivada", async ({ page }) => {
+    await openMap(page);
+    const note = page.locator(".layer-note");
+    await expect(note).toBeVisible();
+    await expect(note).toContainText("Partición topológica derivada");
+    await expect(note).toContainText("no es una nueva delimitación oficial");
+    await expect(note.getByRole("link", { name: "Método" })).toHaveAttribute(
+      "href",
+      /fuentes#bajo-piura-derivado/,
+    );
+  });
+
   test("en móvil el panel arranca plegado y el mapa tiene área útil", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("mapa/");
