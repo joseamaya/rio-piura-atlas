@@ -129,6 +129,15 @@ nav.main a[aria-current="page"]::after {
 .status.requested { color: var(--warn); }
 .status.requested .mark { background: var(--warn); }
 .status.verify .mark { background: transparent; border: 1px solid var(--muted); }
+.status.validated .mark { background: var(--ok); }
+.status.processed .mark { background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); border: 1px solid var(--ink); }
+.status.documentary .mark { background: transparent; border: 1px solid var(--ink); }
+.status.localized .mark { background: transparent; border: 1px solid var(--muted); border-radius: 0; }
+.status.downloadable .mark { background: var(--brand); border-radius: 0; transform: rotate(45deg); }
+.status.pending-state { color: var(--muted); }
+.status.pending-state .mark { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, transparent 2px 4px); border: 1px solid var(--muted); border-radius: 0; }
+.status.discarded { color: var(--muted); text-decoration: line-through; }
+.status.discarded .mark { background: var(--line-strong); border-radius: 0; }
 
 /* --- Cifras --- */
 .data-figure {

@@ -121,6 +121,20 @@
 .flood-aside .note .note-title { display: block; margin-bottom: 6px; }
 .flood-aside .note p { font-family: var(--font-ui); font-size: 0.74rem; line-height: 1.5; }
 
+/* Registros documentales de la cuenca baja */
+.lowbasin-records {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 22px 0;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+.lowbasin-record { padding: 14px 18px 16px 0; }
+.lowbasin-record + .lowbasin-record { border-left: 1px solid var(--line); padding-left: 18px; }
+.lowbasin-record h3 { font-size: 1.05rem; line-height: 1.25; margin: 4px 0 8px; }
+.lowbasin-record p { font-family: var(--font-ui); font-size: 0.76rem; line-height: 1.55; color: var(--ink-2); }
+.lowbasin-record .source-line { margin-top: 10px; }
+
 /* Matriz de evidencia */
 .evidence {
   margin-top: 28px;
@@ -153,6 +167,22 @@
 }
 .sources-key .key-item { display: grid; gap: 6px; font-family: var(--font-ui); font-size: 0.64rem; line-height: 1.4; color: var(--muted); }
 .sources-key .key-item strong { color: var(--ink); font-weight: 600; font-size: 0.68rem; }
+.availability-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+.availability-key .key-label { font-weight: 600; color: var(--ink); letter-spacing: 0.08em; text-transform: uppercase; }
+.availability-key .status { font-size: 0.58rem; }
+.record-evidence { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.record-evidence .badge { text-transform: none; letter-spacing: 0.02em; font-size: 0.58rem; }
 
 .sources-layout {
   display: grid;
@@ -235,6 +265,9 @@
   .chapter-body { grid-template-columns: 1fr; }
   .chapter-margin { grid-template-columns: 1fr 1fr; border-left: 0; border-top: 1px solid var(--line); padding: 12px 0 0; }
   .flood-layout { grid-template-columns: 1fr; }
+  .lowbasin-records { grid-template-columns: 1fr; }
+  .lowbasin-record { padding: 14px 0 16px; }
+  .lowbasin-record + .lowbasin-record { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
   .sources-hero { grid-template-columns: 1fr; gap: 24px; }
   .sources-layout { grid-template-columns: 1fr; }
   .sources-index { position: static; border-top: 1px solid var(--line); padding-top: 10px; }
