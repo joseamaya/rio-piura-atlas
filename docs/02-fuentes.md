@@ -93,5 +93,5 @@ en una nota.
 | INGEMMET — susceptibilidad a inundación fluvial | 59.152 polígonos en Piura; clases Bajo/Medio/Alto | ⚠️ localizada; sin escala/fecha | sin licencia explícita |
 | ANA / MINAM — ZEE Piura | geología, geomorfología, peligro de inundación y vulnerabilidad | ⚠️ localizada; falta estudio/metadatos | servicio público; términos por confirmar |
 | SIGRID — Sullana 1983/1998 | mapas de áreas de inundación | ✅ documental | documento público; citar |
-| SIGRID — Cura Mori 1998 | 48 mapas JPG de peligro, riesgo e infraestructura | ✅ documental | documento público; citar |
+| SIGRID — Cura Mori 1998 | 34 mapas JPG de peligro, riesgo e infraestructura | ✅ documental | documento público; citar |
 | PECHP — batimetría de Poechos | batimetría del reservorio, no del cauce | ❗ pendiente | datos no publicados |

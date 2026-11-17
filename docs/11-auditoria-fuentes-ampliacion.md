@@ -574,7 +574,7 @@ API pública de series históricas por estación de SENAMHI.
 
 - **Sullana:** documentos 170 y 3165; PDF de 1 página con áreas de inundación de
   1983 y 1998.
-- **Cura Mori:** documento 9400; ZIP de 976 MB con 1 PDF y 48 mapas JPG. Incluye
+- **Cura Mori:** documento 9400; ZIP de 976 MB con 2 PDF y 34 mapas JPG. Incluye
   altura y velocidad de inundación con Niño 1998, peligro de inundación 1998,
   sectores críticos, riesgo de líneas vitales, infraestructura agrícola y canales.
 - **Piura:** documentos 676 y 761; mapas de peligros por inundación y origen

@@ -1278,14 +1278,14 @@ fuentes:
     disponibilidad: documental
     tipo_evidencia: [oficial, historica]
     periodo: "1998; estudio posterior"
-    formato: "ZIP (976 MB): 1 PDF y 48 mapas JPG"
+    formato: "ZIP (976 MB): 2 PDF y 34 mapas JPG"
     crs: "no declarado"
     descarga: https://sigrid.cenepred.gob.pe/sigridv3/documento/9400/descargar
     documento: Estudio de Riesgo ante inundaciones Cura Mori
     pagina: "índice del ZIP; mapas de peligro, vulnerabilidad y riesgo"
     consultado: "2026-11-17"
     limitaciones: >
-      El ZIP contiene 1 PDF y 48 mapas JPG, no shapefiles. Incluye altura y
+      El ZIP contiene 2 PDF y 34 mapas JPG, no shapefiles. Incluye altura y
       velocidad de inundación con Niño 1998, peligro de inundación 1998,
       sectores críticos, riesgo de líneas vitales, infraestructura agrícola y
       canales. No se digitaliza sin georreferenciación, escala y método. Cubre

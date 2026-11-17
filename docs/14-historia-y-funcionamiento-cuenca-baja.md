@@ -98,7 +98,7 @@ estimación satelital, no un levantamiento.
 
 **Pregunta abierta.** No hay una mancha vectorial oficial de la inundación de
 1998 para toda la cuenca. Sí existen mapas locales en PDF/JPG: Sullana 1983/1998
-(documentos SIGRID 170 y 3165), Cura Mori 1998 (documento 9400, ZIP con 48 mapas
+(documentos SIGRID 170 y 3165), Cura Mori 1998 (documento 9400, ZIP con 34 mapas
 JPG) y Piura (documentos 676 y 761). Son evidencia documental, no capas. La fecha
 exacta del pico sigue en disputa.
 

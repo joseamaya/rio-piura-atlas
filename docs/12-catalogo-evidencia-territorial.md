@@ -139,7 +139,7 @@ fase. Ninguna se publicó como capa.
 | `ingemmet-susceptibilidad-inundacion-vector` | oficial + científica | `localizada` | Susceptibilidad a inundación; sin escala/fecha/método |
 | `ana-zee-piura` | oficial | `localizada` | Geología, geomorfología, peligro y vulnerabilidad ZEE |
 | `sigrid-sullana-inundacion-1983-1998` | oficial + histórica | `documental` | Mapas PDF de Sullana 1983/1998 |
-| `sigrid-cura-mori-riesgo-1998` | oficial + histórica | `documental` | 48 mapas JPG de Cura Mori 1998 |
+| `sigrid-cura-mori-riesgo-1998` | oficial + histórica | `documental` | 34 mapas JPG de Cura Mori 1998 |
 | `sigrid-piura-peligros-inundacion` | oficial + histórica | `documental` | Mapas PDF de peligros urbanos |
 | `pechp-batimetria-poechos` | oficial | `pendiente` | Batimetría del reservorio, no del cauce |
 
