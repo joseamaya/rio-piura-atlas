@@ -1,4 +1,7 @@
 ---
+import "../styles/tokens.css";
+import "../styles/base.css";
+import "../styles/components.css";
 import "../styles/global.css";
 import { withBase } from "../lib/url";
 import pkg from "../../package.json";
@@ -9,11 +12,13 @@ interface Props {
   title: string;
   current?: string;
   description?: string;
+  image?: string;
 }
 const {
   title,
   current,
   description = "Atlas documentado de la cuenca del río Piura: mapa, relieve 3D, cortes transversales y escenarios históricos.",
+  image,
 } = Astro.props;
 const fullTitle = `${title} · Río Piura Atlas`;
 const canonical = new URL(
@@ -22,6 +27,9 @@ const canonical = new URL(
     : withBase(Astro.url.pathname),
   Astro.site ?? "https://joseamaya.github.io",
 ).href;
+const ogImage = image
+  ? new URL(withBase(image), Astro.site ?? "https://joseamaya.github.io").href
+  : undefined;
 const nav = [
   { href: "/", label: "Inicio", key: "inicio" },
   { href: "/mapa", label: "Mapa", key: "mapa" },
@@ -38,7 +46,7 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f7f4ea" />
+    <meta name="theme-color" content="#f5f1e6" />
     <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Río Piura Atlas" />
@@ -46,10 +54,13 @@ const nav = [
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="es_PE" />
-    <meta name="twitter:card" content="summary" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:alt" content="Atlas de la cuenca del río Piura" />}
+    <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f7f4ea'/%3E%3Cpath d='M6 22c6-2 6-8 12-10s8 2 8 2' stroke='%231f6f8b' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f1e6'/%3E%3Cpath d='M5 23c6-2 6-8 11-10s8 1 11 1' stroke='%231c5b52' stroke-width='2.5' fill='none'/%3E%3Cpath d='M5 27c6-2 6-8 11-10s8 1 11 1' stroke='%23c9a36a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E" />
   </head>
   <body>
     <a class="skip-link" href="#main">Saltar al contenido</a>
@@ -61,16 +72,61 @@ const nav = [
             <a href={withBase(item.href)} aria-current={current === item.key ? "page" : undefined}>{item.label}</a>
           ))}
         </nav>
+        <div class="header-tools">
+          <button class="menu-button" id="menuButton" type="button" aria-expanded="false" aria-controls="mobileMenu">Menú</button>
+        </div>
       </div>
     </header>
+    <div class="mobile-menu" id="mobileMenu">
+      <ul>
+        {nav.map((item, index) => (
+          <li>
+            <a href={withBase(item.href)} aria-current={current === item.key ? "page" : undefined}>
+              {item.label} <span>{String(index + 1).padStart(2, "0")}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
 
     <slot />
 
-    <footer class="site">
-      <div class="inner">
-        <span>Atlas de la cuenca del río Piura · versión {version} · CC BY 4.0</span>
-        <span>Datos: ANA, Copernicus, HydroSHEDS, OpenStreetMap. <a href={withBase("/fuentes")}>Ver fuentes</a></span>
-        <span><strong>No es un sistema de alerta ni un pronóstico.</strong></span>
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">Río Piura Atlas</div>
+            <p>Atlas documentado de la cuenca del río Piura. Qué es, cómo funciona, dónde se desborda y qué se construyó para contenerlo.</p>
+          </div>
+          <div>
+            <div class="footer-title">Explorar</div>
+            <ul>
+              <li><a href={withBase("/mapa")}>Mapa de la cuenca</a></li>
+              <li><a href={withBase("/maqueta")}>Maqueta 3D</a></li>
+              <li><a href={withBase("/escenarios")}>Escenarios</a></li>
+              <li><a href={withBase("/fuentes")}>Fuentes</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-title">Rigor</div>
+            <ul>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/03-metodologia.md">Metodología</a></li>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/07-solicitudes.md">Solicitudes de datos</a></li>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/06-como-citar.md">Cómo citar</a></li>
+              <li><a href="https://github.com/joseamaya/rio-piura-atlas">Repositorio</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-title">Colofón</div>
+            <p>Versión {version} · contenido CC BY 4.0 · código MIT. Datos: ANA, Copernicus, HydroSHEDS y OpenStreetMap.</p>
+            <p class="footer-warning">No es un sistema de alerta ni un pronóstico.</p>
+          </div>
+        </div>
+        <div class="footer-rule"></div>
+        <div class="footer-bottom">
+          <span>Río Piura Atlas · Piura, Perú</span>
+          <span>Atlas documentado · <a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/03-metodologia.md">método y fuentes</a></span>
+        </div>
       </div>
     </footer>
 
@@ -82,6 +138,22 @@ const nav = [
         sync();
         new ResizeObserver(sync).observe(header);
       }
+      const menuButton = document.getElementById("menuButton");
+      const mobileMenu = document.getElementById("mobileMenu");
+      const setMenu = (open) => {
+        mobileMenu?.classList.toggle("open", open);
+        menuButton?.setAttribute("aria-expanded", String(open));
+      };
+      menuButton?.addEventListener("click", () => setMenu(!mobileMenu.classList.contains("open")));
+      mobileMenu?.addEventListener("click", (event) => {
+        if (event.target.closest("a")) setMenu(false);
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && mobileMenu?.classList.contains("open")) {
+          setMenu(false);
+          menuButton?.focus();
+        }
+      });
     </script>
   </body>
 </html>
