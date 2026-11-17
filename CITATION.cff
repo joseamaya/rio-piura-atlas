@@ -9,7 +9,7 @@ abstract: >-
 type: software
 authors:
   - name: "Río Piura Atlas"
-version: "0.2.1"
+version: "0.2.2"
 date-released: "2026-11-16"
 license: CC-BY-4.0
 repository-code: "https://github.com/joseamaya/rio-piura-atlas"

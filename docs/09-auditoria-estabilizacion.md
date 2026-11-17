@@ -1,7 +1,7 @@
 # 09 · Auditoría científica y geométrica
 
 Fecha: 2026-11-16.
-Rama local: `audit/cientifica-v0.2.2`.
+Rama de trabajo: `audit/cientifica-v0.2.2`, publicada como `v0.2.2`.
 Base auditada: `15c9b58` (`v0.2.1`). El commit `d2fae02` citado en el encargo es
 anterior a la corrección del pie y al release; no se usó como base.
 Alcance: cuatro correcciones limitadas —validación antes de reparar, cifras de 2017,
@@ -330,7 +330,7 @@ No se ocultaron para obtener un resultado verde.
 
 ## 11. Estado de publicación
 
-Los cambios están en la rama local `audit/cientifica-v0.2.2`. **No se hizo push, no
-se hizo merge y no se desplegó nada.** La versión publicada sigue siendo `v0.2.1`;
-`v0.2.2` es la etiqueta propuesta para este diff. No se cambió `package.json` ni
-`CITATION.cff` para no simular una release que no fue autorizada.
+La auditoría se publica como **v0.2.2**. La versión `0.2.2` está en
+`web/package.json`, `web/package-lock.json` y `CITATION.cff`; el pie del sitio la lee
+de `package.json`. El release y el despliegue se hacen después de la verificación
+completa. El DOI de Zenodo sigue pendiente.

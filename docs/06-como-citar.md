@@ -3,20 +3,21 @@
 ## Versión citable
 
 Al cerrar cada fase se publica una versión con etiqueta (`v0.1.0`, `v0.2.0`,
-`v0.2.1`, `v1.0.0`) y un identificador persistente en Zenodo. Mientras no exista, se
-cita el repositorio con la fecha de consulta. El archivo
+`v0.2.1`, `v0.2.2`, `v1.0.0`) y un identificador persistente en Zenodo. Mientras no
+exista, se cita el repositorio con la fecha de consulta. El archivo
 [`CITATION.cff`](../CITATION.cff) contiene los metadatos de la versión actual y sirve
 para que GitHub y Zenodo los muestren.
 
-La versión **0.2.1** corrige la topología de las subcuencas (0 solapamientos, 0
-superficie fuera y 0 huecos por encima de 0,01 km²), documenta las observaciones de
-2017 por fecha y sensor, resuelve la atribución de Bajo Piura y actualiza las fuentes
-históricas. El release `v0.2.1` se publica sobre esta versión; el DOI queda pendiente
-de depositar esa versión en Zenodo y añadirlo aquí.
+La versión **0.2.2** valida las geometrías antes de repararlas, reconcilia las cifras
+de la inundación de 2017 (80,785 + 73,040 km² por fecha, 56,772 km² de solapamiento,
+97,053 km² de unión original y 96,507 km² publicados), mide la fidelidad de la
+reconciliación de subcuencas y audita las afirmaciones históricas. El release
+`v0.2.2` se publica sobre esta versión; el DOI queda pendiente de depositar esa
+versión en Zenodo y añadirlo aquí.
 
 ### Texto
 
-> Río Piura Atlas (2026). *Atlas de la cuenca del río Piura*. Versión 0.2.1.
+> Río Piura Atlas (2026). *Atlas de la cuenca del río Piura*. Versión 0.2.2.
 > https://github.com/joseamaya/rio-piura-atlas
 > Sitio: https://joseamaya.github.io/rio-piura-atlas/
 
@@ -27,7 +28,7 @@ de depositar esa versión en Zenodo y añadirlo aquí.
   title  = {Atlas de la cuenca del río Piura},
   author = {{Río Piura Atlas}},
   year   = {2026},
-  note   = {Versión 0.2.1},
+  note   = {Versión 0.2.2},
   url    = {https://github.com/joseamaya/rio-piura-atlas}
 }
 ```
