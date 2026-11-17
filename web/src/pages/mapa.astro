@@ -815,7 +815,7 @@ import "../styles/map.css";
     }
 
     document.querySelectorAll<HTMLInputElement>("[data-layer]").forEach((input) => {
-      input.addEventListener("change", () => {
+      input.addEventListener("change", async () => {
         const layer = input.dataset.layer!;
         if (layer === "lugares") {
           cityMarkers.forEach((c) => { c.marker.getElement().style.display = input.checked ? "" : "none"; });
@@ -825,7 +825,7 @@ import "../styles/map.css";
         }
         if (layer === "flood") {
           if (!input.checked && layerStatus) layerStatus.textContent = "";
-          void setFlood(input.checked);
+          await setFlood(input.checked);
           toggleLegend(layer, input.checked);
           return;
         }
