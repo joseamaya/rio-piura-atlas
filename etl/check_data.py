@@ -18,15 +18,30 @@ import sys
 from pathlib import Path
 
 import yaml
-from pyproj import Geod, Transformer
 from shapely.geometry import LineString, Point, Polygon, shape
-from shapely.ops import transform, unary_union
-from shapely.validation import explain_validity, make_valid
+from shapely.ops import unary_union
+from shapely.validation import explain_validity
 
 try:  # Ejecución como módulo (`python -m etl.check_data`)
-    from etl.topology import Tolerances, as_polygonal, audit_partition
+    from etl.topology import (
+        Tolerances,
+        as_polygonal,
+        audit_partition,
+        geodesic_area_km2,
+        inspect_geometry,
+        metric_area_km2,
+        repair_to_polygonal,
+    )
 except ModuleNotFoundError:  # Ejecución directa (`python etl/check_data.py`)
-    from topology import Tolerances, as_polygonal, audit_partition
+    from topology import (
+        Tolerances,
+        as_polygonal,
+        audit_partition,
+        geodesic_area_km2,
+        inspect_geometry,
+        metric_area_km2,
+        repair_to_polygonal,
+    )
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "data" / "sources.yml"
@@ -56,8 +71,9 @@ CAMPOS = [
     "tipo",
 ]
 
-# Áreas y nombres de control. La cuenca se mide con Geod (WGS84); ANA publica
-# Shape_Area en EPSG:32718, que no es la zona del polígono.
+# Áreas y nombres de control. La cuenca se mide en EPSG:32717 y, para el área
+# publicada, con Geod (WGS84). ANA publica Shape_Area en EPSG:32718, que no es
+# la zona del polígono.
 BASIN_AREA_TOLERANCE = 0.005  # 0,5 %
 TOPOLOGY_TOLERANCES = Tolerances()
 RIVER_TOLERANCE_DEG = 0.001   # ~100 m; el redondeo a 5 decimales deja <2 m
@@ -67,9 +83,6 @@ CURUMUY = (-80.6302, -5.0283)
 FECHA_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])(-\d{2})?$")
 CONSULTA_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TOPOLOGY_SEEN: set[tuple] = set()
-
-GEOD = Geod(ellps="WGS84")
-TO_UTM = Transformer.from_crs("EPSG:4326", "EPSG:32717", always_xy=True)
 
 errores: list[str] = []
 avisos: list[str] = []
@@ -102,6 +115,25 @@ def add_findings(findings, prefix: str) -> None:
             aviso(message)
 
 
+def report_geometry_audit(prefix: str, audit) -> None:
+    """Reporta la validez original y, si hubo, la reparación explícita."""
+    if audit is None:
+        return
+    label = f"{prefix}: {audit.name}".strip()
+    if audit.empty:
+        error(f"{label}: geometría vacía")
+    elif not audit.valid:
+        error(f"{label}: geometría inválida: {audit.reason}")
+    if audit.repaired:
+        detail = audit.note or f"reparada a {audit.repaired_type}"
+        if audit.discarded_parts:
+            detail += (
+                f"; {audit.discarded_parts} componente(s) descartada(s)"
+                f" de tipos {', '.join(audit.discarded_types)}"
+            )
+        aviso(f"{label}: {detail}")
+
+
 def cargar_json(path: Path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -117,11 +149,28 @@ def geom_of(feature: dict):
 
 
 def geodesic_km2(geom) -> float:
-    return abs(GEOD.geometry_area_perimeter(make_valid(geom))[0]) / 1e6
+    return geodesic_area_km2(geom)
 
 
 def utm_km2(geom) -> float:
-    return transform(TO_UTM.transform, make_valid(geom)).area / 1e6
+    return metric_area_km2(geom)
+
+
+def load_valid_basin(label: str):
+    """Carga la cuenca publicada y falla si no es un polígono válido."""
+    data = cargar_json(WEB_DATA / "cuenca.geojson")
+    if not data or not data.get("features"):
+        return None
+    raw = geom_of(data["features"][0])
+    audit = inspect_geometry(raw, "cuenca.geojson")
+    report_geometry_audit(label, audit)
+    if audit.empty or not audit.valid:
+        return None
+    try:
+        return as_polygonal(raw)
+    except ValueError as exc:
+        error(f"{label}: {exc}")
+        return None
 
 
 def haversine_km(a: tuple[float, float], b: tuple[float, float]) -> float:
@@ -332,27 +381,34 @@ def check_layer_fuentes(ids: dict[str, dict]):
         print(f"  {path.name}: {len(data.get('features', []))} elementos")
 
 
-def _geometry_from_record(record):
-    """Reconstruye Polygon/MultiPolygon desde limits.json o subcuencas.geojson."""
+def _geometry_from_record(record, label: str):
+    """Reconstruye la geometría cruda y su auditoría, sin reparar primero.
+
+    Devuelve ``(geometría_reparada, auditoría)``. La auditoría conserva si el
+    registro original era válido y qué se hizo para poder medirlo.
+    """
     if not record:
-        return None
-    polygons = record.get("polygons")
-    if polygons:
-        parts = [
-            Polygon(p["ring"], p.get("holes") or [])
-            for p in polygons
-            if p.get("ring")
-        ]
-    elif record.get("ring"):
-        parts = [Polygon(record["ring"], record.get("holes") or [])]
-    else:
-        return None
-    parts = [make_valid(p) for p in parts if p is not None]
-    parts = [p for p in parts if not p.is_empty]
+        return None, None
+    try:
+        polygons = record.get("polygons")
+        if polygons:
+            parts = [
+                Polygon(p["ring"], p.get("holes") or [])
+                for p in polygons
+                if p.get("ring")
+            ]
+        elif record.get("ring"):
+            parts = [Polygon(record["ring"], record.get("holes") or [])]
+        else:
+            return None, None
+    except Exception as exc:  # anillo mal formado, coordenadas no numéricas, etc.
+        error(f"{label}: no se pudo construir la geometría: {exc}")
+        return None, None
     if not parts:
-        return None
+        return None, None
     merged = parts[0] if len(parts) == 1 else unary_union(parts)
-    return as_polygonal(merged)
+    fixed, audit = repair_to_polygonal(merged, label, allow_repair=True)
+    return fixed, audit
 
 
 def check_raw_limits():
@@ -361,12 +417,11 @@ def check_raw_limits():
         return None
     if not data.get("metodo"):
         error("limits.json: falta el método de construcción")
-    basin = _geometry_from_record(data)
+    basin, basin_audit = _geometry_from_record(data, "cuenca")
+    report_geometry_audit("limits.json", basin_audit)
     if basin is None:
         error("limits.json: no se pudo reconstruir la cuenca")
         return data
-    if not basin.is_valid:
-        error(f"limits.json: cuenca inválida: {explain_validity(basin)}")
 
     subs = data.get("subbasins") or []
     if len(subs) != 9:
@@ -374,12 +429,11 @@ def check_raw_limits():
     named = []
     for sub in subs:
         name = sub.get("name", "?")
-        geom = _geometry_from_record(sub)
+        geom, audit = _geometry_from_record(sub, name)
+        report_geometry_audit("limits.json", audit)
         if geom is None:
             error(f"limits.json: no se pudo reconstruir la subcuenca {name}")
             continue
-        if not geom.is_valid:
-            error(f"limits.json: subcuenca {name} inválida: {explain_validity(geom)}")
         if not sub.get("area_km2"):
             error(f"limits.json: subcuenca {name} sin área")
         named.append((name, geom))
@@ -395,12 +449,51 @@ def check_raw_limits():
         "slivers_asignados_km2",
         "solapamientos_eliminados_km2",
         "superficie_fuera_eliminada_km2",
+        "area_antes_km2",
+        "area_despues_km2",
+        "cambios_area_pct",
+        "reasignacion",
+        "fidelidad",
+        "reparaciones",
+        "umbrales",
         "metodo",
     ):
         if field not in reconciliation:
             error(f"limits.json: falta 'reconciliacion.{field}'")
     if reconciliation.get("crs_metrico") != "EPSG:32717":
         error("limits.json: la reconciliación debe declarar EPSG:32717")
+
+    # Advertencias de fidelidad: no son errores topológicos, pero no se ocultan.
+    fidelity = reconciliation.get("fidelidad") or {}
+    for name, item in fidelity.items():
+        rec = item.get("simplificada_a_reconciliada") or {}
+        delta = rec.get("delta_area_km2")
+        if isinstance(delta, (int, float)) and abs(delta) > TOPOLOGY_TOLERANCES.error_km2:
+            aviso(
+                f"limits.json: fidelidad {name}: la reconciliación cambia "
+                f"{delta:+.4f} km² (> {TOPOLOGY_TOLERANCES.error_km2:.3f} km²)"
+            )
+        p95 = rec.get("distancia_p95_limite_m")
+        if (
+            isinstance(p95, (int, float))
+            and p95 > TOPOLOGY_TOLERANCES.boundary_warn_m
+        ):
+            aviso(
+                f"limits.json: fidelidad {name}: p95 de límite {p95:.1f} m "
+                f"(> {TOPOLOGY_TOLERANCES.boundary_warn_m:.1f} m)"
+            )
+    reassignment = reconciliation.get("reasignacion") or {}
+    proximity = reassignment.get("superficie_asignada_por_proximidad_km2")
+    if isinstance(proximity, (int, float)) and proximity > TOPOLOGY_TOLERANCES.error_km2:
+        aviso(
+            f"limits.json: {proximity:.4f} km² asignados por proximidad, "
+            "sin solapamiento con la subcuenca de destino"
+        )
+    for audit in reconciliation.get("reparaciones") or []:
+        aviso(
+            f"limits.json: reparación registrada en {audit.get('nombre')}: "
+            f"{audit.get('nota') or 'sin detalle'}"
+        )
 
     print(f"  limits: {report.summary()}")
     return data
@@ -411,29 +504,49 @@ def check_topology():
     subs_data = cargar_json(WEB_DATA / "subcuencas.geojson")
     if not cuenca_data or not subs_data:
         return
-    basin = as_polygonal(geom_of(cuenca_data["features"][0]))
-    if basin is None or not basin.is_valid:
-        detail = explain_validity(basin) if basin is not None else "geometría vacía"
-        error(f"cuenca.geojson: inválida: {detail}")
+    raw_basin = geom_of(cuenca_data["features"][0])
+    basin_audit = inspect_geometry(raw_basin, "cuenca.geojson")
+    report_geometry_audit("cuenca.geojson", basin_audit)
+    if basin_audit.empty or not basin_audit.valid:
+        return
+    try:
+        basin = as_polygonal(raw_basin)
+    except ValueError as exc:
+        error(f"cuenca.geojson: {exc}")
+        return
+    if basin is None:
+        error("cuenca.geojson: geometría vacía")
         return
     declared = (cuenca_data["features"][0].get("properties") or {}).get("area_km2")
     measured = geodesic_km2(basin)
-    if not isinstance(declared, (int, float)) or abs(measured - float(declared)) / measured > BASIN_AREA_TOLERANCE:
+    if not isinstance(declared, (int, float)) or measured <= 0 or abs(measured - float(declared)) / measured > BASIN_AREA_TOLERANCE:
         error(f"cuenca.geojson: área declarada {declared} vs medida {measured:.2f} km²")
 
     named = []
     hole_notes: dict[str, str] = {}
     for feature in subs_data.get("features", []):
-        geom = as_polygonal(geom_of(feature))
+        raw_geom = geom_of(feature)
         props = feature.get("properties") or {}
         name = props.get("nombre", "?")
-        if geom is None or not geom.is_valid:
-            detail = explain_validity(geom) if geom is not None else "geometría vacía"
-            error(f"subcuencas.geojson: {name} inválida: {detail}")
+        audit = inspect_geometry(raw_geom, f"subcuencas.geojson: {name}")
+        report_geometry_audit("subcuencas.geojson", audit)
+        if audit.empty or not audit.valid:
+            continue
+        try:
+            geom = as_polygonal(raw_geom)
+        except ValueError as exc:
+            error(f"subcuencas.geojson: {name}: {exc}")
+            continue
+        if geom is None:
+            error(f"subcuencas.geojson: {name} está vacía")
             continue
         declared_sub = props.get("area_km2")
         area = geodesic_km2(geom)
-        if not isinstance(declared_sub, (int, float)) or abs(area - float(declared_sub)) / area > BASIN_AREA_TOLERANCE:
+        if (
+            not isinstance(declared_sub, (int, float))
+            or area <= 0
+            or abs(area - float(declared_sub)) / area > BASIN_AREA_TOLERANCE
+        ):
             error(f"subcuencas.geojson: {name} declara {declared_sub} km²; mide {area:.2f} km²")
         expected = "bajo-piura-derivado" if name == "Bajo Piura" else "ana-subcuencas"
         if props.get("fuente") != expected:
@@ -458,7 +571,9 @@ def check_rivers():
     riv = cargar_json(WEB_DATA / "red_hidrica.geojson")
     if not cuenca or not riv:
         return
-    basin = make_valid(geom_of(cuenca["features"][0]))
+    basin = load_valid_basin("red_hidrica.geojson")
+    if basin is None:
+        return
     total = 0.0
     outside = 0.0
     bad = 0
@@ -487,7 +602,9 @@ def check_places():
     lugares = cargar_json(WEB_DATA / "lugares.geojson")
     if not cuenca or not lugares:
         return
-    basin = make_valid(geom_of(cuenca["features"][0]))
+    basin = load_valid_basin("lugares.geojson")
+    if basin is None:
+        return
     for feature in lugares.get("features", []):
         props = feature.get("properties") or {}
         point = geom_of(feature)
@@ -523,6 +640,13 @@ def check_flood():
             "clase",
             "area_km2",
             "area_original_km2",
+            "area_observaciones_sum_km2",
+            "solapamiento_observaciones_km2",
+            "area_union_original_km2",
+            "area_filtrada_km2",
+            "area_simplificada_km2",
+            "area_publicada_utm_km2",
+            "area_publicada_geodesica_km2",
             "fuente",
             "metodo",
             "cobertura",
@@ -541,6 +665,18 @@ def check_flood():
             error("flood_2017.geojson: el método debe declarar que es una unión de fechas")
         if not props.get("advertencia"):
             error("flood_2017.geojson: falta la advertencia de metadatos del producto")
+
+        repairs = props.get("reparaciones") or []
+        if not isinstance(repairs, list):
+            error("flood_2017.geojson: 'reparaciones' debe ser una lista")
+        for repair in repairs:
+            if not isinstance(repair, dict):
+                error("flood_2017.geojson: reparación con formato inválido")
+                continue
+            aviso(
+                f"flood_2017.geojson: {props.get('aoi')} reparó una geometría "
+                f"({repair.get('motivo') or 'sin motivo'})"
+            )
 
         observations = props.get("observaciones")
         if not isinstance(observations, list) or not observations:
@@ -575,46 +711,104 @@ def check_flood():
                     f"flood_2017.geojson: fecha '{props.get('fecha')}' no coincide con "
                     f"las observaciones ({expected})"
                 )
+        obs_sum = sum(obs_areas) if obs_areas else 0.0
+        obs_max = max(obs_areas) if obs_areas else 0.0
+        declared_sum = props.get("area_observaciones_sum_km2")
+        overlap = props.get("solapamiento_observaciones_km2")
+        union = props.get("area_union_original_km2")
+        filtered = props.get("area_filtrada_km2")
+        simplified = props.get("area_simplificada_km2")
+        published_utm = props.get("area_publicada_utm_km2")
+        published_geo = props.get("area_publicada_geodesica_km2")
+
+        for label, value in (
+            ("area_observaciones_sum_km2", declared_sum),
+            ("solapamiento_observaciones_km2", overlap),
+            ("area_union_original_km2", union),
+            ("area_filtrada_km2", filtered),
+            ("area_simplificada_km2", simplified),
+            ("area_publicada_utm_km2", published_utm),
+            ("area_publicada_geodesica_km2", published_geo),
+        ):
+            if not isinstance(value, (int, float)) or value < 0:
+                error(f"flood_2017.geojson: '{label}' inválido en {props.get('aoi', '?')}")
+
         if obs_areas:
-            area_original = props.get("area_original_km2")
-            if not isinstance(area_original, (int, float)):
-                error("flood_2017.geojson: falta el área original")
-            elif not (max(obs_areas) - 0.5 <= float(area_original) <= sum(obs_areas) + 0.5):
+            if not isinstance(declared_sum, (int, float)) or abs(
+                float(declared_sum) - obs_sum
+            ) > 0.01:
                 error(
-                    "flood_2017.geojson: el área original no está entre la mayor "
+                    "flood_2017.geojson: la suma de observaciones no coincide con "
+                    f"las áreas por fecha ({declared_sum} vs {obs_sum:.3f})"
+                )
+            if not isinstance(overlap, (int, float)) or overlap < 0:
+                error("flood_2017.geojson: solapamiento de observaciones inválido")
+            elif not isinstance(union, (int, float)):
+                error("flood_2017.geojson: unión original inválida")
+            elif abs((obs_sum - float(overlap)) - float(union)) > 0.02:
+                error(
+                    "flood_2017.geojson: suma de observaciones − solapamiento "
+                    f"no coincide con la unión ({obs_sum - float(overlap):.3f} vs {union})"
+                )
+            if not isinstance(union, (int, float)) or not (
+                obs_max - 0.01 <= float(union) <= obs_sum + 0.01
+            ):
+                error(
+                    "flood_2017.geojson: la unión original no está entre la mayor "
                     "observación y la suma de observaciones"
                 )
+        area_original = props.get("area_original_km2")
+        if not isinstance(area_original, (int, float)) or not isinstance(union, (int, float)):
+            error("flood_2017.geojson: falta el área original o la unión")
+        elif abs(float(area_original) - float(union)) > 0.001:
+            error(
+                "flood_2017.geojson: area_original_km2 debe ser la unión original "
+                f"({area_original} vs {union})"
+            )
+        if isinstance(filtered, (int, float)) and isinstance(union, (int, float)):
+            if filtered > union + 0.01:
+                error("flood_2017.geojson: el área filtrada supera la unión original")
 
         area = props.get("area_km2")
         geom = geom_of(feature)
         if not geom.is_valid:
             error(f"flood_2017.geojson: geometría inválida en {props.get('aoi')}")
         measured = utm_km2(geom)
+        measured_geo = geodesic_km2(geom)
         if not isinstance(area, (int, float)) or area <= 0:
             error(f"flood_2017.geojson: área inválida en {props.get('aoi', '?')}")
-        elif abs(measured - float(area)) / float(area) > 0.01:
-            error(f"flood_2017.geojson: área declarada {area} vs medida {measured:.1f} km²")
-        else:
-            total += float(area)
-        if obs_areas and isinstance(area, (int, float)):
-            reference = props.get("area_original_km2")
-            if isinstance(reference, (int, float)) and reference > 0:
-                if abs(float(area) - float(reference)) / float(reference) > 0.02:
-                    error(
-                        "flood_2017.geojson: el área publicada difiere más de 2 % "
-                        "del vector original"
-                    )
-            if float(area) < max(obs_areas) * 0.98:
-                error(
-                    "flood_2017.geojson: el área publicada es menor que la mayor "
-                    "observación por más del 2 %"
-                )
+            continue
+
+        if abs(measured - float(area)) > 0.01:
+            error(f"flood_2017.geojson: área declarada {area} vs medida {measured:.3f} km² (UTM)")
+        if isinstance(published_utm, (int, float)) and abs(
+            measured - float(published_utm)
+        ) > 0.01:
+            error(
+                "flood_2017.geojson: area_publicada_utm_km2 no coincide con la "
+                f"geometría publicada ({published_utm} vs {measured:.3f})"
+            )
+        if isinstance(published_geo, (int, float)) and abs(
+            measured_geo - float(published_geo)
+        ) > 0.01:
+            error(
+                "flood_2017.geojson: area_publicada_geodesica_km2 no coincide con "
+                f"la geometría publicada ({published_geo} vs {measured_geo:.3f})"
+            )
+        if isinstance(simplified, (int, float)) and abs(
+            float(simplified) - float(area)
+        ) > 0.01:
+            error(
+                "flood_2017.geojson: area_simplificada_km2 no coincide con el "
+                f"área publicada ({simplified} vs {area})"
+            )
+        total += float(area)
     if not 500 <= total <= 600:
-        error(f"flood_2017.geojson: área total {total:.1f} km² fuera del rango esperado (500–600)")
+        error(f"flood_2017.geojson: área total {total:.3f} km² fuera del rango esperado (500–600)")
     size = path.stat().st_size
     if size > 1_500_000:
         error(f"flood_2017.geojson: {size / 1e6:.2f} MB; conviene simplificar más")
-    print(f"  flood_2017: {len(features)} zonas · {total:.1f} km² · {size / 1e3:.0f} kB")
+    print(f"  flood_2017: {len(features)} zonas · {total:.3f} km² · {size / 1e3:.0f} kB")
 
 
 def check_obras():
@@ -667,7 +861,7 @@ def check_cortes():
     network = cargar_json(RAW / "network.json")
     if not cortes or not perfiles:
         return
-    basin = make_valid(geom_of(cuenca["features"][0])) if cuenca else None
+    basin = load_valid_basin("cortes.geojson") if cuenca else None
     ids = {f.get("properties", {}).get("id") for f in cortes.get("features", [])}
     perfiles_data = perfiles.get("perfiles") or {}
     for campo in ["resolucion_fuente_m", "resolucion_efectiva_m", "resolucion_malla_m"]:
@@ -892,7 +1086,10 @@ def main() -> int:
         for msg in errores:
             print(f"  - {msg}")
         return 1
-    print("\ntodo en orden")
+    if avisos:
+        print(f"\nsin errores; {len(avisos)} aviso(s) declarado(s)")
+    else:
+        print("\ntodo en orden")
     return 0
 
 

@@ -109,11 +109,51 @@ class TestDatosPublicados(unittest.TestCase):
             observed_max = max(o["area_original_km2"] for o in obs)
             observed_sum = sum(o["area_original_km2"] for o in obs)
             self.assertGreaterEqual(props["area_km2"], observed_max * 0.98)
-            self.assertLessEqual(props["area_original_km2"], observed_sum + 0.5)
+            self.assertAlmostEqual(
+                props["area_observaciones_sum_km2"], observed_sum, delta=0.01
+            )
+            self.assertAlmostEqual(
+                props["area_union_original_km2"],
+                observed_sum - props["solapamiento_observaciones_km2"],
+                delta=0.02,
+            )
+            self.assertAlmostEqual(
+                props["area_original_km2"], props["area_union_original_km2"], delta=0.001
+            )
+            self.assertAlmostEqual(
+                props["area_publicada_utm_km2"], props["area_km2"], delta=0.001
+            )
+            self.assertGreater(
+                props["area_publicada_geodesica_km2"], props["area_km2"]
+            )
+            self.assertLessEqual(
+                props["area_filtrada_km2"], props["area_union_original_km2"] + 0.01
+            )
+            self.assertAlmostEqual(
+                props["area_simplificada_km2"], props["area_km2"], delta=0.01
+            )
             self.assertIn("no es una mancha simultánea", props["metodo"])
+            self.assertIsInstance(props["reparaciones"], list)
             total += props["area_km2"]
         self.assertGreaterEqual(total, 500)
         self.assertLessEqual(total, 600)
+
+    def test_fidelidad_declarada_en_limits(self):
+        data = json.loads((RAW / "limits.json").read_text(encoding="utf-8"))
+        rec = data["reconciliacion"]
+        self.assertEqual(rec["crs_metrico"], "EPSG:32717")
+        self.assertEqual(len(rec["fidelidad"]), 9)
+        self.assertIn("reasignacion", rec)
+        self.assertIn("reparaciones", rec)
+        for name, item in rec["fidelidad"].items():
+            self.assertIn("fuente_a_reconciliada", item, name)
+            full = item["fuente_a_reconciliada"]
+            self.assertGreater(full["iou"], 0.98, name)
+            self.assertGreaterEqual(full["hausdorff_m"], 0.0, name)
+            self.assertGreaterEqual(full["distancia_p95_limite_m"], 0.0, name)
+        self.assertGreaterEqual(
+            rec["reasignacion"]["superficie_asignada_por_proximidad_km2"], 0.0
+        )
 
 
 if __name__ == "__main__":
