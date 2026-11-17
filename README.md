@@ -120,7 +120,7 @@ solo se descarga al abrir esa página.
 ## Cómo citar
 
 Ver [`docs/06-como-citar.md`](docs/06-como-citar.md) y [`CITATION.cff`](CITATION.cff).
-Versión 0.2.2; release en GitHub y DOI pendiente de Zenodo.
+Versión 0.2.3; release en GitHub y DOI pendiente de Zenodo.
 
 ## Licencias
 

@@ -347,11 +347,12 @@ también.
 ## 12. Estabilización v0.2.3
 
 Fecha: 2026-11-17.
-Rama: `quality/stabilization-v0.2.3`, creada desde `main` en `29b2ba2`.
+Rama: `quality/stabilization-v0.2.3`, creada desde `main` en `29b2ba2` e integrada
+por fast-forward.
 Base pública: `v0.2.2` (`188c4ba`).
 Alcance: auditoría geométrica de la inundación, validación de componentes de
-`limits.json`, pruebas sintéticas y advertencia de subcuencas. No se publicó, no se
-desplegó y no se hizo merge a `main`.
+`limits.json`, pruebas sintéticas y advertencia de subcuencas. La versión se publica
+como `v0.2.3`; el release se crea sobre el commit de versión.
 
 ### 12.1 Problemas encontrados
 
@@ -548,12 +549,12 @@ No se ocultaron avisos para obtener un resultado verde.
   PDF de Copernicus, la prueba manual de accesibilidad con personas y el DOI de
   Zenodo.
 
-### 12.10 Evaluación para v0.2.3
+### 12.10 Publicación de v0.2.3
 
-**Listo para revisión y publicación como v0.2.3, con las advertencias declaradas.**
-La geometría publicada no cambió, la validación de componentes es previa a la unión,
-las pruebas cubren los casos pedidos y la advertencia de subcuencas es visible y
-accesible.
+La versión se publica como **v0.2.3**, con las advertencias declaradas. La geometría
+publicada no cambió, la validación de componentes es previa a la unión, las pruebas
+cubren los casos pedidos y la advertencia de subcuencas es visible y accesible.
 
-No se creó tag, release, push ni merge. La versión pública sigue siendo `0.2.2`; el
-cambio de versión y la publicación quedan pendientes de autorización expresa.
+La rama se integra por fast-forward en `main` y el release se crea sobre el commit
+de versión. El detalle del CI y del sitio publicado se añade en el commit posterior
+a la publicación.
