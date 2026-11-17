@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mapa de la cuenca · propuesta · Río Piura Atlas</title>
+    <meta name="description" content="Propuesta visual del mapa interactivo del Atlas del río Piura: capas, leyenda, ficha de elemento y perfil de corte." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f1e6'/%3E%3Cpath d='M5 23c6-2 6-8 11-10s8 1 11 1' stroke='%231c5b52' stroke-width='2.5' fill='none'/%3E%3Cpath d='M5 27c6-2 6-8 11-10s8 1 11 1' stroke='%23c9a36a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="../web/node_modules/maplibre-gl/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/map.css" />
+    <style>
+      /* Pequeños ajustes de esta página */
+      .sym-relief::before {
+        content: "";
+        position: absolute; inset: 1px 1px;
+        background: linear-gradient(90deg, #d8c7a2, #a89a78 55%, #6f7664);
+        border: 1px solid rgba(22,32,30,.15);
+      }
+      .layer-status {
+        font-family: var(--font-ui);
+        font-size: .62rem;
+        line-height: 1.4;
+        color: var(--muted);
+        margin: 2px 0 4px 46px;
+      }
+      .drawer-close { display: none; }
+      .mobile-legend-button { display: none; }
+      @media (max-width: 900px) {
+        .drawer-close {
+          display: inline-grid; place-content: center;
+          width: 36px; height: 36px;
+          border: 1px solid var(--line);
+          background: transparent;
+          font-size: 1.2rem; line-height: 1;
+        }
+        .mobile-legend-button {
+          display: inline-flex;
+          position: absolute; left: 16px; bottom: 82px; z-index: 8;
+          min-height: 34px; padding: 0 11px;
+          background: rgba(245,241,230,.96);
+          border: 1px solid var(--line-strong);
+          border-radius: 2px;
+          font-family: var(--font-ui); font-size: .66rem; font-weight: 600;
+          letter-spacing: .06em; text-transform: uppercase;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body class="map-page">
+    <a class="skip-link" href="#main">Saltar al mapa</a>
+    <header class="site-header">
+      <div class="inner">
+        <a class="brand" href="home.html">Río Piura <span>Atlas</span></a>
+        <nav class="main" aria-label="Navegación principal">
+          <a href="home.html">Inicio</a>
+          <a href="mapa.html" aria-current="page">Mapa</a>
+          <a href="maqueta.html">Maqueta 3D</a>
+          <a href="escenarios.html">Escenarios</a>
+          <a href="fuentes.html">Fuentes</a>
+        </nav>
+        <div class="header-tools">
+          <button class="menu-button" id="menuButton" type="button" aria-expanded="false" aria-controls="mobileMenu">Menú</button>
+        </div>
+      </div>
+    </header>
+    <div class="mobile-menu" id="mobileMenu" hidden>
+      <ul>
+        <li><a href="home.html">Inicio <span>01</span></a></li>
+        <li><a href="mapa.html">Mapa <span>02</span></a></li>
+        <li><a href="maqueta.html">Maqueta 3D <span>03</span></a></li>
+        <li><a href="escenarios.html">Escenarios <span>04</span></a></li>
+        <li><a href="fuentes.html">Fuentes <span>05</span></a></li>
+      </ul>
+    </div>
+
+    <main id="main" class="map-app" aria-label="Mapa interactivo de la cuenca del río Piura">
+      <aside class="layer-drawer" id="layerDrawer" aria-label="Capas, herramientas y fuentes">
+        <div class="drawer-head">
+          <span class="kicker">Mapa</span>
+          <button class="drawer-collapse" id="drawerCollapse" type="button" aria-label="Ocultar el panel de capas" title="Ocultar panel">‹</button>
+          <button class="drawer-close" id="drawerClose" type="button" aria-label="Cerrar el panel de capas">×</button>
+        </div>
+        <div class="drawer-content">
+          <p class="drawer-title">Cuenca del río Piura</p>
+          <p class="drawer-sub"><strong>10 938 km²</strong> medidos · ANA 1:100 000<br />Relieve Copernicus DEM · malla ~140 m<br />Atlas documentado · no es un pronóstico</p>
+
+          <section class="layer-group" aria-labelledby="group-base">
+            <h2 id="group-base">Base</h2>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="relieve" checked />
+              <span class="sym sym-relief" aria-hidden="true"></span>
+              <span>Relieve</span>
+            </label>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="cuenca" checked />
+              <span class="sym sym-line" aria-hidden="true"></span>
+              <span>Cuenca ANA</span>
+            </label>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="subcuencas" checked />
+              <span class="sym sym-sub" aria-hidden="true"></span>
+              <span>Subcuencas</span>
+              <span class="layer-kind derived">derivado</span>
+            </label>
+            <details class="layer-info">
+              <summary>Método de la partición</summary>
+              <p>Partición topológica derivada de las geometrías ANA. «Bajo Piura» es una unidad derivada; no es una nueva delimitación oficial. <a href="fuentes.html#bajo-piura-derivado">Ver método</a>.</p>
+            </details>
+          </section>
+
+          <section class="layer-group" aria-labelledby="group-water">
+            <h2 id="group-water">Agua</h2>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="rios" checked />
+              <span class="sym sym-river" aria-hidden="true"></span>
+              <span>Red hídrica</span>
+            </label>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="agua" checked />
+              <span class="sym sym-water" aria-hidden="true"></span>
+              <span>Lagunas y salinas</span>
+            </label>
+          </section>
+
+          <section class="layer-group" aria-labelledby="group-events">
+            <h2 id="group-events">Evento documentado</h2>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="flood" />
+              <span class="sym sym-flood" aria-hidden="true"></span>
+              <span>Inundación 2017</span>
+              <span class="layer-kind measured">medido</span>
+            </label>
+            <p class="layer-status" id="floodStatus" aria-live="polite">Capa oficial de Copernicus EMSR199.</p>
+            <details class="layer-info">
+              <summary>Qué muestra y qué no</summary>
+              <p>Unión de observaciones del 26 y 30 de marzo de 2017; no es una mancha simultánea ni un modelo hidráulico. <a href="fuentes.html#copernicus-ems-emsr199">Ver fuente</a>.</p>
+            </details>
+          </section>
+
+          <section class="layer-group" aria-labelledby="group-analysis">
+            <h2 id="group-analysis">Análisis y contexto</h2>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="obras" />
+              <span class="sym sym-works" aria-hidden="true"></span>
+              <span>Obras (referencia)</span>
+              <span class="layer-kind interpretation">interpretación</span>
+            </label>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="cortes" checked />
+              <span class="sym sym-cut" aria-hidden="true"></span>
+              <span>Cortes transversales</span>
+            </label>
+            <label class="layer-row">
+              <input type="checkbox" data-layer="lugares" checked />
+              <span class="sym sym-city" aria-hidden="true"></span>
+              <span>Ciudades</span>
+            </label>
+          </section>
+
+          <div class="tool-block">
+            <button class="tool-button" id="drawCorte" type="button">
+              <span>Dibujar un corte</span><span class="arrow">↗</span>
+            </button>
+            <button class="tool-button" id="openProfile" type="button" style="margin-top:6px;">
+              <span>Abrir corte de ejemplo</span><span class="arrow">→</span>
+            </button>
+            <div class="corte-list" id="corteList" aria-label="Cortes de referencia"></div>
+          </div>
+        </div>
+        <div class="drawer-foot">
+          <a href="fuentes.html">Fuentes y método de cada capa →</a>
+          <span class="status available"><span class="mark"></span>30 fuentes · 19 disponibles</span>
+          <span class="source-line">No es un sistema de alerta ni un pronóstico.</span>
+        </div>
+      </aside>
+
+      <div class="map-stage">
+        <div id="map" role="region" aria-label="Mapa de la cuenca del río Piura" aria-describedby="map-summary"></div>
+        <p id="map-summary" class="sr-only">
+          Mapa de la cuenca del río Piura. Capas: relieve, cuenca ANA, subcuencas,
+          red hídrica, lagunas, inundación de 2017, obras de referencia y cortes.
+          La partición de subcuencas es derivada. La inundación de 2017 es la unión
+          de observaciones del 26 y 30 de marzo, no una mancha simultánea. Usa el
+          panel de capas para activarlas y el mapa para consultar cada elemento.
+        </p>
+
+        <div class="geo-ruler" id="geoRuler" aria-hidden="true"></div>
+
+        <div class="map-title">
+          <h1>Cuenca del río Piura</h1>
+          <p id="mapSubtitle">10 938 km² · relieve Copernicus DEM ~140 m</p>
+        </div>
+
+        <button class="open-layers" id="openLayers" type="button" aria-controls="layerDrawer" aria-expanded="false">
+          Capas <span class="count">9</span>
+        </button>
+
+        <div class="map-controls" aria-label="Controles del mapa">
+          <button type="button" data-action="zoom-in" aria-label="Acercar" title="Acercar">+</button>
+          <button type="button" data-action="zoom-out" aria-label="Alejar" title="Alejar">−</button>
+          <button type="button" data-action="reset" aria-label="Ver toda la cuenca" title="Ver toda la cuenca">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9a8 8 0 1 1 1.2 6.4"/><path d="M4 4v5h5"/></svg>
+          </button>
+          <button type="button" data-action="fullscreen" aria-label="Pantalla completa" title="Pantalla completa">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+          </button>
+        </div>
+
+        <button class="mobile-legend-button" id="legendToggle" type="button" aria-controls="legend" aria-expanded="false">Leyenda</button>
+
+        <aside class="map-legend" id="legend" aria-label="Leyenda del mapa">
+          <div class="legend-head"><strong>Leyenda</strong><span>capas activas</span></div>
+          <ul>
+            <li data-legend="cuenca"><span class="legend-sym line"></span><span>Límite de cuenca (ANA)</span></li>
+            <li data-legend="subcuencas"><span class="legend-sym sub"></span><span>Subcuencas (derivado)</span></li>
+            <li data-legend="rios"><span class="legend-sym river"></span><span>Red hídrica</span></li>
+            <li data-legend="agua"><span class="legend-sym water"></span><span>Lagunas y salinas</span></li>
+            <li data-legend="flood"><span class="legend-sym flood"></span><span>Inundación 2017 · unión de observaciones</span></li>
+            <li data-legend="obras"><span class="legend-sym works"></span><span>Obras de referencia</span></li>
+            <li data-legend="cortes"><span class="legend-sym cut"></span><span>Cortes transversales</span></li>
+            <li data-legend="lugares"><span class="legend-sym city"></span><span>Ciudades</span></li>
+          </ul>
+          <p class="legend-note">La trama distingue la inundación del agua permanente. Solo se dibuja lo documentado.</p>
+        </aside>
+
+        <div class="map-colophon"><strong>ANA 1:100 000</strong> · Copernicus DEM · HydroRIVERS · OSM · Copernicus EMSR199</div>
+
+        <aside class="feature-panel" id="featurePanel" aria-live="polite" aria-label="Ficha del elemento seleccionado">
+          <div class="fp-top">
+            <span class="fp-kicker" id="fpKicker">Evento documentado</span>
+            <button class="fp-close" id="fpClose" type="button" aria-label="Cerrar la ficha">×</button>
+          </div>
+          <h2 class="fp-title" id="fpTitle">Inundación de marzo de 2017</h2>
+          <p class="fp-sub" id="fpSub">AOI10 · Piura, Catacaos y La Unión + AOI11 · Parachique</p>
+          <div class="fp-data">
+            <div><div class="fp-value" id="fpValue">555 477 <small>km²</small></div><div class="fp-label" id="fpValueLabel">publicados, AOI10 + AOI11</div></div>
+            <div><div class="fp-value" id="fpValue2">96 507 <small>km²</small></div><div class="fp-label" id="fpValue2Label">AOI10, unión simplificada</div></div>
+          </div>
+          <div class="fp-section">
+            <h3>Observaciones</h3>
+            <ul id="fpObservations">
+              <li>26/03 · Radarsat Ultra-Fine Beam · AOI10 y AOI11</li>
+              <li>30/03 · Cosmo-SkyMed 3–15 m · AOI10</li>
+            </ul>
+          </div>
+          <div class="fp-section">
+            <h3>Qué mide</h3>
+            <p id="fpBody">Delineación satelital oficial, unión de las observaciones por fecha. No es un levantamiento, no es una mancha simultánea y no es un modelo hidráulico.</p>
+          </div>
+          <div class="fp-section">
+            <h3>Advertencia</h3>
+            <p id="fpWarn">La suma de observaciones de AOI10 no es una superficie: 56 772 km² se observaron en ambas fechas. El total de 555 477 km² reúne dos AOI distintas y no debe leerse como una sola mancha.</p>
+          </div>
+          <p class="fp-source">Fuente: <a href="fuentes.html#copernicus-ems-emsr199">Copernicus EMSR199, AOI10 y AOI11</a> · <a href="fuentes.html">todas las fuentes</a>.</p>
+          <div class="fp-actions">
+            <a class="btn btn-secondary" href="escenarios.html">Leer el escenario 2017</a>
+            <a class="btn btn-quiet" href="fuentes.html#copernicus-ems-emsr199">Ver ficha de fuente <span class="arrow">→</span></a>
+          </div>
+        </aside>
+
+        <button class="feature-peek" id="featurePeek" type="button" hidden>
+          <span><span class="pk-title" id="pkTitle">Inundación de marzo de 2017</span><span class="pk-sub" id="pkSub">555 477 km² publicados · 2 AOI</span></span>
+          <span class="pk-arrow">Abrir ficha →</span>
+        </button>
+
+        <section class="profile-panel" id="profilePanel" hidden aria-label="Perfil del corte transversal">
+          <div class="profile-head">
+            <h2 id="profileTitle">Bajo Piura · La Unión</h2>
+            <button id="profileClose" type="button" aria-label="Cerrar el perfil">×</button>
+          </div>
+          <div class="profile-meta" id="profileMeta"></div>
+          <div id="profileChart"></div>
+          <p class="profile-note">Corte de referencia calculado del DEM de trabajo (~140 m). Sirve para explicar la forma del valle; no sirve para dimensionar obras.</p>
+        </section>
+      </div>
+    </main>
+
+    <script src="../web/node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
+    <script>
+      const $ = (s, el = document) => el.querySelector(s);
+      const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+      const isMobile = () => window.matchMedia("(max-width: 900px)").matches;
+      const BASE = "../web/public/data/";
+
+      // Menú móvil
+      const menuButton = $("#menuButton");
+      const mobileMenu = $("#mobileMenu");
+      menuButton?.addEventListener("click", () => {
+        const open = !mobileMenu.hidden;
+        mobileMenu.hidden = open;
+        menuButton.setAttribute("aria-expanded", String(!open));
+      });
+
+      // Panel de capas
+      const drawer = $("#layerDrawer");
+      const openLayers = $("#openLayers");
+      const setDrawer = (open) => {
+        drawer.classList.toggle("open", open);
+        openLayers?.setAttribute("aria-expanded", String(open));
+      };
+      openLayers?.addEventListener("click", () => setDrawer(true));
+      $("#drawerClose")?.addEventListener("click", () => setDrawer(false));
+      $("#drawerCollapse")?.addEventListener("click", () => {
+        const app = $(".map-app");
+        app.classList.toggle("is-collapsed");
+        const collapsed = app.classList.contains("is-collapsed");
+        $("#drawerCollapse").textContent = collapsed ? "›" : "‹";
+        $("#drawerCollapse").setAttribute("aria-label", collapsed ? "Mostrar el panel de capas" : "Ocultar el panel de capas");
+        setTimeout(() => map.resize(), 240);
+      });
+
+      // Leyenda móvil
+      const legend = $("#legend");
+      $("#legendToggle")?.addEventListener("click", () => {
+        const open = !legend.classList.contains("open");
+        legend.classList.toggle("open", open);
+        $("#legendToggle").setAttribute("aria-expanded", String(open));
+      });
+
+      const map = new maplibregl.Map({
+        container: "map",
+        style: {
+          version: 8,
+          sources: {},
+          layers: [{ id: "bg", type: "background", paint: { "background-color": "#e9e1d0" } }],
+        },
+        bounds: [[-81.45, -6.25], [-79.3, -4.55]],
+        fitBoundsOptions: { padding: 24 },
+        attributionControl: {
+          compact: true,
+          customAttribution:
+            '<a href="fuentes.html#ana-subcuencas">ANA 1:100 000</a> · <a href="fuentes.html#copernicus-dem-30">Copernicus DEM</a> · <a href="fuentes.html#hydrorivers">HydroRIVERS</a> · <a href="fuentes.html#osm-agua">OSM</a> · <a href="fuentes.html#copernicus-ems-emsr199">Copernicus EMSR199</a>',
+        },
+        maxZoom: 14,
+        minZoom: 5.5,
+      });
+
+      window.__map = map;
+      const fullBounds = [[-81.45, -6.25], [-79.3, -4.55]];
+      const mobileBounds = [[-81.25, -6.2], [-80.28, -4.45]];
+      const initialBounds = () => (isMobile() ? mobileBounds : fullBounds);
+      const fitInitial = (duration = 0) => map.fitBounds(initialBounds(), { padding: isMobile() ? 16 : 24, duration });
+
+      map.on("load", async () => {
+        fitInitial();
+
+        const addSource = (id, data) => map.addSource(id, { type: "geojson", data });
+        const fetchJson = async (file) => {
+          const res = await fetch(BASE + file);
+          if (!res.ok) throw new Error(file);
+          return res.json();
+        };
+
+        try {
+          const [cuenca, subcuencas, rios, agua, lugares, cortes, obras, perfiles] = await Promise.all([
+            fetchJson("cuenca.geojson"),
+            fetchJson("subcuencas.geojson"),
+            fetchJson("red_hidrica.geojson"),
+            fetchJson("agua.geojson"),
+            fetchJson("lugares.geojson"),
+            fetchJson("cortes.geojson"),
+            fetchJson("obras.geojson"),
+            fetchJson("cortes_perfiles.json"),
+          ]);
+          window.__perfiles = perfiles.perfiles || {};
+
+          addSource("cuenca", cuenca);
+          addSource("subcuencas", subcuencas);
+          addSource("rios", rios);
+          addSource("agua", agua);
+          addSource("obras", obras);
+          addSource("cortes", cortes);
+          addSource("flood", { type: "FeatureCollection", features: [] });
+
+          map.addLayer({ id: "cuenca-fill", type: "fill", source: "cuenca", paint: { "fill-color": "#7a3a2b", "fill-opacity": 0.025 } });
+          map.addLayer({ id: "cuenca-line", type: "line", source: "cuenca", paint: { "line-color": "#7a3a2b", "line-width": 2.4, "line-opacity": 0.95 } });
+          map.addLayer({ id: "subcuencas-line", type: "line", source: "subcuencas", paint: { "line-color": "#6f6555", "line-width": 1, "line-dasharray": [3, 2], "line-opacity": 0.8 } });
+          map.addLayer({ id: "agua-fill", type: "fill", source: "agua", paint: { "fill-color": "#1d6a86", "fill-opacity": 0.88 } });
+          map.addLayer({ id: "rios-halo", type: "line", source: "rios", paint: { "line-color": "#f5f1e6", "line-width": 4.5, "line-opacity": 0.55 } });
+          map.addLayer({
+            id: "rios-line", type: "line", source: "rios",
+            paint: {
+              "line-color": "#1d6a86",
+              "line-opacity": 0.92,
+              "line-width": ["interpolate", ["linear"], ["get", "aporte_km2"], 150, 0.8, 800, 1.5, 3000, 2.6, 9000, 4.1],
+            },
+          });
+
+          // Trama de la inundación: no depende solo del color.
+          const size = 8;
+          const img = new ImageData(size, size);
+          for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+              const i = (y * size + x) * 4;
+              const onLine = (x + y) % 8 < 2;
+              img.data[i] = onLine ? 23 : 76;
+              img.data[i + 1] = onLine ? 86 : 147;
+              img.data[i + 2] = onLine ? 107 : 168;
+              img.data[i + 3] = onLine ? 135 : 72;
+            }
+          }
+          map.addImage("flood-hatch", img, { pixelRatio: 1 });
+          map.addLayer({ id: "flood-fill", type: "fill", source: "flood", layout: { visibility: "none" }, paint: { "fill-pattern": "flood-hatch", "fill-opacity": 1 } });
+          map.addLayer({ id: "flood-line", type: "line", source: "flood", layout: { visibility: "none" }, paint: { "line-color": "#17566b", "line-width": 0.9, "line-opacity": 0.85 } });
+
+          map.addLayer({ id: "obras-fill", type: "fill", source: "obras", filter: ["==", ["geometry-type"], "Polygon"], layout: { visibility: "none" }, paint: { "fill-color": "#b26a2c", "fill-opacity": 0.24 } });
+          map.addLayer({ id: "obras-line", type: "line", source: "obras", layout: { visibility: "none" }, paint: { "line-color": "#8c5a2b", "line-width": 2, "line-dasharray": [2, 2] } });
+          map.addLayer({ id: "obras-point", type: "circle", source: "obras", filter: ["==", ["geometry-type"], "Point"], layout: { visibility: "none" }, paint: { "circle-radius": 5, "circle-color": "#b26a2c", "circle-stroke-color": "#f5f1e6", "circle-stroke-width": 2 } });
+          map.addLayer({ id: "cortes-line", type: "line", source: "cortes", paint: { "line-color": "#a24e2e", "line-width": 1.6, "line-dasharray": [2, 2], "line-opacity": 0.9 } });
+
+          // Relieve propuesto (mismo DEM; solo cambia la paleta).
+          map.addSource("relieve", {
+            type: "image",
+            url: "assets/relieve-propuesta.jpg",
+            coordinates: [[-81.45, -4.55], [-79.3, -4.55], [-79.3, -6.25], [-81.45, -6.25]],
+          });
+          map.addLayer({ id: "relieve", type: "raster", source: "relieve", paint: { "raster-opacity": 1 } });
+          map.moveLayer("relieve", "cuenca-fill");
+
+          // Ciudades
+          const cityLayout = {
+            Castilla: { anchor: "right", offset: [-8, -6] },
+            Piura: { anchor: "left", offset: [8, -6] },
+            Catacaos: { anchor: "left", offset: [8, 8] },
+            "Cura Mori": { anchor: "right", offset: [-8, -4] },
+            "La Unión": { anchor: "left", offset: [8, 6] },
+            Paita: { anchor: "right", offset: [-6, 0] },
+            Sechura: { anchor: "right", offset: [-6, 0] },
+            Chulucanas: { anchor: "right", offset: [-6, 0] },
+            Morropón: { anchor: "right", offset: [-6, 0] },
+            Salitral: { anchor: "right", offset: [-6, 0] },
+            Canchaque: { anchor: "right", offset: [-6, 0] },
+            Huarmaca: { anchor: "right", offset: [-6, 0] },
+            Tambogrande: { anchor: "left", offset: [6, -4] },
+          };
+          const cityMarkers = [];
+          for (const f of lugares.features) {
+            const el = document.createElement("div");
+            el.className = "city";
+            el.dataset.jerarquia = String(f.properties.jerarquia ?? 3);
+            el.dataset.nombre = f.properties.nombre;
+            el.innerHTML = `<span class="dot"></span>${f.properties.nombre}`;
+            el.style.visibility = "hidden";
+            const layout = cityLayout[f.properties.nombre] || { anchor: "left", offset: [5, 0] };
+            cityMarkers.push({
+              nombre: f.properties.nombre,
+              jerarquia: Number(f.properties.jerarquia ?? 3),
+              lngLat: f.geometry.coordinates,
+              anchor: layout.anchor,
+              offset: layout.offset,
+              marker: new maplibregl.Marker({ element: el, anchor: layout.anchor, offset: layout.offset }).setLngLat(f.geometry.coordinates).addTo(map),
+            });
+          }
+          const obrasMarkers = [];
+          for (const [nombre, coords] of [["Poechos", [-80.5036, -4.6686]], ["Canal Daniel Escobar", [-80.575, -4.855]]]) {
+            const el = document.createElement("div");
+            el.className = "city obra";
+            el.style.display = "none";
+            el.innerHTML = `<span class="dot"></span>${nombre}`;
+            obrasMarkers.push(new maplibregl.Marker({ element: el, anchor: "left", offset: [6, 0] }).setLngLat(coords).addTo(map));
+          }
+
+          const layoutCities = () => {
+            const placed = [];
+            const sorted = [...cityMarkers].sort((a, b) => a.jerarquia - b.jerarquia);
+            for (const c of sorted) {
+              const el = c.marker.getElement();
+              if (c.jerarquia === 3 && (isMobile() || map.getZoom() < 8.35)) {
+                el.style.visibility = "hidden";
+                continue;
+              }
+              const p = map.project(c.lngLat);
+              const w = el.offsetWidth || 64;
+              const h = el.offsetHeight || 18;
+              const x = c.anchor === "right" ? p.x + c.offset[0] - w : p.x + c.offset[0];
+              const y = p.y + c.offset[1] - h / 2;
+              const box = { x1: x - 2, y1: y - 2, x2: x + w + 2, y2: y + h + 2 };
+              const outside = box.x1 < 4 || box.x2 > map.getContainer().clientWidth - 4 || box.y1 < 4 || box.y2 > map.getContainer().clientHeight - 4;
+              const overlaps = placed.some((b) => !(box.x2 < b.x1 || box.x1 > b.x2 || box.y2 < b.y1 || box.y1 > b.y2));
+              if (outside || overlaps) {
+                el.style.visibility = "hidden";
+              } else {
+                el.style.visibility = "visible";
+                placed.push(box);
+              }
+            }
+          };
+          window.__layoutCities = layoutCities;
+          map.on("move", layoutCities);
+          map.on("zoom", layoutCities);
+          setTimeout(layoutCities, 50);
+
+          // Lista de cortes
+          const corteList = $("#corteList");
+          for (const [id, perfil] of Object.entries(window.__perfiles)) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.textContent = perfil.nombre;
+            b.addEventListener("click", () => openProfile(perfil));
+            corteList?.appendChild(b);
+          }
+
+          // Cargar inundación a demanda
+          let floodLoaded = false;
+          let floodLoading = null;
+          const floodStatus = $("#floodStatus");
+          const loadFlood = async () => {
+            if (floodLoaded) return;
+            if (floodLoading) return floodLoading;
+            floodStatus.textContent = "Cargando la mancha de 2017…";
+            floodLoading = (async () => {
+              try {
+                const data = await fetchJson("flood_2017.geojson");
+                map.getSource("flood").setData(data);
+                floodLoaded = true;
+                floodStatus.textContent = "2 AOI · 555 477 km² publicados (no simultáneos).";
+              } catch (e) {
+                floodStatus.textContent = "No se pudo cargar la capa. Revisa la conexión.";
+                $('[data-layer="flood"]').checked = false;
+              } finally {
+                floodLoading = null;
+              }
+            })();
+            return floodLoading;
+          };
+          const setFlood = async (on) => {
+            if (on) await loadFlood();
+            else floodStatus.textContent = "Capa oficial de Copernicus EMSR199.";
+            for (const id of ["flood-fill", "flood-line"]) {
+              if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+            }
+            const item = $('[data-legend="flood"]');
+            if (item) item.style.display = on ? "" : "none";
+            if (on) {
+              if (isMobile()) showPeek("Inundación de marzo de 2017", "555 477 km² publicados · 2 AOI");
+              else showFloodFicha();
+            }
+          };
+
+          // Ficha
+          const panel = $("#featurePanel");
+          let selected = null;
+          const showPanel = () => panel.classList.add("open");
+          const hidePanel = () => panel.classList.remove("open");
+          $("#fpClose")?.addEventListener("click", () => {
+            hidePanel();
+            if (selected && isMobile()) showPeek(selected.title, selected.sub);
+          });
+          const peek = $("#featurePeek");
+          const showPeek = (title, sub) => {
+            if (!isMobile()) return;
+            $("#pkTitle").textContent = title;
+            $("#pkSub").textContent = sub;
+            peek.hidden = false;
+          };
+          peek?.addEventListener("click", () => {
+            peek.hidden = true;
+            showPanel();
+          });
+
+          function showFloodFicha() {
+            selected = { title: "Inundación de marzo de 2017", sub: "555 477 km² publicados · 2 AOI" };
+            $("#fpKicker").textContent = "Evento documentado";
+            $("#fpTitle").textContent = "Inundación de marzo de 2017";
+            $("#fpSub").textContent = "AOI10 · Piura, Catacaos y La Unión + AOI11 · Parachique";
+            $("#fpValue").innerHTML = '555 477 <small>km²</small>';
+            $("#fpValueLabel").textContent = "publicados, AOI10 + AOI11";
+            $("#fpValue2").innerHTML = '96 507 <small>km²</small>';
+            $("#fpValue2Label").textContent = "AOI10, unión simplificada";
+            $("#fpObservations").innerHTML = "<li>26/03 · Radarsat Ultra-Fine Beam · AOI10 y AOI11</li><li>30/03 · Cosmo-SkyMed 3–15 m · AOI10</li>";
+            $("#fpBody").textContent = "Delineación satelital oficial, unión de las observaciones por fecha. No es un levantamiento, no es una mancha simultánea y no es un modelo hidráulico.";
+            $("#fpWarn").textContent = "La suma de observaciones de AOI10 no es una superficie: 56 772 km² se observaron en ambas fechas. El total de 555 477 km² reúne dos AOI distintas y no debe leerse como una sola mancha.";
+            showPanel();
+          }
+
+          function showBasinFicha(name, area, derived = false) {
+            selected = { title: name, sub: `${area.toLocaleString("es-PE")} km²` };
+            $("#fpKicker").textContent = derived ? "Unidad derivada" : "Unidad de cuenca";
+            $("#fpTitle").textContent = name;
+            $("#fpSub").textContent = derived ? "No es una delimitación oficial nueva de ANA." : "Partición ANA 1:100 000.";
+            $("#fpValue").innerHTML = `${Math.round(area).toLocaleString("es-PE")} <small>km²</small>`;
+            $("#fpValueLabel").textContent = "área medida";
+            $("#fpValue2").innerHTML = '1:100 000';
+            $("#fpValue2Label").textContent = "escala de la fuente";
+            $("#fpObservations").innerHTML = "<li>Límite de cuenca ANA, simplificado y reconciliado.</li>";
+            $("#fpBody").textContent = "La superficie se mide sobre la geometría publicada; ANA consigna 11 021,8 km² en Shape_Area, calculado en otra proyección.";
+            $("#fpWarn").textContent = derived ? "Bajo Piura se calcula como el resto de la cuenca antes de simplificar. La partición no crea superficie nueva." : "El límite se usa a escala 1:100 000; no sustituye cartografía oficial de mayor detalle.";
+            showPanel();
+          }
+
+          map.on("click", (e) => {
+            const hits = map.queryRenderedFeatures(e.point, {
+              layers: ["flood-fill", "subcuencas-line", "agua-fill", "cuenca-line", "cuenca-fill", "rios-line", "obras-fill", "obras-line", "obras-point", "cortes-line"],
+            });
+            if (!hits.length) {
+              hidePanel();
+              if (isMobile()) peek.hidden = true;
+              return;
+            }
+            const floodHit = hits.find((h) => h.layer.id === "flood-fill");
+            if (floodHit) {
+              showFloodFicha();
+              if (isMobile()) peek.hidden = true;
+              return;
+            }
+            const obraHit = hits.find((h) => ["obras-fill", "obras-line", "obras-point"].includes(h.layer.id));
+            if (obraHit) {
+              const p = obraHit.properties || {};
+              selected = { title: p.nombre || "Obra de referencia", sub: "Geometría esquemática" };
+              $("#fpKicker").textContent = "Interpretación";
+              $("#fpTitle").textContent = p.nombre || "Obra de referencia";
+              $("#fpSub").textContent = "Geometría esquemática; no es un levantamiento.";
+              $("#fpValue").innerHTML = '—';
+              $("#fpValueLabel").textContent = "sin área oficial";
+              $("#fpValue2").innerHTML = 'ref.';
+              $("#fpValue2Label").textContent = "Poechos / canal";
+              $("#fpObservations").innerHTML = "<li>Poechos: punto en el dique.</li><li>Canal Daniel Escobar: recta de referencia.</li>";
+              $("#fpBody").textContent = p.nota || "No hay geometría oficial publicada del vaso ni del eje del canal.";
+              $("#fpWarn").textContent = "El atlas no inventa la geometría faltante; la marca como referencia.";
+              showPanel();
+              return;
+            }
+            const corteHit = hits.find((h) => h.layer.id === "cortes-line");
+            if (corteHit) {
+              const id = corteHit.properties?.id;
+              const perfil = id ? window.__perfiles[id] : null;
+              if (perfil) openProfile(perfil);
+              return;
+            }
+            const p = hits[0].properties || {};
+            if (p.nombre) {
+              const area = Number(p.area_km2 || 0);
+              showBasinFicha(p.nombre, area || 10938.4, p.fuente === "bajo-piura-derivado");
+              return;
+            }
+            if (p.aporte_km2) {
+              selected = { title: "Tramo de río", sub: `${Math.round(p.aporte_km2).toLocaleString("es-PE")} km² de área aportante` };
+              $("#fpKicker").textContent = "Red hídrica";
+              $("#fpTitle").textContent = "Tramo de río";
+              $("#fpSub").textContent = "HydroRIVERS v1.0 · resolución ~500 m";
+              $("#fpValue").innerHTML = `${Math.round(p.aporte_km2).toLocaleString("es-PE")} <small>km²</small>`;
+              $("#fpValueLabel").textContent = "área aportante";
+              $("#fpValue2").innerHTML = '~500 <small>m</small>';
+              $("#fpValue2Label").textContent = "resolución de origen";
+              $("#fpObservations").innerHTML = "<li>Red derivada de HydroSHEDS, recortada a la cuenca ANA.</li>";
+              $("#fpBody").textContent = "El trazo es una red derivada; en la llanura el DEM no resuelve el cauce.";
+              $("#fpWarn").textContent = "No es el eje oficial del río ni una batimetría.";
+              showPanel();
+            }
+          });
+
+          // Corte de ejemplo
+          const profilePanel = $("#profilePanel");
+          const profileChart = $("#profileChart");
+          function openProfile(perfil) {
+            $("#profileTitle").textContent = perfil.nombre;
+            $("#profileMeta").textContent = `${perfil.longitud_km.toFixed(1)} km · cota ${Math.round(perfil.elev_min_m)}–${Math.round(perfil.elev_max_m)} m · Copernicus DEM`;
+            const w = 720, h = 190, ml = 42, mr = 14, mt = 14, mb = 30;
+            const pts = perfil.elev_m.map((e, i) => ({ e, d: perfil.dist_km[i] })).filter((p) => Number.isFinite(p.e) && Number.isFinite(p.d));
+            const min = Math.min(...pts.map((p) => p.e)), max = Math.max(...pts.map((p) => p.e));
+            const pad = Math.max(1, (max - min) * 0.1);
+            const lo = min - pad, hi = max + pad, maxD = pts[pts.length - 1].d || 1;
+            const x = (d) => ml + (d / maxD) * (w - ml - mr);
+            const y = (e) => mt + (1 - (e - lo) / (hi - lo)) * (h - mt - mb);
+            const line = pts.map((p) => `${x(p.d).toFixed(1)},${y(p.e).toFixed(1)}`).join(" ");
+            const area = `M ${x(0).toFixed(1)},${h - mb} L ${line} L ${x(maxD).toFixed(1)},${h - mb} Z`;
+            const grid = [0, 0.5, 1].map((t) => {
+              const gy = mt + t * (h - mt - mb);
+              const val = Math.round(hi - t * (hi - lo));
+              return `<line x1="${ml}" y1="${gy}" x2="${w - mr}" y2="${gy}" stroke="#d5cebd" stroke-width=".7"/><text x="${ml - 6}" y="${gy + 3}" text-anchor="end" font-size="9" fill="#55605b">${val}</text>`;
+            }).join("");
+            profileChart.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Perfil de elevación del corte ${perfil.nombre}">
+              ${grid}
+              <path d="${area}" fill="#a24e2e" fill-opacity=".12"/>
+              <polyline points="${line}" fill="none" stroke="#a24e2e" stroke-width="2" stroke-linejoin="round"/>
+              <line x1="${ml}" y1="${h - mb}" x2="${w - mr}" y2="${h - mb}" stroke="#6f6555" stroke-width="1"/>
+              <text x="${ml}" y="${h - 10}" font-size="9" fill="#55605b">0 km</text>
+              <text x="${w - mr}" y="${h - 10}" text-anchor="end" font-size="9" fill="#55605b">${maxD.toFixed(1)} km</text>
+              <text x="${w - mr}" y="${mt + 8}" text-anchor="end" font-size="9" fill="#55605b">m s. n. m.</text>
+            </svg>`;
+            profilePanel.hidden = false;
+          }
+          $("#profileClose")?.addEventListener("click", () => { profilePanel.hidden = true; });
+          $("#openProfile")?.addEventListener("click", () => {
+            const first = Object.values(window.__perfiles)[0];
+            if (first) openProfile(first);
+          });
+
+          // Controles
+          $$("[data-action]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const action = btn.dataset.action;
+              if (action === "zoom-in") map.zoomIn();
+              if (action === "zoom-out") map.zoomOut();
+              if (action === "reset") fitInitial(500);
+              if (action === "fullscreen") {
+                if (!document.fullscreenElement) map.getContainer().requestFullscreen?.();
+                else document.exitFullscreen?.();
+              }
+            });
+          });
+
+          // Capas
+          const layerIds = {
+            cuenca: ["cuenca-fill", "cuenca-line"],
+            subcuencas: ["subcuencas-line"],
+            rios: ["rios-halo", "rios-line"],
+            agua: ["agua-fill"],
+            flood: ["flood-fill", "flood-line"],
+            obras: ["obras-fill", "obras-line", "obras-point"],
+            cortes: ["cortes-line"],
+          };
+          $$("[data-layer]").forEach((input) => {
+            input.addEventListener("change", async () => {
+              const layer = input.dataset.layer;
+              if (layer === "relieve") {
+                map.setLayoutProperty("relieve", "visibility", input.checked ? "visible" : "none");
+                return;
+              }
+              if (layer === "lugares") {
+                cityMarkers.forEach((c) => { c.marker.getElement().style.display = input.checked ? "" : "none"; });
+                layoutCities();
+                toggleLegend(layer, input.checked);
+                return;
+              }
+              if (layer === "flood") {
+                await setFlood(input.checked);
+                if (!input.checked) {
+                  hidePanel();
+                  if (isMobile()) peek.hidden = true;
+                }
+                return;
+              }
+              if (layer === "obras") {
+                obrasMarkers.forEach((m) => { m.getElement().style.display = input.checked ? "" : "none"; });
+              }
+              (layerIds[layer] || []).forEach((id) => {
+                if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", input.checked ? "visible" : "none");
+              });
+              toggleLegend(layer, input.checked);
+            });
+          });
+          function toggleLegend(layer, on) {
+            const item = document.querySelector(`[data-legend="${layer}"]`);
+            if (item) item.style.display = on ? "" : "none";
+          }
+          $$("[data-layer]").forEach((input) => toggleLegend(input.dataset.layer, input.checked));
+
+          // La atribución queda como un botón «i» hasta que se despliega.
+          const attrib = document.querySelector(".maplibregl-ctrl-attrib");
+          attrib?.classList.remove("maplibregl-compact-show");
+          attrib?.removeAttribute("open");
+
+          // Regla de longitudes
+          const ruler = $("#geoRuler");
+          const labels = [-82, -81, -80, -79, -78].map((lon) => {
+            const span = document.createElement("span");
+            span.textContent = `${Math.abs(lon)}°O`;
+            span.dataset.lon = lon;
+            const tick = document.createElement("i");
+            tick.dataset.lon = lon;
+            ruler.append(span, tick);
+            return { lon, span, tick };
+          });
+          function updateRuler() {
+            const lat = map.getCenter().lat;
+            const width = map.getContainer().clientWidth;
+            for (const { lon, span, tick } of labels) {
+              const p = map.project([lon, lat]);
+              const visible = p.x > 28 && p.x < width - 28;
+              span.style.display = visible ? "" : "none";
+              tick.style.display = visible ? "" : "none";
+              if (visible) {
+                span.style.left = `${p.x}px`;
+                tick.style.left = `${p.x}px`;
+              }
+            }
+          }
+          map.on("move", updateRuler);
+          updateRuler();
+
+          // Enlace de capa
+          const params = new URLSearchParams(location.search);
+          const capa = params.get("capa");
+          if (capa === "inundacion" || capa === "flood") {
+            const flood = $('[data-layer="flood"]');
+            flood.checked = true;
+            await setFlood(true);
+            toggleLegend("flood", true);
+            if (isMobile()) {
+              hidePanel();
+              showPeek("Inundación de marzo de 2017", "555 477 km² publicados · 2 AOI");
+            }
+          }
+
+          // Adaptación móvil
+          map.on("resize", () => {
+            const subtitle = $("#mapSubtitle");
+            if (subtitle) subtitle.textContent = isMobile() ? "Vista del Bajo Piura · relieve Copernicus DEM ~140 m" : "10 938 km² · relieve Copernicus DEM ~140 m";
+            layoutCities();
+            updateRuler();
+          });
+          if (isMobile()) $("#mapSubtitle").textContent = "Vista del Bajo Piura · relieve Copernicus DEM ~140 m";
+
+          document.getElementById("map")?.setAttribute("data-ready", "true");
+        } catch (error) {
+          console.error(error);
+          const status = $("#floodStatus");
+          if (status) status.textContent = "No se pudieron cargar las capas. Abre el prototipo con un servidor local.";
+        }
+      });
+
+      // Anuncio para capturas / integración
+      window.__mapReady = false;
+      const readyPoll = setInterval(() => {
+        if (document.getElementById("map")?.dataset.ready === "true") {
+          window.__mapReady = true;
+          clearInterval(readyPoll);
+        }
+      }, 200);
+    </script>
+  </body>
+</html>

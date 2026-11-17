@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sistema visual · propuesta · Río Piura Atlas</title>
+    <meta name="description" content="Sistema visual de la propuesta «Lámina y margen»: paleta, tipografía, espaciado, símbolos y componentes." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f5f1e6'/%3E%3Cpath d='M5 23c6-2 6-8 11-10s8 1 11 1' stroke='%231c5b52' stroke-width='2.5' fill='none'/%3E%3Cpath d='M5 27c6-2 6-8 11-10s8 1 11 1' stroke='%23c9a36a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/components.css" />
+    <link rel="stylesheet" href="styles/sistema.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="inner">
+        <a class="brand" href="home.html">Río Piura <span>Atlas</span></a>
+        <nav class="main" aria-label="Navegación principal">
+          <a href="home.html">Inicio</a>
+          <a href="mapa.html">Mapa</a>
+          <a href="maqueta.html">Maqueta 3D</a>
+          <a href="escenarios.html">Escenarios</a>
+          <a href="fuentes.html">Fuentes</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="container">
+        <header class="sys-hero">
+          <p class="kicker">Propuesta UI-01 · sistema visual</p>
+          <h1>Lámina y margen</h1>
+          <p class="lead">El mapa es la lámina; los datos, las fuentes y las advertencias viven en el margen. Una identidad editorial, sobria y material, con la cartografía como protagonista.</p>
+        </header>
+
+        <section class="sys-section" id="paleta">
+          <div class="sys-head">
+            <h2>Paleta</h2>
+            <p class="sys-intro">La marca usa papel, tinta, algarrobo y arcilla. Los colores del territorio son semánticos y nunca se usan como color de interfaz. La inundación se distingue por trama, no solo por tono.</p>
+          </div>
+          <div class="sys-grid">
+            <div class="sys-card"><h3>Papel yeso</h3><div class="swatch-large" style="background:#f5f1e6"></div><div class="swatch-meta"><span>--paper</span><span>#F5F1E6</span></div><div class="swatch-name">Fondo principal</div></div>
+            <div class="sys-card"><h3>Papel arena</h3><div class="swatch-large" style="background:#eae3d3"></div><div class="swatch-meta"><span>--paper-2</span><span>#EAE3D3</span></div><div class="swatch-name">Superficies y tablas</div></div>
+            <div class="sys-card"><h3>Basalto</h3><div class="swatch-large" style="background:#16201e"></div><div class="swatch-meta"><span>--ink</span><span>#16201E</span></div><div class="swatch-name">Texto · 14,8:1</div></div>
+            <div class="sys-card"><h3>Algarrobo</h3><div class="swatch-large" style="background:#1c5b52"></div><div class="swatch-meta"><span>--brand</span><span>#1C5B52</span></div><div class="swatch-name">Acciones y enlaces · 7,0:1</div></div>
+            <div class="sys-card"><h3>Arcilla</h3><div class="swatch-large" style="background:#a24e2e"></div><div class="swatch-meta"><span>--clay</span><span>#A24E2E</span></div><div class="swatch-name">Acento editorial · 5,1:1</div></div>
+            <div class="sys-card"><h3>Arena</h3><div class="swatch-large" style="background:#c9a36a"></div><div class="swatch-meta"><span>--sand</span><span>#C9A36A</span></div><div class="swatch-name">Acento gráfico, no texto pequeño</div></div>
+          </div>
+          <div class="sys-grid" style="margin-top:18px;">
+            <div class="sys-card"><h3>Agua</h3><div class="swatch-large" style="background:#1d6a86"></div><div class="swatch-meta"><span>--water</span><span>#1D6A86</span></div><div class="swatch-name">Ríos y cuerpos de agua</div></div>
+            <div class="sys-card"><h3>Inundación</h3><div class="swatch-large" style="background:repeating-linear-gradient(135deg, rgba(23,86,107,.85) 0 1px, rgba(76,147,168,.35) 1px 7px); border:1px solid #17566b"></div><div class="swatch-meta"><span>--flood</span><span>#4C93A8</span></div><div class="swatch-name">Relleno + trama #17566B</div></div>
+            <div class="sys-card"><h3>Límite de cuenca</h3><div class="swatch-large" style="background:#7a3a2b"></div><div class="swatch-meta"><span>--basin</span><span>#7A3A2B</span></div><div class="swatch-name">Línea continua 2,5 px</div></div>
+          </div>
+        </section>
+
+        <section class="sys-section" id="tipografia">
+          <div class="sys-head">
+            <h2>Tipografía</h2>
+            <p class="sys-intro">Newsreader para la voz editorial; Archivo para la interfaz y la cartografía; mono del sistema para identificadores. Escala fluida, prosa a 68ch y cifras tabulares.</p>
+          </div>
+          <div class="type-row"><span class="label">Display · Newsreader</span><span class="type-display">El río que no llega al mar</span></div>
+          <div class="type-row"><span class="label">H1 · 48–70 px</span><span class="type-h1">Cuándo el río sí llegó al mar</span></div>
+          <div class="type-row"><span class="label">H2 · 30–46 px</span><span class="type-h2">La única mancha con geometría oficial</span></div>
+          <div class="type-row"><span class="label">Cuerpo · 17 px / 1.65</span><span class="type-body">La cuenca del río Piura drena 10 938 km² entre los Andes y el desierto de Sechura. En un año normal, el agua muere en la laguna Ramón.</span></div>
+          <div class="type-row"><span class="label">UI · Archivo 12–14 px</span><span class="type-ui">Capas · Leyenda · Fuentes y método · 10 938 km²</span></div>
+          <div class="type-row"><span class="label">Mono · IDs y coordenadas</span><span class="type-mono">ana-subcuencas · 4°33′–6°15′ S · 79°18′–81°27′ O</span></div>
+        </section>
+
+        <section class="sys-section" id="espaciado">
+          <div class="sys-head">
+            <h2>Espaciado y rejilla</h2>
+            <p class="sys-intro">Base de 4 px. Rejilla de 12 columnas, contenedor de 1 240 px, prosa de 68ch y mapas a sangre. Las secciones respiran a 96 px en escritorio y 64 px en móvil.</p>
+          </div>
+          <div class="space-row">
+            <div class="space-item"><div class="space-box" style="height:4px"></div>4</div>
+            <div class="space-item"><div class="space-box" style="height:8px"></div>8</div>
+            <div class="space-item"><div class="space-box" style="height:12px"></div>12</div>
+            <div class="space-item"><div class="space-box" style="height:16px"></div>16</div>
+            <div class="space-item"><div class="space-box" style="height:24px"></div>24</div>
+            <div class="space-item"><div class="space-box" style="height:32px"></div>32</div>
+            <div class="space-item"><div class="space-box" style="height:48px"></div>48</div>
+            <div class="space-item"><div class="space-box" style="height:64px"></div>64</div>
+            <div class="space-item"><div class="space-box" style="height:96px"></div>96</div>
+          </div>
+        </section>
+
+        <section class="sys-section" id="simbolos">
+          <div class="sys-head">
+            <h2>Símbolos del mapa</h2>
+            <p class="sys-intro">La trama de inundación y las formas de línea permiten leer el mapa sin depender solo del color. Los símbolos se repiten en el panel, la leyenda y la ficha.</p>
+          </div>
+          <div class="symbol-row">
+            <div class="symbol-item"><span class="demo line"></span>Límite de cuenca</div>
+            <div class="symbol-item"><span class="demo sub"></span>Subcuencas</div>
+            <div class="symbol-item"><span class="demo river"></span>Red hídrica</div>
+            <div class="symbol-item"><span class="demo flood"></span>Inundación 2017</div>
+            <div class="symbol-item"><span class="demo works"></span>Obras de referencia</div>
+            <div class="symbol-item"><span class="demo cut"></span>Cortes transversales</div>
+            <div class="symbol-item"><span class="demo city"></span>Ciudades</div>
+            <div class="symbol-item"><span class="demo" style="background:#1d6a86;height:18px"></span>Lagunas y salinas</div>
+          </div>
+        </section>
+
+        <section class="sys-section" id="componentes">
+          <div class="sys-head">
+            <h2>Componentes</h2>
+            <p class="sys-intro">Botones de 44 px, estados con forma y etiqueta, figuras con pie y fuente. Sin sombras en tarjetas; una sola sombra funcional para paneles flotantes.</p>
+          </div>
+          <div class="component-row" style="margin-bottom:18px;">
+            <a class="btn btn-primary" href="#">Acción principal <span class="arrow">→</span></a>
+            <a class="btn btn-secondary" href="#">Acción secundaria <span class="arrow">↗</span></a>
+            <a class="btn btn-quiet" href="#">Enlace de lectura <span class="arrow">→</span></a>
+          </div>
+          <div class="component-row" style="margin-bottom:18px;">
+            <span class="status"><span class="mark"></span>dato medido</span>
+            <span class="status derived"><span class="mark"></span>derivado</span>
+            <span class="status documented"><span class="mark"></span>documentado</span>
+            <span class="status interpretation"><span class="mark"></span>interpretación</span>
+            <span class="status pending"><span class="mark"></span>por verificar</span>
+          </div>
+          <div class="sys-grid two">
+            <div class="data-figure"><span class="value">10 938</span><span class="unit">km² medidos</span><span class="label">Superficie de la cuenca</span><span class="source-line">ANA 1:100 000. ANA publica 11 022 km² en Shape_Area.</span></div>
+            <div class="source-sample">
+              <div class="ss-id">copernicus-ems-emsr199</div>
+              <div class="ss-title">Delineación de la inundación de marzo de 2017</div>
+              <div class="ss-meta">Copernicus EMS · 30/03/2017 · 1:76 000–1:80 000 · reutilización con atribución</div>
+              <div class="ss-row"><span class="status available"><span class="mark"></span>disponible</span><span class="status"><span class="mark"></span>dato medido</span></div>
+              <div class="ss-note">La capa publica la unión de observaciones; no es una mancha simultánea.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="sys-section" id="principios">
+          <div class="sys-head">
+            <h2>Principios</h2>
+            <p class="sys-intro">Lo que se conserva y lo que se evita en cada página.</p>
+          </div>
+          <div class="sys-grid two">
+            <div>
+              <h3 style="color:var(--brand);">Sí</h3>
+              <ul class="dont-list">
+                <li><strong>El mapa como lámina.</strong> Ocupa la página; el resto lo acompaña.</li>
+                <li><strong>Jerarquía editorial.</strong> Título, cifra, fuente; sin competir.</li>
+                <li><strong>Reglas finas y materialidad.</strong> Papel, hairlines, numeración de figura.</li>
+                <li><strong>Ausencia declarada.</strong> Si falta el dato, se dice; no se rellena.</li>
+                <li><strong>Movimiento discreto.</strong> Solo para paneles y hojas.</li>
+              </ul>
+            </div>
+            <div>
+              <h3 style="color:var(--clay);">No</h3>
+              <ul class="dont-list">
+                <li>Cuatro tarjetas iguales para todo.</li>
+                <li>Gradientes decorativos, sombras difusas y radios de 12 px.</li>
+                <li>Semáforos rojo/verde para la certeza.</li>
+                <li>Colores de marca usados como colores de datos.</li>
+                <li>Iconos genéricos por todas partes.</li>
+                <li>Paneles que tapan el mapa sin necesidad.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="sys-section" id="accesibilidad" style="border-bottom:0;">
+          <div class="sys-head">
+            <h2>Accesibilidad</h2>
+            <p class="sys-intro">WCAG 2.2 AA: contraste mínimo 4,5:1, foco de 3 px, objetivos táctiles de 44 px, patrones además de color, jerarquía de encabezados, texto alternativo en cada lámina y alternativa textual para el mapa. La automatización no sustituye la prueba manual.</p>
+          </div>
+          <p class="source-line">Contraste medido: tinta/papel 14,8:1 · algarrobo/papel 7,0:1 · gris/papel 5,8:1 · arcilla/papel 5,1:1. La auditoría axe del proyecto no detecta violaciones, pero no evalúa longitud de línea, tablas móviles ni foco en hojas.</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import { withBase } from "../lib/url";
+import "../styles/maqueta.css";
 ---
 
 <Base
@@ -9,73 +10,96 @@ import { withBase } from "../lib/url";
   description="Maqueta 3D del río Piura: la cuenca, el desierto de Sechura y la bahía en un solo bloque. Relieve Copernicus DEM con exageración vertical declarada."
 >
   <main id="main" class="wide">
-    <div class="map-shell">
-      <h1 class="sr-only">La cuenca del río Piura y su salida al mar</h1>
-      <p id="scene-summary" class="sr-only">
-        Maqueta 3D del río Piura con la cuenca, el desierto de Sechura y la bahía.
-        La cresta oscura deriva del límite de cuenca de la ANA. El relieve está
-        exagerado siete veces para que se lea; no es una escala real. El color indica
-        altitud, no vegetación. El río muere en la laguna Ramón, un polígono OSM
-        intermitente que puede estar seco; el agua dibujada es narrativa. Las líneas
-        punteadas son trazos aproximados de rutas históricas de crecida y no son
-        cartografía oficial. Las subcuencas solo aparecen como rótulos; sus límites
-        están en el mapa 2D. Arrastra para girar, usa la rueda para acercar y haz doble
-        clic para reiniciar la vista. Con el foco en la maqueta, las flechas giran,
-        + y − acercan y Home reinicia. El <a href={withBase("/mapa")}>mapa 2D</a> añade
-        la mancha oficial de 2017 y las obras esquemáticas, con capas consultables.
-      </p>
-      <div id="scene" role="application" tabindex="0" aria-label="Maqueta 3D interactiva de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
-      <p id="scene-status" class="scene-status" role="status" aria-live="polite"></p>
+    <div class="maqueta-app">
+      <aside class="maqueta-panel" aria-label="Información de la maqueta">
+        <p class="kicker">Pieza 3D</p>
+        <h1>La cuenca y su salida al mar</h1>
+        <p class="intro">
+          La cuenca, el desierto de Sechura y la bahía en un solo bloque. La cresta
+          oscura deriva del límite de cuenca de la ANA; al oeste y al sur quedan el
+          desierto y el mar.
+        </p>
+        <p class="intro">
+          El río muere en la laguna Ramón. Las líneas punteadas son trazos aproximados
+          de rutas históricas de crecida; no son cartografía oficial.
+        </p>
+        <span class="exag">Exageración vertical ×7</span>
 
-      <aside class="map-panel scene-panel" aria-label="Información de la maqueta" tabindex="0">
-        <h2>La cuenca y su salida al mar</h2>
-        <button id="reset-scene" class="btn-draw scene-reset" type="button">Reiniciar vista</button>
-        <p class="src panel-sources">
-          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM (malla ~140 m)</a> ·
-          Límites: <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a>
-          + <a href={withBase("/fuentes#bajo-piura-derivado")}>Bajo Piura derivado</a> ·
-          Red: <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS v1.0 (HydroSHEDS)</a> ·
-          Agua: <a href={withBase("/fuentes#osm-agua")}>OSM</a> ·
-          Lugares: <a href={withBase("/fuentes#osm-lugares")}>OSM</a>.
-        </p>
-        <p class="src">
-          La <strong>cresta oscura</strong> deriva del límite de cuenca de la ANA.
-          Al oeste y al sur quedan el desierto de Sechura y la bahía.
-        </p>
-        <p class="src">
-          El río muere en la <strong>laguna Ramón</strong>. Las
-          <strong>líneas punteadas</strong> son trazos aproximados de rutas de crecida;
-          no son cartografía oficial.
-        </p>
-        <p class="src">
-          <a href={withBase("/mapa")}>Ver el mapa 2D</a> si prefieres capas consultables
-          o navegación con teclado. <strong>Arrastra</strong> para girar ·
-          <strong>rueda</strong> para acercar · <strong>doble clic</strong> para reiniciar.
-        </p>
-        <ul class="map-legend" aria-label="Leyenda de la maqueta">
-          <li><span class="swatch river"></span> Cauce y red (HydroRIVERS v1.0)</li>
-          <li><span class="swatch flooded"></span> <a href={withBase("/escenarios")}>Rutas históricas (interpretación)</a></li>
-          <li><span class="swatch divide"></span> Límite de cuenca (ANA)</li>
-        </ul>
-        <details class="src">
-          <summary>Fuentes, método y límites</summary>
+        <div class="maqueta-legend">
+          <h2>Cómo leer el bloque</h2>
+          <div class="ramp" role="img" aria-label="Rampa hipsométrica de 0 a 3 000 metros sobre el nivel del mar."></div>
+          <div class="ramp-labels"><span>0 m</span><span>1 000</span><span>2 000</span><span>3 000</span></div>
+          <ul class="legend-list">
+            <li><span class="sym river"></span><span>Cauce y red · HydroRIVERS</span></li>
+            <li><span class="sym route"></span><span>Rutas históricas · interpretación</span></li>
+            <li><span class="sym divide"></span><span>Límite de cuenca · ANA</span></li>
+          </ul>
+        </div>
+
+        <details>
+          <summary>Ficha técnica y límites</summary>
           <ul>
             <li>El color del terreno es una rampa hipsométrica: indica altitud, no vegetación.</li>
             <li>La red es HydroRIVERS v1.0 (~500 m), elevada 45 m para que se lea; no es el cauce exacto.</li>
-            <li>La laguna Ramón es un polígono OSM intermitente y puede estar seca; el agua del modelo es narrativa. Las superficies están a cota simbólica (+25 m).</li>
-            <li>Las rutas punteadas son una interpretación del equipo; no hay una capa oficial publicada. El relato está en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
-            <li>Las subcuencas solo están rotuladas; sus límites están en el <a href={withBase("/mapa")}>mapa 2D</a>.</li>
-            <li>El rótulo de cota «Naciente ~2 700 m» fue retirado: el DEM en esa posición mide ~1 935 m. «Reserva Nacional Illescas» se conserva solo como referencia de lugar, no como límite oficial.</li>
-            <li>Poechos se muestra como punto en el dique; el canal Daniel Escobar es una recta de referencia, no su eje oficial. Los bordes del bloque no son un corte geológico. Están también en el <a href={withBase("/mapa?capa=obras")}>mapa 2D</a>.</li>
-            <li>La maqueta no dibuja la inundación de 2017. Esa capa está en el <a href={withBase("/mapa?capa=inundacion")}>mapa 2D</a> y en <a href={withBase("/escenarios")}>Escenarios</a>.</li>
-            <li>Lugares: OSM; subcuencas: ANA; cuerpos de agua: OSM. Coordenadas aproximadas. Relieve: Copernicus GLO-30 remuestreado a ~140 m.</li>
+            <li>La laguna Ramón es un polígono OSM intermitente; el agua del modelo es narrativa. Las superficies están a cota simbólica (+25 m).</li>
+            <li>Las rutas punteadas son una interpretación del equipo; no hay capa oficial publicada.</li>
+            <li>Las subcuencas solo aparecen como rótulos; sus límites están en el mapa 2D.</li>
+            <li>Poechos es un punto en el dique; el canal Daniel Escobar es una recta de referencia.</li>
+            <li>La maqueta no dibuja la inundación de 2017. Esa capa está en el mapa y en Escenarios.</li>
+            <li>Relieve: Copernicus GLO-30 remuestreado a ~140 m. Bordes del bloque: no son un corte geológico.</li>
           </ul>
         </details>
+
+        <div class="maqueta-actions">
+          <button id="reset-scene" class="btn btn-secondary" type="button">Reiniciar vista <span class="arrow">↺</span></button>
+          <a class="btn btn-primary" href={withBase("/mapa")}>Ver el mapa 2D <span class="arrow">→</span></a>
+          <a class="btn btn-secondary" href={withBase("/escenarios")}>Leer los escenarios <span class="arrow">→</span></a>
+        </div>
+        <p class="source-line" style="margin-top:14px;">
+          Base: <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM</a> · Límites:
+          <a href={withBase("/fuentes#ana-subcuencas")}>ANA 1:100 000</a> · Red:
+          <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS</a> · Agua y lugares:
+          <a href={withBase("/fuentes#osm-agua")}>OpenStreetMap</a>.
+        </p>
+        <p class="source-line">No es una escala real. No es un sistema de alerta ni un pronóstico.</p>
       </aside>
+
+      <div class="maqueta-stage" id="maqueta-stage">
+        <picture class="scene-poster" aria-hidden="true">
+          <source media="(max-width: 900px)" srcset={withBase("/img/hero-maqueta.webp")} type="image/webp" />
+          <img src={withBase("/img/maqueta-key.webp")} width="2400" height="1461" alt="" />
+        </picture>
+
+        <h2 class="sr-only">La cuenca del río Piura y su salida al mar</h2>
+        <p id="scene-summary" class="sr-only">
+          Maqueta 3D del río Piura con la cuenca, el desierto de Sechura y la bahía.
+          La cresta oscura deriva del límite de cuenca de la ANA. El relieve está
+          exagerado siete veces para que se lea; no es una escala real. El color
+          indica altitud, no vegetación. El río muere en la laguna Ramón, un polígono
+          OSM intermitente que puede estar seco; el agua dibujada es narrativa. Las
+          líneas punteadas son trazos aproximados de rutas históricas de crecida y no
+          son cartografía oficial. Arrastra para girar, usa la rueda para acercar y
+          haz doble clic para reiniciar. Con el foco en la maqueta, las flechas giran,
+          + y − acercan y Home reinicia.
+        </p>
+        <div id="scene" role="application" tabindex="0" aria-label="Maqueta 3D interactiva de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
+        <p id="scene-status" class="scene-status" role="status" aria-live="polite">Cargando maqueta…</p>
+
+        <div class="maqueta-note"><strong>Lámina 03</strong> · lectura del relieve</div>
+        <div class="maqueta-controls" aria-label="Controles de la maqueta">
+          <button type="button" data-scene-action="zoom-in" aria-label="Acercar" title="Acercar">+</button>
+          <button type="button" data-scene-action="zoom-out" aria-label="Alejar" title="Alejar">−</button>
+          <button type="button" data-scene-action="reset" aria-label="Reiniciar vista" title="Reiniciar vista">↺</button>
+          <button type="button" data-scene-action="fullscreen" aria-label="Pantalla completa" title="Pantalla completa">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+          </button>
+        </div>
+        <div class="stage-caption">
+          <span><strong>La cuenca, el desierto y la bahía.</strong> Relieve Copernicus DEM, malla ~140 m. Color = altitud; no vegetación.</span>
+          <span>1,6 MB GLB · Draco</span>
+        </div>
+      </div>
     </div>
-    <noscript>
-      <p style="padding: 20px;">La maqueta necesita JavaScript. El <a href={withBase("/mapa")}>mapa</a> funciona igual.</p>
-    </noscript>
   </main>
 </Base>
 
@@ -87,19 +111,21 @@ import { withBase } from "../lib/url";
   import { withBase } from "../lib/url";
 
   const container = document.getElementById("scene")!;
-
+  const stage = document.getElementById("maqueta-stage")!;
+  const status = document.getElementById("scene-status");
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#cdd6d6");
+  scene.background = null;
 
   const camera = new THREE.PerspectiveCamera(38, 1, 100, 3_000_000);
   const renderer = (() => {
     try {
-      return new THREE.WebGLRenderer({ antialias: true });
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setClearColor(0x000000, 0);
+      return renderer;
     } catch (error) {
-      const statusEl = document.getElementById("scene-status");
-      if (statusEl) {
-        statusEl.hidden = false;
-        statusEl.innerHTML =
+      if (status) {
+        status.hidden = false;
+        status.innerHTML =
           `Este navegador no pudo iniciar WebGL. Usa el ` +
           `<a href="${withBase("/mapa")}">mapa 2D</a> para consultar las capas.`;
       }
@@ -107,7 +133,6 @@ import { withBase } from "../lib/url";
     }
   })();
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  // Mismo revelado que el render de origen (Blender usa AgX).
   renderer.toneMapping = THREE.AgXToneMapping;
   renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
@@ -116,27 +141,19 @@ import { withBase } from "../lib/url";
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.maxPolarAngle = Math.PI * 0.49;
-  // Flechas y +/- funcionan cuando el contenedor tiene el foco.
   controls.listenToKeyEvents(container);
 
-  // Sol en la misma posición que la escena de Blender (46°, -42°), con relleno frío.
   scene.add(new THREE.HemisphereLight(0xc8d8e2, 0x8a7f63, 0.45));
   const sun = new THREE.DirectionalLight(0xfff4e0, 3.0);
   sun.position.set(-0.48, 0.70, 0.53).multiplyScalar(1000);
   scene.add(sun);
 
   let model: THREE.Object3D | null = null;
-  const panel = document.querySelector(".map-panel") as HTMLElement | null;
-  const status = document.getElementById("scene-status");
-  if (status) status.textContent = "Cargando maqueta…";
   const lastSize = { w: 0, h: 0 };
 
   function frame(object: THREE.Object3D) {
     object.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(object);
-
-    // Las placas de las etiquetas agrandan la caja: se encuadra el terreno,
-    // pero se mantienen las etiquetas dentro del margen.
     const terrain = new THREE.Box3();
     object.traverse((child) => {
       const mesh = child as THREE.Mesh;
@@ -148,13 +165,9 @@ import { withBase } from "../lib/url";
     });
     const terrainBox = terrain.isEmpty() ? box : terrain;
     const center = terrainBox.getCenter(new THREE.Vector3());
-    // La placa se proyecta por debajo del centro geométrico al inclinar la
-    // cámara; se apunta un poco más abajo para centrar la masa visible.
     const target = center.clone();
     target.y -= (terrainBox.max.y - terrainBox.min.y) * 0.28;
 
-    // Encuadre ajustado a la cámara: proyecto las esquinas del bloque sobre
-    // los ejes de la vista en vez de usar una esfera conservadora.
     const dir = new THREE.Vector3(-0.55, 0.62, 0.85).normalize();
     const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), dir).normalize();
     const up = new THREE.Vector3().crossVectors(dir, right).normalize();
@@ -169,51 +182,26 @@ import { withBase } from "../lib/url";
       halfW = Math.max(halfW, Math.abs(corner.dot(right)));
       halfH = Math.max(halfH, Math.abs(corner.dot(up)));
     }
-
     const vFov = THREE.MathUtils.degToRad(camera.fov);
     const distH = halfH / Math.tan(vFov / 2);
     const distW = halfW / (Math.tan(vFov / 2) * camera.aspect);
-    const dist = Math.max(distH, distW) * 1.08;
-
+    const dist = Math.max(distH, distW) * 1.16;
     camera.position.copy(target).addScaledVector(dir, dist);
     camera.lookAt(target);
     camera.near = Math.max(dist / 1000, 0.1);
     camera.far = dist * 40;
     camera.updateProjectionMatrix();
-
     controls.target.copy(target);
     controls.update();
   }
 
-  // La maqueta ocupa solo el área que deja libre el panel, igual que el mapa.
   function layout() {
-    const fullW = container.clientWidth;
-    const fullH = container.clientHeight;
-    if (!fullW || !fullH) return;
-
-    const narrow = fullW <= 720;
-    let left = 0;
-    let top = 0;
-    let w = fullW;
-    let h = fullH;
-    if (panel) {
-      if (narrow) {
-        top = Math.min(panel.offsetTop + panel.offsetHeight + 12, fullH * 0.62);
-        h = Math.max(fullH - top, fullH * 0.3);
-      } else {
-        left = panel.offsetLeft + panel.offsetWidth + 12;
-        w = Math.max(fullW - left, fullW * 0.4);
-      }
-    }
-
-    const style = renderer.domElement.style;
-    style.position = "absolute";
-    style.left = `${left}px`;
-    style.top = `${top}px`;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (!w || !h) return;
     renderer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-
     const changed = Math.abs(w - lastSize.w) > 1 || Math.abs(h - lastSize.h) > 1;
     lastSize.w = w;
     lastSize.h = h;
@@ -227,15 +215,14 @@ import { withBase } from "../lib/url";
   };
   const observer = new ResizeObserver(scheduleLayout);
   observer.observe(container);
-  if (panel) observer.observe(panel);
   layout();
 
-  // Los rótulos del modelo están orientados a una cámara fija. Se les añade un
-  // pivote y se giran solo en horizontal: así miran al visitante sin perder la
-  // inclinación que los mantiene por encima del terreno.
   type LabelPivot = { pivot: THREE.Group; base: THREE.Vector3; yaw0: number };
   const labels: LabelPivot[] = [];
   const _q = new THREE.Quaternion();
+  const keyLabels = [
+    "Piura", "Sechura", "Paita", "Chulucanas", "Tambogrande", "Represa_de_Poechos",
+  ];
 
   const draco = new DRACOLoader();
   draco.setDecoderPath(withBase("/draco/"));
@@ -249,31 +236,29 @@ import { withBase } from "../lib/url";
       model = root;
       scene.add(root);
       scene.updateMatrixWorld(true);
-      // Se recogen primero y se recolocan después: no se puede mutar el árbol
-      // mientras se recorre.
       const found: THREE.Object3D[] = [];
       root.traverse((child) => {
-        // Rótulo retirado: la cota 2 700 m no coincide con el DEM en esa posición.
         if (child.name.includes("Naciente")) {
           child.visible = false;
           return;
         }
-        if (child.name.startsWith("GEO-Etiqueta")) found.push(child);
+        if (!child.name.startsWith("GEO-Etiqueta")) return;
+        const base = child.name.replace(/^GEO-Etiqueta-/, "").replace(/-(placa|texto)(_\d+)?$/, "");
+        if (!keyLabels.includes(base)) {
+          child.visible = false;
+          return;
+        }
+        found.push(child);
       });
       const pivots = new Map<string, LabelPivot>();
       for (const child of found) {
-        // La placa y el texto de un mismo rótulo comparten posición: un solo pivote.
-        const key = child.name.replace(/-(placa|texto)$/, "");
+        const key = child.name.replace(/-(placa|texto)(_\d+)?$/, "");
         let entry = pivots.get(key);
         if (!entry) {
           const world = child.getWorldPosition(new THREE.Vector3());
           const pivot = new THREE.Group();
-          // El pivote queda dentro del modelo para que el encuadre siga contando
-          // las placas. La raíz glTF no trae rotación; si la trajera, este yaw
-          // habría que convertirlo al espacio local.
           pivot.position.copy(root.worldToLocal(world.clone()));
           root.add(pivot);
-          // En glTF (Y-up) el frontal de la placa es +Y: la geometría está en XZ.
           const n = new THREE.Vector3(0, 1, 0).applyQuaternion(child.getWorldQuaternion(_q));
           entry = { pivot, base: world, yaw0: Math.atan2(n.x, n.z) };
           pivots.set(key, entry);
@@ -283,18 +268,28 @@ import { withBase } from "../lib/url";
       }
       layout();
       frame(root);
+      stage.classList.add("is-loaded");
       if (status) status.hidden = true;
       animate();
     },
-    undefined,
+    (event) => {
+      if (!status) return;
+      status.hidden = false;
+      if (event.total) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        status.textContent = `Cargando maqueta… ${percent}%`;
+      } else {
+        status.textContent = "Cargando maqueta…";
+      }
+    },
     () => {
       if (!status) return;
+      status.hidden = false;
       status.textContent = "No se pudo cargar la maqueta. ";
       const link = document.createElement("a");
       link.href = withBase("/mapa");
       link.textContent = "Usa el mapa 2D";
-      status.append(link);
-      status.hidden = false;
+      status.appendChild(link);
     },
   );
 
@@ -302,11 +297,40 @@ import { withBase } from "../lib/url";
     if (model) frame(model);
   };
   renderer.domElement.addEventListener("dblclick", resetView);
+
+  function zoomBy(factor: number) {
+    const offset = camera.position.clone().sub(controls.target).multiplyScalar(factor);
+    camera.position.copy(controls.target).add(offset);
+    controls.update();
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-scene-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.sceneAction;
+      if (action === "zoom-in") zoomBy(0.8);
+      if (action === "zoom-out") zoomBy(1.25);
+      if (action === "reset") resetView();
+      if (action === "fullscreen") {
+        if (!document.fullscreenElement) stage.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+    });
+  });
+
   document.getElementById("reset-scene")?.addEventListener("click", resetView);
+
   container.addEventListener("keydown", (event) => {
     if (event.key === "Home" || event.key === "0") {
       event.preventDefault();
       resetView();
+    }
+    if (event.key === "+" || event.key === "=") {
+      event.preventDefault();
+      zoomBy(0.8);
+    }
+    if (event.key === "-" || event.key === "_") {
+      event.preventDefault();
+      zoomBy(1.25);
     }
   });
 

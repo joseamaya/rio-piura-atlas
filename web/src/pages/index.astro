@@ -1,73 +1,259 @@
 ---
 import Base from "../layouts/Base.astro";
 import { withBase } from "../lib/url";
+import fs from "node:fs";
+import yaml from "js-yaml";
+import pkg from "../../package.json";
+import "../styles/home.css";
+
+const version = (pkg as { version?: string }).version ?? "sin versión";
+const sourcesFile = new URL("../../../data/sources.yml", import.meta.url);
+const sourcesData = yaml.load(fs.readFileSync(sourcesFile, "utf8")) as {
+  fuentes: Array<{ estado: string }>;
+};
+const sources = sourcesData.fuentes;
+const counts = {
+  total: sources.length,
+  disponible: sources.filter((f) => f.estado === "disponible").length,
+  porSolicitar: sources.filter((f) => f.estado === "por_solicitar").length,
+  porVerificar: sources.filter((f) => f.estado === "por_verificar").length,
+};
 ---
 
 <Base
   title="Atlas de la cuenca del río Piura"
   current="inicio"
   description="Atlas interactivo y documentado de la cuenca del río Piura: mapa, relieve 3D, cortes transversales, escenarios históricos y fuentes."
+  image="/img/mapa-crop.jpg"
 >
-  <main id="main">
-    <p class="eyebrow">Atlas documentado · Piura, Perú</p>
-    <h1>El río que no llega al mar</h1>
-    <p class="lead">
-      La cuenca del río Piura drena 10 939 km² medidos sobre el polígono de la ANA
-      (11 022 km² en el campo Shape_Area de la fuente, calculado en otra proyección).
-      En un año normal el agua muere en la Laguna Ramón; en episodios extraordinarios
-      documentados, como 1983, el río ha llegado al mar. Este atlas reúne lo que se
-      sabe, con la fuente de cada dato a la vista.
-    </p>
+  <main id="main" class="wide home-main">
+    <div class="container">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="kicker">Atlas documentado · Piura, Perú</p>
+          <h1 id="hero-title">El río que no llega al mar</h1>
+          <figure class="hero-figure hero-figure-mobile">
+            <div class="hero-coord"><span>4°33′–6°15′ S</span><span>79°18′–81°27′ O</span></div>
+            <img src={withBase("/img/hero-maqueta.webp")} width="2200" height="1339" alt="Bloque 3D de la cuenca del río Piura con la cordillera, el desierto y la bahía." />
+            <figcaption><span class="fig">Lámina 01</span>La cuenca como bloque. Relieve Copernicus DEM ~140 m; exageración vertical ×7.</figcaption>
+          </figure>
+          <p class="lead">
+            La cuenca del río Piura drena <strong>10 938 km²</strong> entre los Andes
+            y el desierto de Sechura. En un año normal, el agua muere en la laguna
+            Ramón; en episodios extraordinarios, como 1983, el río llegó al mar.
+          </p>
+          <p class="sublead">
+            Un atlas para leer el territorio, las inundaciones documentadas y la
+            fuente de cada dato. No es un sistema de alerta ni un pronóstico.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href={withBase("/mapa")}>Explorar el mapa <span class="arrow">→</span></a>
+            <a class="btn btn-secondary" href={withBase("/maqueta")}>Ver la maqueta 3D <span class="arrow">↗</span></a>
+          </div>
+          <div class="hero-meta">
+            <span><span class="dot"></span>{counts.total} fuentes registradas</span>
+            <span>{counts.disponible} disponibles</span>
+            <span>Versión {version}</span>
+          </div>
+        </div>
 
-    <div class="cards">
-      <a class="card" href={withBase("/mapa")}>
-        <span class="tag">Explorar</span>
-        <h3>Mapa de la cuenca</h3>
-        <p>Relieve real, subcuencas oficiales, red hídrica, inundación de 2017, referencias de obras y cortes transversales.</p>
-      </a>
-      <a class="card" href={withBase("/maqueta")}>
-        <span class="tag">3D</span>
-        <h3>Maqueta</h3>
-        <p>La cuenca, el desierto y el mar en un solo bloque, con exageración vertical declarada.</p>
-      </a>
-      <a class="card" href={withBase("/escenarios")}>
-        <span class="tag">Historia</span>
-        <h3>Escenarios</h3>
-        <p>Qué se documentó de 1891, 1983, 1998 y 2017, con una nota sobre 2023. Documentado, no pronosticado.</p>
-      </a>
-      <a class="card" href={withBase("/fuentes")}>
-        <span class="tag">Trazabilidad</span>
-        <h3>Fuentes</h3>
-        <p>Cada capa con su institución, escala, fecha y licencia.</p>
-      </a>
+        <div class="hero-visual">
+          <div class="hero-coord"><span>4°33′–6°15′ S</span><span>79°18′–81°27′ O</span></div>
+          <figure class="hero-figure">
+            <img src={withBase("/img/hero-maqueta.webp")} width="2200" height="1339" alt="Bloque 3D de la cuenca del río Piura: la cordillera al este, la llanura costera, el desierto de Sechura y la bahía al oeste, con el cauce del río y sus subcuencas." />
+            <figcaption>
+              <span class="fig">Lámina 01</span>
+              La cuenca como bloque: relieve Copernicus DEM, malla de trabajo ~140 m.
+              Exageración vertical ×7; el color indica altitud, no vegetación.
+              Render de la maqueta existente; no es una escala real.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
     </div>
 
-    <h2>Qué es y qué no es</h2>
-    <p>
-      Es un <strong>atlas</strong>: explica el territorio y muestra lo que está
-      documentado. No es un sistema de alerta, no pronostica, no calcula manchas de
-      inundación nuevas y no reemplaza a SENAMHI, ANA, INDECI ni al ENFEN.
-    </p>
-
-    <div class="note">
-      <strong>Regla del proyecto:</strong> lo que no tiene fuente, no se dibuja. Lo que
-      es interpretación, se marca como tal. Si un dato no existe públicamente, se dice.
+    <div class="container">
+      <section class="figures-strip" aria-label="Cifras del territorio">
+        <div class="data-figure">
+          <span class="value">10 938</span>
+          <span class="unit">km² medidos</span>
+          <span class="label">Superficie de la cuenca</span>
+          <span class="source-line">ANA 1:100 000. ANA publica 11 022 km² en Shape_Area, calculado en otra proyección. <a href={withBase("/fuentes#ana-subcuencas")}>Fuente</a>.</span>
+        </div>
+        <div class="data-figure">
+          <span class="value">8 + 1</span>
+          <span class="unit">unidades</span>
+          <span class="label">Subcuencas ANA + Bajo Piura derivado</span>
+          <span class="source-line">«Bajo Piura» es el resto de la cuenca, no una subcuenca oficial nueva. <a href={withBase("/fuentes#bajo-piura-derivado")}>Método</a>.</span>
+        </div>
+        <div class="data-figure">
+          <span class="value">0,4 <small>‰</small></span>
+          <span class="label">Pendiente en los últimos 130 km</span>
+          <span class="source-line">Cálculo del atlas sobre ANA + Copernicus DEM. La media de la cuenca es 8,7 ‰. <a href={withBase("/fuentes#copernicus-dem-30")}>Base</a>.</span>
+        </div>
+        <div class="data-figure">
+          <span class="value">4 424</span>
+          <span class="unit">m³/s</span>
+          <span class="label">Caudal máximo instantáneo · 1998</span>
+          <span class="source-line">Puente Sánchez Cerro. La fuente discrepa entre el 12 y el 16 de marzo. <a href={withBase("/fuentes#siar-piura")}>SIAR</a>.</span>
+        </div>
+      </section>
     </div>
 
-    <h2>Tres cosas que se ven en el mapa</h2>
-    <p>
-      <strong>1.</strong> La cuenca tiene ocho subcuencas oficiales y un «Bajo Piura»
-      derivado, con una pendiente que se desploma: 8,7 ‰ de media, pero 0,4 ‰ en los
-      últimos 130 km.
-    </p>
-    <p>
-      <strong>2.</strong> El área de descarga (Ramón, Ñapique, La Niña, Las Salinas) queda
-      fuera del polígono oficial de cuenca: es la zona donde el río termina sin mar.
-    </p>
-    <p>
-      <strong>3.</strong> El caudal permanente no es natural: llega por el trasvase desde
-      la cuenca del Chira, desde la represa de Poechos
-      (<a href={withBase("/fuentes#pechp-infraestructura")}>PECHP</a>).
-    </p>
+    <div class="container section" id="indice">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Índice del atlas</p>
+          <h2>Cuatro formas de entrar</h2>
+        </div>
+        <p>Del mapa al documento: explora el territorio, mira el relieve, lee lo que pasó y comprueba de dónde sale cada dato.</p>
+      </div>
+
+      <div class="index-grid">
+        <a class="entry entry-map" href={withBase("/mapa")}>
+          <div class="entry-media"><img src={withBase("/img/mapa-crop.jpg")} width="1400" height="1113" alt="Mapa de la cuenca del río Piura con el límite ANA, las subcuencas, la red hídrica y la mancha de 2017 en la llanura baja." loading="lazy" /></div>
+          <div class="entry-top"><span class="index-no">01 · Explorar</span><span class="entry-arrow">→</span></div>
+          <h3 class="entry-title">Mapa de la cuenca</h3>
+          <p class="entry-text">Relieve, subcuencas, red hídrica, lagunas, inundación de 2017, obras de referencia y cortes transversales. Cada capa con su ficha.</p>
+        </a>
+
+        <a class="entry entry-maqueta" href={withBase("/maqueta")}>
+          <div class="entry-media"><img src={withBase("/img/hero-maqueta.webp")} width="2200" height="1339" alt="Maqueta 3D de la cuenca en la que se distingue la cordillera, el desierto y la bahía." loading="lazy" /></div>
+          <div class="entry-top"><span class="index-no">02 · Ver en 3D</span><span class="entry-arrow">↗</span></div>
+          <h3 class="entry-title">La cuenca en un bloque</h3>
+          <p class="entry-text">El desierto, los Andes y el mar en una sola pieza. Exageración vertical declarada y lectura de altitud, no de vegetación.</p>
+        </a>
+
+        <a class="entry entry-escenarios" href={withBase("/escenarios")}>
+          <div class="entry-media"><img src={withBase("/img/flood-plate.jpg")} width="1400" height="1642" alt="Detalle de la inundación de marzo de 2017 en la llanura baja del río Piura, con la trama de observaciones y el límite de cuenca." loading="lazy" /></div>
+          <div class="entry-top"><span class="index-no">03 · Leer la historia</span><span class="entry-arrow">→</span></div>
+          <h3 class="entry-title">Cuándo el río llegó al mar</h3>
+          <p class="entry-text">1891, 1983, 1998, 2017 y 2023. Escenarios documentados, no pronósticos: lo que se sabe y lo que todavía falta.</p>
+        </a>
+
+        <a class="entry entry-fuentes" href={withBase("/fuentes")}>
+          <div class="source-sample" aria-hidden="true">
+            <div class="ss-id">ana-subcuencas</div>
+            <div class="ss-title">Unidades Hidrográficas del Perú (Pfafstetter)</div>
+            <div class="ss-meta">Autoridad Nacional del Agua · 1:100 000 · dato público</div>
+            <div class="ss-row"><span class="status available"><span class="mark"></span>disponible</span><span class="status"><span class="mark"></span>dato medido</span></div>
+            <div class="ss-note">Ocho subcuencas oficiales; Bajo Piura es una unidad derivada y se atribuye al atlas.</div>
+          </div>
+          <div class="entry-top"><span class="index-no">04 · Verificar</span><span class="entry-arrow">→</span></div>
+          <h3 class="entry-title">De dónde sale cada dato</h3>
+          <p class="entry-text">{counts.total} fuentes con institución, escala, fecha, licencia, método y estado. {counts.disponible} disponibles; las pendientes se declaran y no se dibujan.</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="container section" id="alcance">
+      <div class="what-grid">
+        <div>
+          <p class="kicker">Qué es este atlas</p>
+          <h2>Una interpretación trazable, no un mapa oficial</h2>
+          <p>
+            Reúne la cuenca, su relieve, su red hídrica y los eventos documentados
+            con una regla simple: lo que no tiene fuente, no se dibuja. Cada capa,
+            cifra y rótulo apunta a una ficha consultable.
+          </p>
+          <p>
+            Está pensado para docentes, periodistas, gestores y cualquier persona
+            que necesite entender el río Piura sin ser especialista.
+          </p>
+          <p class="rule-quote">«Lo que es interpretación se marca como tal. Si un dato no existe públicamente, se dice.»</p>
+        </div>
+        <div class="is-not">
+          <h3>Lo que no es</h3>
+          <ul>
+            <li><span><strong>No es un sistema de alerta.</strong> No emite avisos ni usa datos en tiempo real.</span></li>
+            <li><span><strong>No es un modelo hidráulico.</strong> No calcula tirantes ni manchas nuevas.</span></li>
+            <li><span><strong>No es cartografía oficial.</strong> Es una lectura de fuentes públicas a escala 1:100 000.</span></li>
+            <li><span><strong>No reemplaza</strong> a SENAMHI, ANA, INDECI ni al ENFEN.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container section" id="lecturas">
+      <div class="section-head">
+        <div>
+          <p class="kicker">Tres lecturas del territorio</p>
+          <h2>Lo que el mapa permite ver</h2>
+        </div>
+        <p>Tres ideas que explican por qué el Piura no llega al mar en un año normal. Ninguna reemplaza la ficha de la capa.</p>
+      </div>
+
+      <div class="readings">
+        <article class="reading">
+          <div class="reading-head"><span class="reading-no">01</span><h3>Ocho subcuencas y un resto derivado</h3></div>
+          <div class="reading-visual">
+            <img src={withBase("/img/mini-cuenca.svg")} width="1200" height="900" alt="La cuenca del río Piura con sus ocho subcuencas oficiales y el Bajo Piura derivado; la red hídrica y los cuerpos de agua." loading="lazy" />
+          </div>
+          <p>La capa oficial de ANA trae ocho subcuencas. «Bajo Piura» es el resto de la cuenca, calculado antes de simplificar: no es una delimitación oficial nueva.</p>
+          <a class="btn-quiet" href={withBase("/mapa")}>Ver la partición en el mapa <span class="arrow">→</span></a>
+        </article>
+
+        <article class="reading">
+          <div class="reading-head"><span class="reading-no">02</span><h3>Una pendiente que se desploma</h3></div>
+          <div class="reading-visual bars" role="img" aria-label="La pendiente media de la cuenca es de 8,7 milésimas y baja a 0,4 milésimas en los últimos 130 kilómetros.">
+            <div class="bar"><span class="bar-val">8,7</span><span class="bar-fill" style="height: 88%;"></span><span class="bar-lab">‰ media<br />de la cuenca</span></div>
+            <div class="bar"><span class="bar-val">0,4</span><span class="bar-fill" style="height: 4%;"></span><span class="bar-lab">‰ en los últimos<br />130 km</span></div>
+          </div>
+          <p>La pendiente se desploma en la llanura: el agua se extiende y se estanca; el cauce muere en Ramón antes de llegar al océano.</p>
+          <a class="btn-quiet" href={withBase("/fuentes#copernicus-dem-30")}>Ver la base del cálculo <span class="arrow">→</span></a>
+        </article>
+
+        <article class="reading">
+          <div class="reading-head"><span class="reading-no">03</span><h3>El trasvase que sostiene el valle</h3></div>
+          <div class="reading-visual">
+            <div class="schematic" role="img" aria-label="Esquema conceptual del trasvase desde la cuenca del Chira, por la represa de Poechos, hacia el valle del Piura.">
+              <div class="schematic-row">
+                <div class="schematic-box"><strong>Chira</strong>cuenca vecina</div>
+                <div class="schematic-arrow">→</div>
+                <div class="schematic-box"><strong>Poechos</strong>represa y trasvase</div>
+              </div>
+              <div class="schematic-row" style="grid-template-columns: 1fr;">
+                <div class="schematic-box" style="border-color: var(--brand); color: var(--brand);"><strong>Piura</strong>caudal permanente</div>
+              </div>
+              <p class="schematic-note">Esquema conceptual; no es geometría ni una obra a escala.</p>
+            </div>
+          </div>
+          <p>El caudal permanente del valle no es natural: llega por el trasvase desde la cuenca del Chira, regulado en Poechos. El canal Daniel Escobar solo se dibuja como referencia.</p>
+          <a class="btn-quiet" href={withBase("/fuentes#pechp-infraestructura")}>Ver la ficha de la obra <span class="arrow">→</span></a>
+        </article>
+      </div>
+    </div>
+
+    <div class="container section" id="metodo">
+      <div class="method-grid">
+        <div>
+          <p class="kicker">Método y trazabilidad</p>
+          <h2>Cada capa tiene una ficha</h2>
+          <p>
+            El registro maestro reúne institución, escala, fecha, licencia, método
+            y grado de certeza. Las fuentes que faltan se declaran: no se rellenan
+            con una geometría inventada.
+          </p>
+          <div class="method-stats">
+            <div class="method-stat"><div class="v">{counts.total}</div><div class="l">fuentes</div></div>
+            <div class="method-stat"><div class="v">{counts.disponible}</div><div class="l">disponibles</div></div>
+            <div class="method-stat"><div class="v">{counts.porSolicitar}</div><div class="l">por solicitar</div></div>
+            <div class="method-stat"><div class="v">{counts.porVerificar}</div><div class="l">por verificar</div></div>
+          </div>
+          <div class="method-actions">
+            <a class="btn btn-primary" href={withBase("/fuentes")}>Ver las fuentes <span class="arrow">→</span></a>
+            <a class="btn btn-secondary" href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/03-metodologia.md" target="_blank" rel="noopener">Leer la metodología <span class="arrow">↗</span></a>
+          </div>
+        </div>
+        <div class="source-sample" aria-label="Ejemplo de ficha de fuente">
+          <div class="ss-id">copernicus-ems-emsr199</div>
+          <div class="ss-title">Delineación de la inundación de marzo de 2017 (EMSR199, AOI10 y AOI11)</div>
+          <div class="ss-meta">Copernicus Emergency Management Service / Comisión Europea · 30/03/2017 · 1:76 000–1:80 000 · reutilización con atribución</div>
+          <div class="ss-row"><span class="status available"><span class="mark"></span>disponible</span><span class="status"><span class="mark"></span>dato medido</span></div>
+          <div class="ss-note">La capa publica la unión de las observaciones del 26 y 30 de marzo; no es una mancha simultánea. En AOI10, 56 772 km² se observaron en ambas fechas.</div>
+          <p class="source-line" style="margin-top:12px;"><a href={withBase("/fuentes#copernicus-ems-emsr199")}>Abrir la ficha completa →</a></p>
+        </div>
+      </div>
+    </div>
   </main>
 </Base>

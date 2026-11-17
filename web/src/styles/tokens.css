@@ -1,0 +1,95 @@
+/* ============================================================
+   Río Piura Atlas — tokens de «Lámina y margen»
+   ============================================================ */
+
+:root {
+  /* Papel y tinta */
+  --paper: #f5f1e6;
+  --paper-2: #eae3d3;
+  --paper-3: #fbf8f0;
+  --ink: #16201e;
+  --ink-2: #2b3733;
+  --muted: #55605b;
+  --line: #d5cebd;
+  --line-strong: #b9b09c;
+
+  /* Marca */
+  --brand: #1c5b52;
+  --brand-strong: #123e38;
+  --clay: #a24e2e;
+  --sand: #c9a36a;
+
+  /* Territorio (semántico; no se usa como color de interfaz) */
+  --water: #1d6a86;
+  --water-deep: #134e63;
+  --flood: #4c93a8;
+  --flood-deep: #17566b;
+  --basin: #7a3a2b;
+  --sub: #6f6555;
+  --works: #b26a2c;
+  --warn: #8a5a1f;
+  --ok: #2f6248;
+
+  /* Alias de compatibilidad con la interfaz anterior (mapa y maqueta) */
+  --accent: var(--brand);
+  --accent-2: var(--brand-strong);
+  --ink-soft: var(--muted);
+  --radius: 2px;
+  --max: 1080px;
+
+  /* Tipografía */
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-ui: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --fs-display: clamp(3.05rem, 6.4vw, 6.2rem);
+  --fs-h1: clamp(2.5rem, 4.8vw, 4.4rem);
+  --fs-h2: clamp(1.85rem, 3.1vw, 2.9rem);
+  --fs-h3: clamp(1.2rem, 1.6vw, 1.45rem);
+  --fs-lead: clamp(1.1rem, 1.45vw, 1.35rem);
+  --fs-body: 1.0625rem;
+  --fs-small: 0.875rem;
+  --fs-caption: 0.8125rem;
+  --fs-label: 0.6875rem;
+  --lh-display: 0.98;
+  --lh-title: 1.06;
+  --lh-body: 1.65;
+
+  /* Espaciado: base 4 px */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 40px;
+  --s9: 48px;
+  --s10: 64px;
+  --s11: 80px;
+  --s12: 96px;
+  --s13: 128px;
+  --section: clamp(64px, 8vw, 112px);
+
+  /* Medidas */
+  --container: 1240px;
+  --text: 68ch;
+  --header-h: 64px;
+  --hairline: 1px solid var(--line);
+  --focus: var(--brand);
+
+  --shadow-panel: 0 18px 48px rgba(22, 32, 30, 0.16), 0 1px 0 rgba(22, 32, 30, 0.05);
+  --shadow-plate: 0 24px 60px rgba(22, 32, 30, 0.12);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 180ms;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-display: clamp(2.6rem, 13.5vw, 4rem);
+    --fs-h1: clamp(2.2rem, 10.5vw, 3.2rem);
+    --fs-h2: clamp(1.65rem, 7.5vw, 2.2rem);
+    --header-h: 56px;
+  }
+}

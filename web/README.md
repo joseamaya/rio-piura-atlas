@@ -30,10 +30,18 @@ web/
 │   │   ├── maqueta.astro      # diorama 3D
 │   │   └── fuentes.astro      # catálogo generado desde data/sources.yml
 │   ├── layouts/Base.astro
-│   └── styles/global.css
+│   ├── fonts/                 # Newsreader y Archivo (OFL 1.1)
+│   ├── styles/
+│   │   ├── tokens.css         # color, tipografía y espaciado
+│   │   ├── base.css           # reset, prosa y estructura
+│   │   ├── components.css     # cabecera, pie, botones y estados
+│   │   ├── home.css           # portada
+│   │   ├── map.css            # mapa interactivo
+│   │   └── global.css         # maqueta y estilos heredados
 └── public/
     ├── data/                  # GeoJSON, relieve JPG y malla de elevación
     ├── draco/                 # decodificador Draco (Apache 2.0)
+    ├── img/                   # láminas y recortes de la portada
     └── models/                # piura.glb (Draco, ~1,6 MB)
 ```
 
@@ -62,6 +70,23 @@ El GLB se genera en el proyecto Blender hermano
 - El mapa carga la mancha de 2017 solo al activar la capa (o con
   `?capa=inundacion`) y la malla de elevación solo al pulsar «Dibujar un corte».
 
+## Tipografías
+
+Newsreader y Archivo se autoalojan en `src/fonts/` bajo SIL Open Font License
+1.1. No hay peticiones a Google Fonts. Los textos de licencia están en la misma
+carpeta y la procedencia en [`../LICENSES/TIPOGRAFIA.md`](../LICENSES/TIPOGRAFIA.md).
+
+## Estado de UI-01
+
+El rediseño «Lámina y margen» está aplicado a los fundamentos (tokens,
+tipografía, cabecera, pie y componentes), la portada, el mapa, Escenarios,
+Fuentes y la maqueta 3D. El mapa usa panel en el layout, leyenda contextual,
+ficha lateral, hojas móviles, encuadre del Bajo Piura y nueva simbología del agua
+y la inundación. Fuentes dejó las tablas y usa registros con filtros. La maqueta
+conserva su interacción Three.js y ahora se presenta como espécimen editorial. La propuesta completa está en
+[`../docs/ui/`](../docs/ui/) y los mockups en
+[`../design-proposal/`](../design-proposal/).
+
 ## Presupuesto de rendimiento
 
 - Portada y páginas de texto: carga inicial < 1 MB.
@@ -70,7 +95,7 @@ El GLB se genera en el proyecto Blender hermano
 - `/maqueta`: 1,6 MB de GLB, ~250 kB de decodificador Draco y Three.js; se asume como
   excepción y no contamina la carga de las demás páginas.
 - Mapa utilizable en 4G en menos de 3 s.
-- Sin fuentes externas bloqueantes.
+- Sin fuentes externas bloqueantes: las tipografías se autoalojan (~165 kB en total).
 - Funciona sin JavaScript para leer los textos.
 
 La malla de elevación pesa ~443 kB y se descarga a demanda. El modelo 3D pesa 1,6 MB
