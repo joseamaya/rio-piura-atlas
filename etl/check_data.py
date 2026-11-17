@@ -26,21 +26,21 @@ try:  # Ejecución como módulo (`python -m etl.check_data`)
     from etl.topology import (
         Tolerances,
         as_polygonal,
+        audit_components,
         audit_partition,
         geodesic_area_km2,
         inspect_geometry,
         metric_area_km2,
-        repair_to_polygonal,
     )
 except ModuleNotFoundError:  # Ejecución directa (`python etl/check_data.py`)
     from topology import (
         Tolerances,
         as_polygonal,
+        audit_components,
         audit_partition,
         geodesic_area_km2,
         inspect_geometry,
         metric_area_km2,
-        repair_to_polygonal,
     )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -132,6 +132,21 @@ def report_geometry_audit(prefix: str, audit) -> None:
                 f" de tipos {', '.join(audit.discarded_types)}"
             )
         aviso(f"{label}: {detail}")
+
+
+def report_component_audit(prefix: str, component_audit) -> None:
+    """Reporta la auditoría de componentes antes de la unión."""
+    if component_audit is None:
+        return
+    add_findings(component_audit.findings, prefix)
+    compound = component_audit.compound_audit
+    if compound is None:
+        return
+    label = f"{prefix}: {compound.name}".strip()
+    if compound.empty:
+        error(f"{label}: la geometría compuesta quedó vacía")
+    elif not compound.valid:
+        error(f"{label}: la geometría compuesta es inválida: {compound.reason}")
 
 
 def cargar_json(path: Path):
@@ -382,10 +397,12 @@ def check_layer_fuentes(ids: dict[str, dict]):
 
 
 def _geometry_from_record(record, label: str):
-    """Reconstruye la geometría cruda y su auditoría, sin reparar primero.
+    """Reconstruye la geometría auditando cada componente antes de unirlos.
 
-    Devuelve ``(geometría_reparada, auditoría)``. La auditoría conserva si el
-    registro original era válido y qué se hizo para poder medirlo.
+    Devuelve ``(geometría_compuesta, auditoría_de_componentes)``. La auditoría
+    conserva la validez de cada polígono original, los solapamientos, los
+    contactos, las reparaciones y los componentes descartados. La unión solo se
+    construye después de esa inspección.
     """
     if not record:
         return None, None
@@ -405,10 +422,15 @@ def _geometry_from_record(record, label: str):
         error(f"{label}: no se pudo construir la geometría: {exc}")
         return None, None
     if not parts:
+        error(f"{label}: el registro no contiene polígonos")
         return None, None
-    merged = parts[0] if len(parts) == 1 else unary_union(parts)
-    fixed, audit = repair_to_polygonal(merged, label, allow_repair=True)
-    return fixed, audit
+    component_audit = audit_components(
+        parts,
+        label,
+        TOPOLOGY_TOLERANCES,
+        allow_repair=True,
+    )
+    return component_audit.compound_geometry, component_audit
 
 
 def check_raw_limits():
@@ -417,8 +439,8 @@ def check_raw_limits():
         return None
     if not data.get("metodo"):
         error("limits.json: falta el método de construcción")
-    basin, basin_audit = _geometry_from_record(data, "cuenca")
-    report_geometry_audit("limits.json", basin_audit)
+    basin, basin_components = _geometry_from_record(data, "cuenca")
+    report_component_audit("limits.json", basin_components)
     if basin is None:
         error("limits.json: no se pudo reconstruir la cuenca")
         return data
@@ -427,16 +449,31 @@ def check_raw_limits():
     if len(subs) != 9:
         error(f"limits.json: se esperaban 9 subcuencas; hay {len(subs)}")
     named = []
+    component_audits = [basin_components] if basin_components is not None else []
     for sub in subs:
         name = sub.get("name", "?")
-        geom, audit = _geometry_from_record(sub, name)
-        report_geometry_audit("limits.json", audit)
+        geom, components = _geometry_from_record(sub, name)
+        report_component_audit(f"limits.json: {name}", components)
+        if components is not None:
+            component_audits.append(components)
         if geom is None:
             error(f"limits.json: no se pudo reconstruir la subcuenca {name}")
             continue
         if not sub.get("area_km2"):
             error(f"limits.json: subcuenca {name} sin área")
         named.append((name, geom))
+
+    if component_audits:
+        total_parts = sum(item.count for item in component_audits)
+        total_overlaps = sum(item.overlap_pairs for item in component_audits)
+        total_touches = sum(item.touching_pairs for item in component_audits)
+        total_invalid = sum(item.invalid_count for item in component_audits)
+        total_empty = sum(item.empty_count for item in component_audits)
+        print(
+            f"  componentes: {len(component_audits)} registros · {total_parts} partes · "
+            f"{total_overlaps} solapamientos · {total_touches} contactos · "
+            f"{total_invalid} inválidos · {total_empty} vacíos"
+        )
 
     report = audit_partition(basin, named, TOPOLOGY_TOLERANCES)
     add_findings(report.findings, "limits.json")
@@ -647,6 +684,7 @@ def check_flood():
             "area_simplificada_km2",
             "area_publicada_utm_km2",
             "area_publicada_geodesica_km2",
+            "auditoria_geometrica",
             "fuente",
             "metodo",
             "cobertura",
@@ -665,6 +703,38 @@ def check_flood():
             error("flood_2017.geojson: el método debe declarar que es una unión de fechas")
         if not props.get("advertencia"):
             error("flood_2017.geojson: falta la advertencia de metadatos del producto")
+
+        audit = props.get("auditoria_geometrica")
+        if not isinstance(audit, dict):
+            error("flood_2017.geojson: 'auditoria_geometrica' debe ser un objeto")
+        else:
+            if audit.get("crs") != "EPSG:32717":
+                error("flood_2017.geojson: la auditoría geométrica debe usar EPSG:32717")
+            if audit.get("informe") != "flood_2017_audit.json":
+                error("flood_2017.geojson: la auditoría debe apuntar a flood_2017_audit.json")
+            for field in (
+                "iou_union_filtrada",
+                "iou_filtrada_simplificada",
+                "iou_simplificada_publicada",
+            ):
+                value = audit.get(field)
+                if not _is_number(value) or not 0.0 <= value <= 1.000001:
+                    error(f"flood_2017.geojson: '{field}' fuera de [0, 1]")
+            componentes_auditoria = audit.get("componentes")
+            if not isinstance(componentes_auditoria, dict):
+                error("flood_2017.geojson: 'auditoria_geometrica.componentes' inválido")
+            else:
+                for name in ("union_original", "filtrada", "simplificada", "publicada"):
+                    value = componentes_auditoria.get(name)
+                    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                        error(f"flood_2017.geojson: componente '{name}' inválido")
+            for field in (
+                "superficie_eliminada_filtro_km2",
+                "cambio_area_simplificacion_km2",
+                "cambio_area_reproyeccion_redondeo_km2",
+            ):
+                if not _is_number(audit.get(field)):
+                    error(f"flood_2017.geojson: '{field}' inválido")
 
         repairs = props.get("reparaciones") or []
         if not isinstance(repairs, list):
@@ -694,6 +764,8 @@ def check_flood():
             fecha = obs.get("fecha")
             if isinstance(fecha, str) and FECHA_RE.match(fecha):
                 obs_dates.append(fecha)
+            elif fecha is None:
+                obs_dates.append(None)
             else:
                 error(f"flood_2017.geojson: fecha de observación inválida '{fecha}'")
             area_obs = obs.get("area_original_km2")
@@ -704,8 +776,18 @@ def check_flood():
             if not isinstance(obs.get("partes"), int) or obs["partes"] <= 0:
                 error("flood_2017.geojson: número de partes inválido")
 
-        if obs_dates:
-            expected = obs_dates[0] if len(obs_dates) == 1 else f"{min(obs_dates)}/{max(obs_dates)}"
+        fechas_declaradas = [fecha for fecha in obs_dates if fecha]
+        if any(fecha is None for fecha in obs_dates) or not fechas_declaradas:
+            if props.get("fecha") is not None:
+                error("flood_2017.geojson: hay fechas ausentes pero 'fecha' no es null")
+            if props.get("fecha_texto") != "fecha no declarada":
+                error("flood_2017.geojson: las fechas ausentes deben declararse explícitamente")
+        else:
+            expected = (
+                fechas_declaradas[0]
+                if len(fechas_declaradas) == 1
+                else f"{min(fechas_declaradas)}/{max(fechas_declaradas)}"
+            )
             if props.get("fecha") != expected:
                 error(
                     f"flood_2017.geojson: fecha '{props.get('fecha')}' no coincide con "
@@ -809,6 +891,172 @@ def check_flood():
     if size > 1_500_000:
         error(f"flood_2017.geojson: {size / 1e6:.2f} MB; conviene simplificar más")
     print(f"  flood_2017: {len(features)} zonas · {total:.3f} km² · {size / 1e3:.0f} kB")
+
+
+def _is_number(value) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def check_flood_audit():
+    """Valida el informe de fidelidad geométrica de la mancha de 2017."""
+    path = WEB_DATA / "flood_2017_audit.json"
+    data = cargar_json(path)
+    if not data:
+        return
+    if data.get("crs_metrico") != "EPSG:32717":
+        error("flood_2017_audit.json: el CRS métrico debe ser EPSG:32717")
+    if data.get("fuente") != "copernicus-ems-emsr199":
+        error("flood_2017_audit.json: fuente inesperada")
+    if not data.get("nota"):
+        error("flood_2017_audit.json: falta la nota metodológica")
+
+    flood = cargar_json(WEB_DATA / "flood_2017.geojson")
+    if not flood:
+        return
+    features = {
+        (feature.get("properties") or {}).get("aoi"): feature
+        for feature in flood.get("features", [])
+    }
+    aois = data.get("aois") or {}
+    if set(aois) != set(features):
+        error(
+            "flood_2017_audit.json: los AOI del informe no coinciden con la capa "
+            f"({sorted(aois)} vs {sorted(features)})"
+        )
+
+    stage_names = ("union_a_filtrada", "filtrada_a_simplificada", "simplificada_a_publicada")
+    fidelity_fields = (
+        "area_fuente_km2",
+        "area_objetivo_km2",
+        "delta_area_km2",
+        "delta_area_pct",
+        "iou",
+        "diferencia_simetrica_km2",
+        "hausdorff_m",
+        "distancia_media_limite_m",
+        "distancia_p95_limite_m",
+        "componentes_fuente",
+        "componentes_objetivo",
+    )
+    component_names = ("union_original", "filtrada", "simplificada", "publicada")
+    area_names = (
+        "union_original",
+        "filtrada",
+        "simplificada",
+        "publicada_utm",
+        "publicada_geodesica",
+    )
+
+    for aoi, feature in features.items():
+        props = feature.get("properties") or {}
+        report = aois.get(aoi)
+        if not isinstance(report, dict):
+            error(f"flood_2017_audit.json: falta el AOI {aoi}")
+            continue
+
+        if report.get("observaciones") != props.get("observaciones"):
+            error(f"flood_2017_audit.json: {aoi}: observaciones no coinciden con la capa")
+        if report.get("reparaciones") != props.get("reparaciones"):
+            error(f"flood_2017_audit.json: {aoi}: reparaciones no coinciden con la capa")
+
+        areas = report.get("areas_km2") or {}
+        for name in area_names:
+            if not _is_number(areas.get(name)) or areas[name] < 0:
+                error(f"flood_2017_audit.json: {aoi}: área inválida '{name}'")
+
+        components = report.get("componentes") or {}
+        for name in component_names:
+            value = components.get(name)
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                error(f"flood_2017_audit.json: {aoi}: componentes inválidos '{name}'")
+
+        if _is_number(areas.get("union_original")) and _is_number(props.get("area_union_original_km2")):
+            if abs(areas["union_original"] - props["area_union_original_km2"]) > 0.01:
+                error(f"flood_2017_audit.json: {aoi}: área original no coincide con la capa")
+        if _is_number(areas.get("filtrada")) and _is_number(props.get("area_filtrada_km2")):
+            if abs(areas["filtrada"] - props["area_filtrada_km2"]) > 0.01:
+                error(f"flood_2017_audit.json: {aoi}: área filtrada no coincide con la capa")
+        if _is_number(areas.get("simplificada")) and _is_number(props.get("area_simplificada_km2")):
+            if abs(areas["simplificada"] - props["area_simplificada_km2"]) > 0.01:
+                error(f"flood_2017_audit.json: {aoi}: área simplificada no coincide con la capa")
+        if _is_number(areas.get("publicada_utm")) and _is_number(props.get("area_publicada_utm_km2")):
+            if abs(areas["publicada_utm"] - props["area_publicada_utm_km2"]) > 0.01:
+                error(f"flood_2017_audit.json: {aoi}: área publicada no coincide con la capa")
+        if _is_number(areas.get("publicada_geodesica")) and _is_number(props.get("area_publicada_geodesica_km2")):
+            if abs(areas["publicada_geodesica"] - props["area_publicada_geodesica_km2"]) > 0.01:
+                error(f"flood_2017_audit.json: {aoi}: área geodésica no coincide con la capa")
+
+        if all(_is_number(areas.get(name)) for name in ("union_original", "filtrada", "simplificada", "publicada_utm")):
+            filtrada = areas["filtrada"]
+            simplificada = areas["simplificada"]
+            publicada = areas["publicada_utm"]
+            if _is_number(report.get("superficie_eliminada_filtro_km2")):
+                if abs((areas["union_original"] - filtrada) - report["superficie_eliminada_filtro_km2"]) > 0.01:
+                    error(f"flood_2017_audit.json: {aoi}: cierre del filtro incorrecto")
+            if _is_number(report.get("cambio_area_simplificacion_km2")):
+                if abs((simplificada - filtrada) - report["cambio_area_simplificacion_km2"]) > 0.01:
+                    error(f"flood_2017_audit.json: {aoi}: cierre de simplificación incorrecto")
+            if _is_number(report.get("cambio_area_reproyeccion_redondeo_km2")):
+                if abs((publicada - simplificada) - report["cambio_area_reproyeccion_redondeo_km2"]) > 0.01:
+                    error(f"flood_2017_audit.json: {aoi}: cierre de reproyección incorrecto")
+
+        fidelity = report.get("fidelidad") or {}
+        if set(fidelity) != set(stage_names):
+            error(f"flood_2017_audit.json: {aoi}: etapas de fidelidad incompletas")
+        for stage in stage_names:
+            item = fidelity.get(stage)
+            if not isinstance(item, dict):
+                error(f"flood_2017_audit.json: {aoi}: falta la etapa '{stage}'")
+                continue
+            for field in fidelity_fields:
+                if field not in item:
+                    error(f"flood_2017_audit.json: {aoi}/{stage}: falta '{field}'")
+            if not _is_number(item.get("iou")) or not 0.0 <= item["iou"] <= 1.000001:
+                error(f"flood_2017_audit.json: {aoi}/{stage}: IoU fuera de [0, 1]")
+            for field in (
+                "diferencia_simetrica_km2",
+                "hausdorff_m",
+                "distancia_media_limite_m",
+                "distancia_p95_limite_m",
+            ):
+                value = item.get(field)
+                if not _is_number(value) or value < 0:
+                    error(f"flood_2017_audit.json: {aoi}/{stage}: '{field}' inválido")
+            for field in ("componentes_fuente", "componentes_objetivo"):
+                value = item.get(field)
+                if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                    error(f"flood_2017_audit.json: {aoi}/{stage}: '{field}' inválido")
+            if "hausdorff_metodo" in item and not isinstance(item["hausdorff_metodo"], str):
+                error(f"flood_2017_audit.json: {aoi}/{stage}: método de Hausdorff inválido")
+            if (
+                _is_number(item.get("hausdorff_m"))
+                and _is_number(item.get("distancia_p95_limite_m"))
+                and item["hausdorff_m"] + 0.5 < item["distancia_p95_limite_m"]
+            ):
+                error(f"flood_2017_audit.json: {aoi}/{stage}: Hausdorff menor que el p95")
+
+        pair_checks = (
+            ("union_a_filtrada", "union_original", "filtrada"),
+            ("filtrada_a_simplificada", "filtrada", "simplificada"),
+            ("simplificada_a_publicada", "simplificada", "publicada"),
+        )
+        for stage, source_name, target_name in pair_checks:
+            item = fidelity.get(stage) or {}
+            if isinstance(item, dict):
+                if item.get("componentes_fuente") != components.get(source_name):
+                    error(f"flood_2017_audit.json: {aoi}/{stage}: componentes de fuente no coinciden")
+                if item.get("componentes_objetivo") != components.get(target_name):
+                    error(f"flood_2017_audit.json: {aoi}/{stage}: componentes de destino no coinciden")
+
+        geom = geom_of(feature)
+        published_parts = 1 if geom.geom_type == "Polygon" else len(geom.geoms)
+        if components.get("publicada") != published_parts:
+            error(
+                f"flood_2017_audit.json: {aoi}: componentes publicados "
+                f"({components.get('publicada')}) no coinciden con la geometría ({published_parts})"
+            )
+
+    print(f"  flood_audit: {len(features)} AOIs · EPSG:32717")
 
 
 def check_obras():
@@ -1070,6 +1318,7 @@ def main() -> int:
     check_rivers()
     check_places()
     check_flood()
+    check_flood_audit()
     check_obras()
     check_cortes()
     check_grid()
