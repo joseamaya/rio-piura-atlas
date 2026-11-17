@@ -82,11 +82,11 @@ import "../styles/maqueta.css";
           haz doble clic para reiniciar. Con el foco en la maqueta, las flechas giran,
           + y − acercan y Home reinicia.
         </p>
-        <div id="scene" role="application" tabindex="0" aria-label="Maqueta 3D interactiva de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
+        <div id="scene" role="application" tabindex="0" aria-busy="true" aria-label="Maqueta 3D interactiva de la cuenca del río Piura, el desierto de Sechura y la bahía" aria-describedby="scene-summary"></div>
         <p id="scene-status" class="scene-status" role="status" aria-live="polite">Cargando maqueta…</p>
 
         <div class="maqueta-note"><strong>Lámina 03</strong> · lectura del relieve</div>
-        <div class="maqueta-controls" aria-label="Controles de la maqueta">
+        <div class="maqueta-controls" role="group" aria-label="Controles de la maqueta">
           <button type="button" data-scene-action="zoom-in" aria-label="Acercar" title="Acercar">+</button>
           <button type="button" data-scene-action="zoom-out" aria-label="Alejar" title="Alejar">−</button>
           <button type="button" data-scene-action="reset" aria-label="Reiniciar vista" title="Reiniciar vista">↺</button>
@@ -123,6 +123,9 @@ import "../styles/maqueta.css";
       renderer.setClearColor(0x000000, 0);
       return renderer;
     } catch (error) {
+      container.setAttribute("aria-busy", "false");
+      container.setAttribute("aria-hidden", "true");
+      container.setAttribute("tabindex", "-1");
       if (status) {
         status.hidden = false;
         status.innerHTML =
@@ -269,6 +272,7 @@ import "../styles/maqueta.css";
       layout();
       frame(root);
       stage.classList.add("is-loaded");
+      container.setAttribute("aria-busy", "false");
       if (status) status.hidden = true;
       animate();
     },
@@ -283,6 +287,7 @@ import "../styles/maqueta.css";
       }
     },
     () => {
+      container.setAttribute("aria-busy", "false");
       if (!status) return;
       status.hidden = false;
       status.textContent = "No se pudo cargar la maqueta. ";

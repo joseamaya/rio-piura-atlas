@@ -78,9 +78,10 @@
 .chapter-prose { max-width: 66ch; }
 .chapter-prose p { color: var(--ink-2); }
 .chapter-prose p:first-of-type { font-size: 1.12rem; line-height: 1.6; color: var(--ink); }
-.chapter-margin { display: grid; gap: 16px; border-left: 1px solid var(--line); padding-left: 16px; }
-.chapter-margin .margin-note { border-top: 0; padding-top: 0; max-width: 28ch; }
-.chapter-margin .status { font-size: 0.6rem; }
+.chapter-margin { display: grid; gap: 16px; border-left: 1px solid var(--line); padding-left: 16px; min-width: 0; }
+.chapter-margin .margin-note { border-top: 0; padding-top: 0; max-width: 28ch; overflow-wrap: anywhere; }
+.chapter-margin .status { font-size: 0.6rem; white-space: normal; }
+.chapter-margin .status .mark { flex: none; }
 .chapter-margin a { color: var(--brand); }
 .chapter-media { margin-top: 26px; }
 .chapter-media img { width: 100%; }
