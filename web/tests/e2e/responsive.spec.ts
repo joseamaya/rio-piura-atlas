@@ -10,7 +10,9 @@ const pages = [
 ] as const;
 
 async function settle(page: import("@playwright/test").Page, route: string) {
-  await page.goto(route);
+  // BASE_PATH puede ser /rio-piura-atlas en CI: una ruta absoluta se saltaría
+  // el subdirectorio. Las rutas relativas respetan el baseURL de Playwright.
+  await page.goto(route === "/" ? "./" : route.replace(/^\/+/, ""));
   if (route === "/mapa/") {
     await expect(page.locator("#map")).toHaveAttribute("data-ready", "true");
   }
