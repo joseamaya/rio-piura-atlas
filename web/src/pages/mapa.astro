@@ -16,13 +16,21 @@ import "../styles/map.css";
       cuenca, subcuencas, red hídrica, lagunas, inundación de 2017, obras
       esquemáticas, cortes transversales y ciudades. La mancha de 2017 es el
       vector oficial de Copernicus EMSR199 y cubre la llanura baja, no toda la
-      cuenca. Las obras son referencias esquemáticas. Haz clic sobre una capa para
-      ver su dato y su fuente. Usa «Dibujar un corte» y marca dos puntos para
-      calcular un perfil de elevación.
+      cuenca. Las obras son referencias esquemáticas. Selecciona un elemento del
+      mapa para ver su dato y su fuente. Usa «Dibujar un corte» y marca dos puntos
+      para calcular un perfil de elevación. Hay un resumen en texto en el panel de
+      capas y una ficha de la cuenca accesible desde el botón.
+    </p>
+    <p id="map-instructions" class="sr-only">
+      Con el foco en el mapa, usa las flechas para desplazarte, Mayús y flecha
+      para rotar, y las teclas más y menos para acercar o alejar. La tecla Tab
+      recorre los controles. La selección de elementos geográficos con teclado
+      dentro del lienzo no está garantizada; para consultar la cuenca, los cortes
+      y el resumen, usa el panel de capas.
     </p>
 
     <div class="map-app" id="mapApp">
-      <aside class="map-panel" aria-label="Capas y fuentes">
+      <aside class="map-panel" aria-label="Capas y fuentes de la cuenca del río Piura">
         <div class="drawer-head">
           <span class="kicker">Mapa</span>
           <button id="toggle-panel" class="panel-toggle" type="button" aria-expanded="true" aria-controls="layer-panel">
@@ -30,7 +38,7 @@ import "../styles/map.css";
           </button>
           <button id="panel-close" class="panel-close" type="button" aria-label="Cerrar el panel de capas">×</button>
         </div>
-        <p class="drawer-title">Cuenca del río Piura</p>
+        <h2 id="panel-title" class="drawer-title" tabindex="-1">Cuenca del río Piura</h2>
         <p class="drawer-sub">
           <strong>10 938 km²</strong> medidos · ANA 1:100 000<br />
           Relieve Copernicus DEM · malla ~140 m<br />
@@ -107,7 +115,70 @@ import "../styles/map.css";
             </label>
           </div>
 
-          <p class="src" id="layer-status" aria-live="polite"></p>
+          <p class="src" id="layer-status"></p>
+
+          <details class="map-alt" id="map-alt">
+            <summary>Leer el mapa en texto</summary>
+            <div class="map-alt-body">
+              <p>
+                Resumen de la información geográfica que muestra el mapa. No
+                sustituye la consulta cartográfica ni contiene todas las geometrías.
+              </p>
+              <h3>Qué muestra</h3>
+              <ul>
+                <li>
+                  <strong>Cuenca:</strong> 10 938 km² medidos sobre la geometría publicada
+                  de ANA 1:100 000. ANA publica 11 022 km² en Shape_Area, calculado en otra
+                  proyección. <a href={withBase("/fuentes#ana-subcuencas")}>Fuente</a>.
+                </li>
+                <li>
+                  <strong>Subcuencas:</strong> ocho unidades ANA y «Bajo Piura», una
+                  partición derivada que no es una delimitación oficial nueva.
+                  <a href={withBase("/fuentes#bajo-piura-derivado")}>Método</a>.
+                </li>
+                <li>
+                  <strong>Red hídrica y agua:</strong> ríos y tramos de HydroRIVERS;
+                  lagunas y salinas de OpenStreetMap.
+                  <a href={withBase("/fuentes#hydrorivers")}>HydroRIVERS</a> ·
+                  <a href={withBase("/fuentes#osm-agua")}>OSM</a>.
+                </li>
+                <li>
+                  <strong>Inundación de 2017:</strong> dos zonas de la llanura baja,
+                  96,5 y 459,0 km² publicados. Es la unión de observaciones del 26 y
+                  30 de marzo, no una mancha simultánea.
+                  <a href={withBase("/fuentes#copernicus-ems-emsr199")}>Copernicus EMSR199</a>.
+                </li>
+                <li>
+                  <strong>Obras:</strong> represa de Poechos (punto en el dique) y canal
+                  Daniel Escobar (recta de referencia; 54 km y 70 m³/s documentados).
+                  Son referencias esquemáticas.
+                  <a href={withBase("/fuentes#obras-esquematicas")}>Interpretación</a>.
+                </li>
+                <li>
+                  <strong>Cortes:</strong> cinco perfiles de referencia y un corte que
+                  puede dibujar el visitante. No sirven para dimensionar obras.
+                  <a href={withBase("/fuentes#copernicus-dem-30")}>Copernicus DEM</a>.
+                </li>
+                <li>
+                  <strong>Ciudades:</strong> Piura, Castilla, Catacaos, Chulucanas,
+                  Tambogrande, Morropón, Sechura, Paita, La Unión, Cura Mori, Huarmaca,
+                  Salitral y Canchaque. <a href={withBase("/fuentes#osm-agua")}>OSM</a>.
+                </li>
+              </ul>
+              <h3>Cómo recorrerlo</h3>
+              <p>
+                Con el foco en el mapa, las flechas lo desplazan; Mayús y flecha lo
+                rotan; + y − acercan o alejan. Tab recorre los controles. Para ver un
+                dato, selecciona un elemento del mapa; para consultar la cuenca o los
+                cortes, usa este panel. La selección de elementos con teclado dentro
+                del lienzo no está garantizada.
+              </p>
+              <p>
+                La mancha de 2017 cubre la llanura baja, no toda la cuenca. El mapa no
+                pronostica ni sustituye a SENAMHI, ANA, INDECI o el ENFEN.
+              </p>
+            </div>
+          </details>
 
           <button id="ficha-cuenca" class="btn-ficha" type="button">Ver ficha de la cuenca</button>
 
@@ -141,7 +212,20 @@ import "../styles/map.css";
       </aside>
 
       <div class="map-stage">
-        <div id="map" role="application" aria-label="Mapa interactivo de la cuenca del río Piura" aria-describedby="map-summary"></div>
+        <div id="map"></div>
+
+        <div id="map-fallback" class="map-fallback" hidden role="alert">
+          <p><strong>No se pudo iniciar el mapa interactivo.</strong></p>
+          <p>
+            Este navegador no pudo iniciar WebGL. La cuenca mide 10 938 km² medidos
+            sobre la geometría publicada de ANA 1:100 000; la inundación de 2017 es la
+            unión de observaciones del 26 y 30 de marzo, no una mancha simultánea.
+          </p>
+          <p>
+            Abre «Mostrar capas» para leer el resumen en texto y consultar las fuentes,
+            o visita <a href={withBase("/fuentes")}>Fuentes y método</a>.
+          </p>
+        </div>
 
         <div class="geo-ruler" id="geo-ruler" aria-hidden="true"></div>
 
@@ -154,7 +238,7 @@ import "../styles/map.css";
           Capas <span aria-hidden="true">≡</span>
         </button>
 
-        <div class="map-controls" aria-label="Controles del mapa">
+        <div class="map-controls" role="group" aria-label="Controles del mapa">
           <button type="button" data-action="zoom-in" aria-label="Acercar" title="Acercar">+</button>
           <button type="button" data-action="zoom-out" aria-label="Alejar" title="Alejar">−</button>
           <button type="button" data-action="reset" aria-label="Ver toda la cuenca" title="Ver toda la cuenca">
@@ -179,12 +263,12 @@ import "../styles/map.css";
             <li data-legend="cortes"><span class="legend-sym cut"></span><span>Cortes transversales</span></li>
             <li data-legend="lugares"><span class="legend-sym city"></span><span>Ciudades</span></li>
           </ul>
-          <p class="legend-note">La trama distingue la inundación del agua permanente. Solo se dibuja lo documentado.</p>
+          <p class="legend-note">La trama y los trazos discontinuos distinguen las capas sin depender solo del color. Solo se dibuja lo documentado.</p>
         </aside>
 
         <div class="map-colophon"><strong>ANA 1:100 000</strong> · Copernicus DEM · HydroRIVERS · OSM · Copernicus EMSR199</div>
 
-        <div id="ficha" aria-live="polite" aria-label="Ficha del elemento seleccionado" aria-hidden="true" inert>
+        <div id="ficha" role="dialog" aria-label="Ficha del elemento seleccionado" aria-hidden="true" inert>
           <div class="fp-top">
             <span class="fp-kicker">Ficha</span>
             <button class="fp-close" id="ficha-close" type="button" aria-label="Cerrar la ficha">×</button>
@@ -195,9 +279,9 @@ import "../styles/map.css";
           </div>
         </div>
 
-        <section id="corte-panel" hidden aria-live="polite" aria-label="Perfil del corte transversal">
+        <section id="corte-panel" hidden aria-label="Perfil del corte transversal">
           <div class="corte-head">
-            <h3 id="corte-title">Corte transversal</h3>
+            <h3 id="corte-title" tabindex="-1">Corte transversal</h3>
             <button id="corte-close" type="button" aria-label="Cerrar el perfil">×</button>
           </div>
           <div id="corte-meta" class="src"></div>
@@ -206,8 +290,36 @@ import "../styles/map.css";
         </section>
       </div>
     </div>
+
+    <p id="map-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+      Cargando el mapa interactivo…
+    </p>
   </main>
 </Base>
+
+<script is:inline>
+  (() => {
+    const fallback = document.getElementById("map-fallback");
+    const map = document.getElementById("map");
+    const status = document.getElementById("map-status");
+    const stage = map?.closest(".map-stage");
+    if (!fallback || !map || !stage) return;
+    const showFallback = () => {
+      if (map.getAttribute("data-ready") === "true" || !fallback.hidden) return;
+      fallback.hidden = false;
+      map.hidden = true;
+      map.setAttribute("aria-hidden", "true");
+      stage.classList.add("is-error");
+      const draw = document.getElementById("draw-corte");
+      if (draw instanceof HTMLButtonElement) draw.disabled = true;
+      if (status) {
+        status.textContent =
+          "No se pudo iniciar el mapa interactivo. Consulta el resumen en texto del panel de capas y las fuentes.";
+      }
+    };
+    window.addEventListener("error", showFallback, { once: true });
+  })();
+</script>
 
 <script>
   import maplibregl from "maplibre-gl";
@@ -222,11 +334,54 @@ import "../styles/map.css";
   const BBOX: [number, number, number, number] = [-81.45, -6.25, -79.3, -4.55];
   const MOBILE_BBOX: [number, number, number, number] = [-81.25, -6.2, -80.28, -4.45];
 
-  const mapApp = $(".map-app");
   const layerPanel = $(".map-panel");
+  const panelTitle = $("#panel-title");
   const panelToggle = $("#toggle-panel") as HTMLButtonElement | null;
   const panelClose = $("#panel-close") as HTMLButtonElement | null;
   const openLayers = $("#open-layers") as HTMLButtonElement | null;
+  const legend = $("#map-legend");
+  const legendToggle = $("#legend-toggle") as HTMLButtonElement | null;
+  const mapStatus = $("#map-status");
+  const layerStatus = $("#layer-status");
+  const ficha = $("#ficha");
+  const fichaBody = $("#ficha-body");
+  const fichaClose = $("#ficha-close");
+  const profilePanel = $("#corte-panel") as HTMLElement;
+  const chart = $("#corte-chart") as HTMLElement;
+  const corteTitle = $("#corte-title") as HTMLElement;
+  const corteMeta = $("#corte-meta") as HTMLElement;
+  const corteNote = $("#corte-note") as HTMLElement;
+
+  let fichaTrigger: HTMLElement | null = null;
+  let lastCorteTrigger: HTMLElement | null = null;
+  let panelModalOpen = false;
+  let panelTrigger: HTMLElement | null = null;
+  let legendIsOpen = false;
+
+  function announce(message: string) {
+    if (mapStatus) mapStatus.textContent = message;
+  }
+
+  function setLayerStatus(message: string) {
+    if (layerStatus) layerStatus.textContent = message;
+    announce(message);
+  }
+
+  function isVisible(element: HTMLElement | null): element is HTMLElement {
+    if (!element || !element.isConnected) return false;
+    const style = window.getComputedStyle(element);
+    return style.display !== "none" && style.visibility !== "hidden" && element.getClientRects().length > 0;
+  }
+
+  function focusIfVisible(element: HTMLElement | null): boolean {
+    if (!isVisible(element)) return false;
+    element.focus({ preventScroll: true });
+    return true;
+  }
+
+  function focusMapCanvas() {
+    return focusIfVisible(document.querySelector<HTMLElement>("#map canvas"));
+  }
 
   function setPanelCollapsed(collapsed: boolean) {
     layerPanel?.classList.toggle("collapsed", collapsed);
@@ -237,116 +392,147 @@ import "../styles/map.css";
     openLayers?.setAttribute("aria-expanded", String(!collapsed));
   }
 
-  if (isNarrow()) setPanelCollapsed(true);
-
-  panelToggle?.addEventListener("click", () => {
-    setPanelCollapsed(!layerPanel?.classList.contains("collapsed"));
-  });
-  panelClose?.addEventListener("click", () => setPanelCollapsed(true));
-  openLayers?.addEventListener("click", () => setPanelCollapsed(false));
-  const legend = $("#map-legend");
-  const legendToggle = $("#legend-toggle");
-  legendToggle?.addEventListener("click", () => {
-    const open = !legend?.classList.contains("open");
-    legend?.classList.toggle("open", open);
-    legendToggle.setAttribute("aria-expanded", String(open));
-  });
-
-  interface Perfil {
-    nombre: string;
-    longitud_km: number;
-    elev_min_m: number;
-    elev_max_m: number;
-    dist_km: number[];
-    elev_m: number[];
-  }
-
-  interface GridMeta {
-    bbox: [number, number, number, number];
-    width: number;
-    height: number;
-    dtype: string;
-    byte_order: string;
-    row_order: string;
-    resolution_m_aprox: number;
-  }
-
-  const map = new maplibregl.Map({
-    container: "map",
-    style: {
-      version: 8,
-      sources: {},
-      layers: [{ id: "bg", type: "background", paint: { "background-color": "#e9e1d0" } }],
-    },
-    bounds: [[BBOX[0], BBOX[1]], [BBOX[2], BBOX[3]]],
-    fitBoundsOptions: { padding: 24 },
-    attributionControl: {
-      compact: true,
-      customAttribution: `<a href="${withBase("/fuentes#ana-subcuencas")}">ANA 1:100 000</a> · <a href="${withBase("/fuentes#copernicus-dem-30")}">Copernicus DEM</a> · <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS</a> · <a href="${withBase("/fuentes#osm-agua")}">OSM</a> · <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>`,
-    },
-    maxZoom: 14,
-    minZoom: 5.5,
-  });
-
-  map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
-
-  function fitInitial(duration = 0) {
-    if (isNarrow()) {
-      map.fitBounds([[MOBILE_BBOX[0], MOBILE_BBOX[1]], [MOBILE_BBOX[2], MOBILE_BBOX[3]]], { padding: { top: 100, bottom: 16, left: 16, right: 16 }, duration });
-    } else {
-      map.fitBounds([[BBOX[0], BBOX[1]], [BBOX[2], BBOX[3]]], { padding: 24, duration });
+  function setPanelInert(inert: boolean) {
+    for (const selector of [".site-header", ".site-footer", ".skip-link", ".mobile-menu", ".map-stage"]) {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) continue;
+      if (inert) element.setAttribute("inert", "");
+      else element.removeAttribute("inert");
     }
   }
 
-  const layerStatus = $("#layer-status");
-  const ficha = $("#ficha");
-  const fichaBody = $("#ficha-body");
-  const fichaClose = $("#ficha-close");
-  const profilePanel = $("#corte-panel") as HTMLElement;
-  const chart = $("#corte-chart") as HTMLElement;
-  const corteTitle = $("#corte-title") as HTMLElement;
-  const corteMeta = $("#corte-meta") as HTMLElement;
-  const corteNote = $("#corte-note") as HTMLElement;
-  const drawButton = $("#draw-corte") as HTMLButtonElement;
-  const drawHint = $("#draw-hint") as HTMLElement;
+  function setPanelModal(open: boolean) {
+    panelModalOpen = open;
+    if (open) {
+      layerPanel?.setAttribute("role", "dialog");
+      layerPanel?.setAttribute("aria-modal", "true");
+      document.body.classList.add("panel-open");
+      setPanelInert(true);
+    } else {
+      layerPanel?.removeAttribute("role");
+      layerPanel?.removeAttribute("aria-modal");
+      document.body.classList.remove("panel-open");
+      setPanelInert(false);
+    }
+  }
 
-  let perfiles: Record<string, Perfil> = {};
-  let grid: { meta: GridMeta; view: DataView } | null = null;
-  let drawMode = false;
-  let startPoint: maplibregl.LngLat | null = null;
-  let startMarker: maplibregl.Marker | null = null;
-  let lastCorteTrigger: HTMLElement | null = null;
-  let floodLoaded = false;
-  let floodLoading: Promise<void> | null = null;
+  function openPanel(trigger: HTMLElement | null = panelToggle) {
+    if (!isNarrow()) {
+      setPanelCollapsed(false);
+      return;
+    }
+    if (panelModalOpen) return;
+    hideFicha({ restoreFocus: false });
+    if (!profilePanel.hidden) closeCorte({ restoreFocus: false });
+    closeLegend(false);
+    panelTrigger = trigger;
+    setPanelCollapsed(false);
+    setPanelModal(true);
+    if (layerPanel) layerPanel.scrollTop = 0;
+    panelTitle?.focus({ preventScroll: true });
+  }
 
-  function showFicha(html: string) {
+  function closePanel({ restoreFocus = true }: { restoreFocus?: boolean } = {}) {
+    if (!panelModalOpen) {
+      if (isNarrow()) setPanelCollapsed(true);
+      return;
+    }
+    panelModalOpen = false;
+    setPanelCollapsed(true);
+    const target = panelTrigger;
+    panelTrigger = null;
+    if (restoreFocus) {
+      if (!focusIfVisible(target)) {
+        if (!focusIfVisible(panelToggle)) focusMapCanvas();
+      }
+    }
+    setPanelModal(false);
+  }
+
+  function panelFocusables(): HTMLElement[] {
+    if (!layerPanel) return [];
+    return [...layerPanel.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])',
+    )].filter(isVisible);
+  }
+
+  function trapPanelFocus(event: KeyboardEvent) {
+    if (!panelModalOpen || event.key !== "Tab") return;
+    const focusables = panelFocusables();
+    if (!focusables.length) {
+      event.preventDefault();
+      panelTitle?.focus({ preventScroll: true });
+      return;
+    }
+    const active = document.activeElement as HTMLElement | null;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (!active || !focusables.includes(active)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function setLegend(open: boolean, focusToggle = false) {
+    legend?.classList.toggle("open", open);
+    legendToggle?.setAttribute("aria-expanded", String(open));
+    if (legendToggle) legendToggle.textContent = open ? "Cerrar leyenda" : "Leyenda";
+    legendIsOpen = open;
+    if (focusToggle && isNarrow()) legendToggle?.focus({ preventScroll: true });
+  }
+
+  function closeLegend(focusToggle = true) {
+    if (legendIsOpen) setLegend(false, focusToggle);
+  }
+
+  function showFicha(html: string, trigger: HTMLElement | null = null) {
+    if (panelModalOpen) closePanel({ restoreFocus: false });
+    if (!profilePanel.hidden) closeCorte({ restoreFocus: false });
+    if (isNarrow()) closeLegend(false);
+    if (trigger) fichaTrigger = trigger;
     if (fichaBody) fichaBody.innerHTML = html;
     ficha?.removeAttribute("inert");
     ficha?.setAttribute("aria-hidden", "false");
     ficha?.classList.add("open");
+    const heading = fichaBody?.querySelector<HTMLElement>("h3")
+      ?? fichaBody?.querySelector<HTMLElement>(".fp-kicker")
+      ?? ficha;
+    if (heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+    if (ficha) ficha.scrollTop = 0;
   }
-  function hideFicha() {
+
+  function hideFicha({ restoreFocus = true }: { restoreFocus?: boolean } = {}) {
+    const wasOpen = ficha?.classList.contains("open") ?? false;
+    const activeInside = !!ficha && !!document.activeElement && ficha.contains(document.activeElement);
+    if (wasOpen && activeInside) {
+      const target = restoreFocus ? fichaTrigger : null;
+      if (!focusIfVisible(target)) focusMapCanvas();
+    }
+    fichaTrigger = null;
     ficha?.classList.remove("open");
     ficha?.setAttribute("aria-hidden", "true");
     ficha?.setAttribute("inert", "");
   }
-  function showCuencaFicha() {
+
+  function showCuencaFicha(trigger: HTMLElement | null = null) {
     showFicha(`
       <h3>Cuenca del río Piura</h3>
       <p><strong>10.938 km²</strong> medidos sobre la geometría publicada.</p>
       <p class="muted">ANA publica 11 022 km² en Shape_Area (EPSG:32718), calculado en otra proyección.
       Fuente: <a href="${withBase("/fuentes#ana-subcuencas")}">ANA, 1:100 000</a>.</p>
-    `);
+    `, trigger);
   }
-
-  $("#ficha-cuenca")?.addEventListener("click", showCuencaFicha);
-  fichaClose?.addEventListener("click", hideFicha);
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && ficha?.classList.contains("open")) {
-      event.preventDefault();
-      hideFicha();
-    }
-  });
 
   function distanceKm(a: maplibregl.LngLat, b: maplibregl.LngLat): number {
     const lat = ((a.lat + b.lat) / 2) * Math.PI / 180;
@@ -386,7 +572,9 @@ import "../styles/map.css";
   }
 
   function showCorte(perfil: Perfil, opts: { dibujado?: boolean; resolution?: number; trigger?: HTMLElement | null } = {}) {
-    hideFicha();
+    if (panelModalOpen) closePanel({ restoreFocus: false });
+    hideFicha({ restoreFocus: false });
+    if (isNarrow()) closeLegend(false);
     lastCorteTrigger = opts.trigger ?? null;
     profilePanel.hidden = false;
     document.body.classList.add("corte-open");
@@ -402,23 +590,146 @@ import "../styles/map.css";
     } else {
       corteNote.textContent = "Corte de referencia calculado del DEM de trabajo (~140 m, derivado de Copernicus GLO-30). No sirve para dimensionar obras.";
     }
+    corteTitle.focus({ preventScroll: true });
   }
 
-  function closeCorte() {
+  function closeCorte({ restoreFocus = true }: { restoreFocus?: boolean } = {}) {
+    const wasOpen = !profilePanel.hidden;
+    const target = lastCorteTrigger ?? document.querySelector<HTMLElement>("#map canvas");
     profilePanel.hidden = true;
     document.body.classList.remove("corte-open");
-    const target = lastCorteTrigger ?? document.querySelector<HTMLElement>("#map canvas");
     lastCorteTrigger = null;
-    target?.focus();
+    if (wasOpen && restoreFocus) {
+      if (!focusIfVisible(target)) focusMapCanvas();
+    }
   }
 
-  $("#corte-close")?.addEventListener("click", closeCorte);
+  panelToggle?.addEventListener("click", () => {
+    if (isNarrow()) openPanel(panelToggle);
+    else setPanelCollapsed(false);
+  });
+  panelClose?.addEventListener("click", () => closePanel());
+  openLayers?.addEventListener("click", () => openPanel(openLayers));
+  legendToggle?.addEventListener("click", () => setLegend(!legendIsOpen));
+  $("#ficha-cuenca")?.addEventListener("click", (event) => {
+    showCuencaFicha(event.currentTarget as HTMLElement);
+  });
+  fichaClose?.addEventListener("click", () => hideFicha());
+  $("#corte-close")?.addEventListener("click", () => closeCorte());
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !profilePanel.hidden) {
+    if (event.key === "Tab") {
+      trapPanelFocus(event);
+      return;
+    }
+    if (event.key !== "Escape") return;
+    if (ficha?.classList.contains("open")) {
+      event.preventDefault();
+      hideFicha();
+      return;
+    }
+    if (!profilePanel.hidden) {
       event.preventDefault();
       closeCorte();
+      return;
+    }
+    if (panelModalOpen) {
+      event.preventDefault();
+      closePanel();
+      return;
+    }
+    if (legendIsOpen) {
+      event.preventDefault();
+      closeLegend(true);
     }
   });
+
+  const narrowQuery = window.matchMedia("(max-width: 900px)");
+  function syncPanelLayout() {
+    if (narrowQuery.matches) {
+      if (!panelModalOpen) {
+        const active = document.activeElement as HTMLElement | null;
+        const hadFocus = !!active && !!layerPanel && layerPanel.contains(active);
+        setPanelCollapsed(true);
+        if (hadFocus) focusIfVisible(panelToggle);
+      }
+    } else {
+      const toggleHadFocus = document.activeElement === panelToggle;
+      if (panelModalOpen) setPanelModal(false);
+      setPanelCollapsed(false);
+      if (toggleHadFocus) panelTitle?.focus({ preventScroll: true });
+    }
+  }
+  syncPanelLayout();
+  narrowQuery.addEventListener("change", syncPanelLayout);
+
+  interface Perfil {
+    nombre: string;
+    longitud_km: number;
+    elev_min_m: number;
+    elev_max_m: number;
+    dist_km: number[];
+    elev_m: number[];
+  }
+
+  interface GridMeta {
+    bbox: [number, number, number, number];
+    width: number;
+    height: number;
+    dtype: string;
+    byte_order: string;
+    row_order: string;
+    resolution_m_aprox: number;
+  }
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style: {
+      version: 8,
+      sources: {},
+      layers: [{ id: "bg", type: "background", paint: { "background-color": "#e9e1d0" } }],
+    },
+    bounds: [[BBOX[0], BBOX[1]], [BBOX[2], BBOX[3]]],
+    fitBoundsOptions: { padding: 24 },
+    attributionControl: {
+      compact: true,
+      customAttribution: `<a href="${withBase("/fuentes#ana-subcuencas")}">ANA 1:100 000</a> · <a href="${withBase("/fuentes#copernicus-dem-30")}">Copernicus DEM</a> · <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS</a> · <a href="${withBase("/fuentes#osm-agua")}">OSM</a> · <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>`,
+    },
+    locale: {
+      "Map.Title": "Mapa interactivo de la cuenca del río Piura",
+      "AttributionControl.ToggleAttribution": "Mostrar u ocultar la atribución",
+      "AttributionControl.MapFeedback": "Comentarios sobre el mapa",
+      "Marker.Title": "Marcador del mapa",
+    },
+    maxZoom: 14,
+    minZoom: 5.5,
+  });
+
+  map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+
+  const mapCanvas = map.getCanvas();
+  mapCanvas.setAttribute("aria-label", "Mapa interactivo de la cuenca del río Piura");
+  mapCanvas.setAttribute("aria-describedby", "map-summary map-instructions");
+  mapCanvas.setAttribute("aria-busy", "true");
+
+  function fitInitial(duration = 0) {
+    if (isNarrow()) {
+      map.fitBounds([[MOBILE_BBOX[0], MOBILE_BBOX[1]], [MOBILE_BBOX[2], MOBILE_BBOX[3]]], { padding: { top: 100, bottom: 16, left: 16, right: 16 }, duration });
+    } else {
+      map.fitBounds([[BBOX[0], BBOX[1]], [BBOX[2], BBOX[3]]], { padding: 24, duration });
+    }
+  }
+
+  const drawButton = $("#draw-corte") as HTMLButtonElement;
+  const drawHint = $("#draw-hint") as HTMLElement;
+
+  let perfiles: Record<string, Perfil> = {};
+  let grid: { meta: GridMeta; view: DataView } | null = null;
+  let drawMode = false;
+  let startPoint: maplibregl.LngLat | null = null;
+  let startMarker: maplibregl.Marker | null = null;
+  let floodLoaded = false;
+  let floodLoading: Promise<void> | null = null;
 
   async function fetchJson<T = any>(url: string): Promise<T> {
     const response = await fetch(url);
@@ -483,6 +794,7 @@ import "../styles/map.css";
     map.getCanvas().style.cursor = on ? "crosshair" : "";
     if (on) {
       drawHint.textContent = "Haz clic en el primer punto del corte.";
+      announce("Modo corte activo. Haz clic en el primer punto del mapa.");
     } else {
       drawHint.textContent = "Haz dos clics sobre el mapa para trazar un corte y ver su perfil.";
       if (startMarker) {
@@ -493,12 +805,19 @@ import "../styles/map.css";
     }
   }
 
-  drawButton.addEventListener("click", () => setDrawMode(!drawMode));
+  drawButton.addEventListener("click", () => {
+    const on = !drawMode;
+    setDrawMode(on);
+    if (on && panelModalOpen) {
+      closePanel({ restoreFocus: false });
+      focusMapCanvas();
+    }
+  });
 
   async function loadFlood(): Promise<void> {
     if (floodLoaded) return;
     if (floodLoading) return floodLoading;
-    if (layerStatus) layerStatus.textContent = "Cargando la mancha de 2017…";
+    setLayerStatus("Cargando la mancha de 2017…");
     floodLoading = (async () => {
       try {
         const data = await fetchJson<any>(dataUrl("flood_2017.geojson"));
@@ -508,9 +827,9 @@ import "../styles/map.css";
         floodLoaded = true;
         const features = (data.features || []) as Array<{ properties?: { area_km2?: number } }>;
         const total = features.reduce((sum, f) => sum + Number(f.properties?.area_km2 || 0), 0);
-        if (layerStatus) layerStatus.textContent = `Mancha 2017: ${features.length} zonas, ${Math.round(total).toLocaleString("es-PE")} km². La trama es la unión de observaciones, no una mancha simultánea.`;
+        setLayerStatus(`Mancha 2017: ${features.length} zonas, ${Math.round(total).toLocaleString("es-PE")} km². La trama es la unión de observaciones, no una mancha simultánea.`);
       } catch {
-        if (layerStatus) layerStatus.textContent = "No se pudo cargar la mancha de 2017. Revisa la conexión.";
+        setLayerStatus("No se pudo cargar la mancha de 2017. Revisa la conexión.");
         throw new Error("flood");
       } finally {
         floodLoading = null;
@@ -558,8 +877,8 @@ import "../styles/map.css";
       optional<any>(dataUrl("cortes_perfiles.json"), { perfiles: {} }),
       optional<any>(dataUrl("obras.geojson"), empty),
     ]);
-    if (failed.length && layerStatus) {
-      layerStatus.textContent = `No se pudieron cargar: ${failed.join(", ")}. El resto del mapa sigue disponible.`;
+    if (failed.length) {
+      setLayerStatus(`No se pudieron cargar: ${failed.join(", ")}. El resto del mapa sigue disponible.`);
     }
     perfiles = perfilesData.perfiles || {};
 
@@ -653,17 +972,23 @@ import "../styles/map.css";
     const cityMarkers: Array<{ jerarquia: number; lngLat: [number, number]; anchor: string; offset: [number, number]; marker: maplibregl.Marker }> = [];
     for (const f of lugares.features) {
       const el = document.createElement("div");
+      const nombre = String(f.properties.nombre ?? "Ciudad");
       el.className = "city";
       el.dataset.jerarquia = String(f.properties.jerarquia ?? 3);
-      el.innerHTML = `<span class="dot"></span>${f.properties.nombre}`;
+      el.innerHTML = `<span class="dot"></span>${nombre}`;
       el.style.visibility = "hidden";
-      const layout = cityLayout[f.properties.nombre] || { anchor: "left" as const, offset: [5, 0] as [number, number] };
+      const layout = cityLayout[nombre] || { anchor: "left" as const, offset: [5, 0] as [number, number] };
+      const marker = new maplibregl.Marker({ element: el, anchor: layout.anchor, offset: layout.offset })
+        .setLngLat(f.geometry.coordinates)
+        .addTo(map);
+      el.setAttribute("role", "img");
+      el.setAttribute("aria-label", `Ciudad de ${nombre}`);
       cityMarkers.push({
         jerarquia: Number(f.properties.jerarquia ?? 3),
         lngLat: f.geometry.coordinates as [number, number],
         anchor: layout.anchor,
         offset: layout.offset,
-        marker: new maplibregl.Marker({ element: el, anchor: layout.anchor, offset: layout.offset }).setLngLat(f.geometry.coordinates).addTo(map),
+        marker,
       });
     }
     const obraMarkers: maplibregl.Marker[] = [];
@@ -672,7 +997,12 @@ import "../styles/map.css";
       el.className = "city obra";
       el.style.display = "none";
       el.innerHTML = `<span class="dot"></span>${nombre}`;
-      obraMarkers.push(new maplibregl.Marker({ element: el, anchor: "left", offset: [6, 0] }).setLngLat(coords).addTo(map));
+      const marker = new maplibregl.Marker({ element: el, anchor: "left", offset: [6, 0] })
+        .setLngLat(coords)
+        .addTo(map);
+      el.setAttribute("role", "img");
+      el.setAttribute("aria-label", `Obra de referencia: ${nombre}`);
+      obraMarkers.push(marker);
     }
 
     const layoutCities = () => {
@@ -708,12 +1038,14 @@ import "../styles/map.css";
           startPoint = e.lngLat;
           startMarker = new maplibregl.Marker({ color: "#a24e2e" }).setLngLat(e.lngLat).addTo(map);
           drawHint.textContent = "Primer punto marcado. Haz clic en el segundo punto.";
+          announce("Primer punto marcado. Haz clic en el segundo punto del mapa.");
           return;
         }
         const a = startPoint;
         const b = e.lngLat;
         if (distanceKm(a, b) < 0.5) {
           drawHint.textContent = "El corte es demasiado corto. Elige un segundo punto más lejano.";
+          announce("El corte es demasiado corto. Elige un segundo punto más lejano.");
           return;
         }
         const source = map.getSource("corte-usuario") as maplibregl.GeoJSONSource;
@@ -723,9 +1055,9 @@ import "../styles/map.css";
         });
         try {
           const perfil = await userProfile(a, b);
-          showCorte(perfil, { dibujado: true, resolution: grid?.meta.resolution_m_aprox });
+          showCorte(perfil, { dibujado: true, resolution: grid?.meta.resolution_m_aprox, trigger: mapCanvas });
         } catch {
-          showFicha('<h3>No se pudo calcular el corte</h3><p class="muted">Revisa que la malla de elevación esté disponible.</p>');
+          showFicha('<h3>No se pudo calcular el corte</h3><p class="muted">Revisa que la malla de elevación esté disponible.</p>', mapCanvas);
         }
         setDrawMode(false);
         return;
@@ -735,7 +1067,7 @@ import "../styles/map.css";
         layers: ["subcuencas-line", "agua-fill", "cuenca-line", "cuenca-fill", "rios-line", "flood-fill", "obras-fill", "obras-line", "obras-point", "cortes-line"],
       });
       if (!hits.length) {
-        showFicha('<h3>Sin elemento</h3><p class="muted">Haz clic sobre una capa.</p>');
+        showFicha('<h3>Sin elemento</h3><p class="muted">Selecciona un elemento sobre una capa.</p>', mapCanvas);
         return;
       }
 
@@ -743,7 +1075,7 @@ import "../styles/map.css";
       if (corteHit) {
         const id = corteHit.properties?.id as string | undefined;
         const perfil = id ? perfiles[id] : undefined;
-        if (perfil) { showCorte(perfil); return; }
+        if (perfil) { showCorte(perfil, { trigger: mapCanvas }); return; }
       }
 
       const obraHit = hits.find((hit) => ["obras-fill", "obras-line", "obras-point"].includes(hit.layer.id));
@@ -751,7 +1083,7 @@ import "../styles/map.css";
         const p = obraHit.properties || {};
         showFicha(`<h3>${p.nombre}</h3>
           <p class="muted">${p.nota || "Geometría esquemática; no es un levantamiento."}</p>
-          <p class="muted">Fuente: <a href="${withBase("/fuentes#obras-esquematicas")}">elaboración propia (interpretación)</a>.</p>`);
+          <p class="muted">Fuente: <a href="${withBase("/fuentes#obras-esquematicas")}">elaboración propia (interpretación)</a>.</p>`, mapCanvas);
         return;
       }
 
@@ -771,24 +1103,24 @@ import "../styles/map.css";
           </div>
           <div class="fp-section"><h3>Qué mide</h3><p>Unión de observaciones del 26 y 30 de marzo; no es una mancha simultánea ni un modelo hidráulico.</p></div>
           <div class="fp-section"><h3>Advertencia</h3><p>La suma de observaciones de AOI10 no es una superficie: ${overlap.toLocaleString("es-PE", { maximumFractionDigits: 1 })} km² se observaron en ambas fechas.</p></div>
-          <p class="fp-source">Fuente: <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>.</p>`);
+          <p class="fp-source">Fuente: <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>.</p>`, mapCanvas);
         return;
       }
 
       const p = hits[0].properties || {};
       if (p.nombre === "Cuenca del río Piura") {
-        showCuencaFicha();
+        showCuencaFicha(mapCanvas);
       } else if (p.nombre && p.area_km2) {
         showFicha(`<h3>${p.nombre}</h3><p>Área: <strong>${Math.round(p.area_km2).toLocaleString("es-PE")} km²</strong></p>
           ${p.fuente === "bajo-piura-derivado" ? '<p class="muted">Unidad derivada: no es una delimitación oficial nueva de ANA.</p>' : ""}
-          <p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${p.fuente || "fuente"}</a></p>`);
+          <p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${p.fuente || "fuente"}</a></p>`, mapCanvas);
       } else if (p.aporte_km2) {
         showFicha(`<h3>Tramo de río</h3><p>Área aportante: <strong>${Math.round(p.aporte_km2).toLocaleString("es-PE")} km²</strong></p>
-          <p class="muted">Fuente: <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS v1.0</a></p>`);
+          <p class="muted">Fuente: <a href="${withBase("/fuentes#hydrorivers")}">HydroRIVERS v1.0</a></p>`, mapCanvas);
       } else if (p.nombre) {
-        showFicha(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${p.fuente || "fuente"}</a></p>`);
+        showFicha(`<h3>${p.nombre}</h3><p class="muted">Fuente: <a href="${withBase("/fuentes")}#${p.fuente}">${p.fuente || "fuente"}</a></p>`, mapCanvas);
       } else {
-        showCuencaFicha();
+        showCuencaFicha(mapCanvas);
       }
     });
 
@@ -824,7 +1156,7 @@ import "../styles/map.css";
           return;
         }
         if (layer === "flood") {
-          if (!input.checked && layerStatus) layerStatus.textContent = "";
+          if (!input.checked) setLayerStatus("");
           await setFlood(input.checked);
           toggleLegend(layer, input.checked);
           return;
@@ -892,6 +1224,8 @@ import "../styles/map.css";
     attrib?.classList.remove("maplibregl-compact-show");
     attrib?.removeAttribute("open");
 
+    mapCanvas.setAttribute("aria-busy", "false");
+    if (!failed.length) announce("Mapa interactivo listo.");
     document.getElementById("map")?.setAttribute("data-ready", "true");
   });
 </script>
