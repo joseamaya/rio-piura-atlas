@@ -56,6 +56,27 @@ ESTADOS = {"disponible", "por_solicitar", "por_verificar"}
 GRUPOS = {"Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"}
 CERTEZAS = {"medido", "derivado", "documentado", "interpretacion", "por_verificar"}
 TIPOS = {"dataset", "documento", "prensa", "elaboracion_propia"}
+DISPONIBILIDADES = {
+    "localizada",
+    "descargable",
+    "procesada",
+    "validada",
+    "documental",
+    "pendiente",
+    "descartada",
+}
+TIPOS_EVIDENCIA = {
+    "oficial",
+    "academica",
+    "cientifica",
+    "historica",
+    "observacion_satelital",
+    "dato_medido",
+    "reconstruccion_cartografica",
+    "modelamiento",
+    "prensa_documentacion_secundaria",
+    "colaborativa",
+}
 CAMPOS = [
     "id",
     "titulo",
@@ -244,6 +265,32 @@ def check_sources():
         if tipo == "elaboracion_propia" and "Río Piura Atlas" not in str(fuente.get("institucion")):
             error(f"{fid}: una fuente de elaboración propia debe atribuirse al atlas")
 
+        disponibilidad = fuente.get("disponibilidad")
+        if disponibilidad is not None:
+            if not isinstance(disponibilidad, str) or disponibilidad not in DISPONIBILIDADES:
+                error(f"{fid}: disponibilidad inválida '{disponibilidad}'")
+            elif disponibilidad in {"validada", "procesada"} and fuente.get("estado") != "disponible":
+                error(f"{fid}: una fuente validada o procesada debe estar disponible")
+        tipo_evidencia = fuente.get("tipo_evidencia")
+        if tipo_evidencia is not None:
+            if not isinstance(tipo_evidencia, list) or not tipo_evidencia:
+                error(f"{fid}: tipo_evidencia debe ser una lista no vacía")
+            else:
+                for evidencia in tipo_evidencia:
+                    if not isinstance(evidencia, str) or evidencia not in TIPOS_EVIDENCIA:
+                        error(f"{fid}: tipo_evidencia inválido '{evidencia}'")
+        descarga = fuente.get("descarga")
+        if descarga is not None and (
+            not isinstance(descarga, str) or not re.match(r"^https?://", descarga)
+        ):
+            error(f"{fid}: descarga debe ser una URL http(s) o null")
+        capas = fuente.get("capas")
+        if capas is not None and (
+            not isinstance(capas, list)
+            or any(not isinstance(capa, str) or not capa for capa in capas)
+        ):
+            error(f"{fid}: capas debe ser una lista de identificadores")
+
         fecha = fuente.get("fecha")
         if fecha is not None:
             if not isinstance(fecha, str):
@@ -389,6 +436,11 @@ def check_layer_fuentes(ids: dict[str, dict]):
                 error(f"{path.name}: fuente desconocida '{fuente}'")
             elif ids[fuente].get("estado") != "disponible":
                 error(f"{path.name}: usa la fuente '{fuente}', que no está disponible")
+            elif ids[fuente].get("disponibilidad") not in {None, "validada", "procesada"}:
+                error(
+                    f"{path.name}: usa la fuente '{fuente}', cuya disponibilidad "
+                    f"'{ids[fuente].get('disponibilidad')}' no permite publicarla"
+                )
             if not feature.get("geometry"):
                 error(f"{path.name}: feature sin geometría")
                 continue
