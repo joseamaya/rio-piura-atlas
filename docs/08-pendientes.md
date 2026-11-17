@@ -26,8 +26,10 @@ tiene fuente, no se dibuja**.
 - Scripts de descarga para ANA, HydroRIVERS, cuerpos de agua OSM y Copernicus
   EMSR199.
 - Validación de datos (`etl/check_data.py`) con auditoría por par de subcuencas,
-  superficie fuera por subcuenca, huecos por componente y agujeros interiores;
-  38 pruebas de Python y pruebas Playwright de mapa, móvil, fallo de red y maqueta.
+  superficie fuera por subcuenca, huecos por componente, agujeros interiores,
+  validación antes de reparar y fidelidad (IoU, diferencia simétrica, Hausdorff,
+  media y p95); 52 pruebas de Python y pruebas Playwright de mapa, móvil, fallo de
+  red y maqueta.
 - Catálogo de fuentes con `certeza` y `tipo`: distingue dato medido, derivado,
   documentado, interpretación y pendiente de verificación.
 - CI que compila el sitio y valida datos en cada push.
@@ -81,7 +83,11 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   huecos y 0,6747 km² de superficie fuera de la cuenca; no se crea superficie nueva.
   El método, las 374 caras y los cambios de área por subcuenca están en
   `data/raw/limits.json → reconciliacion`. El resultado tiene 0 solapamientos,
-  0 superficie fuera y 0 huecos por encima de 0,01 km².
+  0 superficie fuera y 0 huecos por encima de 0,01 km². La fidelidad también se
+  publica: ocho subcuencas cambian más de 0,01 km² entre la fuente y la geometría
+  reconciliada, y 1,4725 km² se asignan por proximidad; son **avisos declarados**,
+  no errores ocultos. La mayor diferencia de área total es San Francisco
+  (−0,2583 km², −0,056 %).
 - **Red hídrica.** HydroRIVERS v1.0 incluye tramos que sobresalen de la ventana y de la
   cuenca. `build_layers.py` usa intersección geométrica exacta con el polígono ANA;
   ningún tramo publicado queda fuera (solo el redondeo de 6 decimales, <0,2 m).
@@ -92,13 +98,18 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 - **Inundación de 2017.** La mancha es el vector oficial de Copernicus EMSR199
   (AOI10 + AOI11), no una reconstrucción propia. Los atributos del vector declaran
   Radarsat Ultra-Fine Beam (26/03) y Cosmo-SkyMed (30/03) para AOI10, y Radarsat
-  (26/03) para AOI11; el PDF v2 declara Sentinel-1A y esa discrepancia se deja visible.
-  La capa publica la **unión de las observaciones**, no una mancha simultánea: AOI10
-  pasa de 80,8 + 73,0 km² por fecha a 96,5 km² de unión simplificada; AOI11 pasa de
-  457,4 a 459,0 km². Cubre la llanura baja y el desierto adyacente, no toda la cuenca;
-  el total (≈555 km²) no es una estimación hidráulica ni una extensión simultánea. No
-  se publica una clase potencial porque el vector no la trae. El AOI12 Piura North se
-  descartó por falta de fecha y sensor en sus registros.
+  (26/03) para AOI11. En AOI10, la suma de observaciones es 80,785 + 73,040 =
+  153,825 km²; 56,772 km² se observaron en ambas fechas; la unión original es
+  97,053 km² y la unión simplificada publicada, 96,507 km². En AOI11, 457,408 km²
+  originales y 458,970 km² publicados. Total: 555,477 km² en EPSG:32717. La suma de
+  fechas no es una superficie. La ficha del PDF v2 declara Sentinel-1A y el DBF
+  declara Radarsat/Cosmo; el atlas usa el DBF y deja la discrepancia visible,
+  pendiente de reabrir el PDF. Cubre la llanura baja y el desierto adyacente, no toda la cuenca; el
+  total no es una estimación hidráulica ni una extensión simultánea. No se publica una
+  clase potencial porque el vector no la trae. El AOI12 Piura North se descartó por
+  falta de fecha y sensor en sus registros. Un polígono de AOI10 venía con
+  autointersección de anillo; se reparó con `make_valid` y se registró en
+  `reparaciones` del GeoJSON, sin descartar componentes.
 - **Color del terreno.** La maqueta usa una rampa hipsométrica: el verde indica
   altitud, no cobertura vegetal.
 - **Lagunas.** Los polígonos son de OSM; Ramón y Las Salinas figuran como
@@ -114,12 +125,17 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   4 424 m³/s y marca la fecha como discrepancia; no elige una sin una fuente adicional.
 - **1983: duración.** El pico de 3 200 m³/s del 21 de abril está documentado (SIAR 200
   p. 15; SIAR 204 p. 49), pero no se localizó una duración diaria del episodio.
-- **1891: mecanismo.** SIAR registra el cambio de embocadura (p. 5 y 7); el detalle de
-  crecidas y avulsión se apoya en una tesis de la PUCP y se marca como interpretación
-  histórica, no como medición.
-- **2023: La Niña.** Andina y NASA documentan el desborde y la afectación de la
-  carretera. No hay informe hidrológico de SENAMHI/ANA en el catálogo; no se publica
-  área ni volumen para 2023.
+- **1891: mecanismo.** SIAR registra el cambio de embocadura (p. 5 y 7) y describe el
+  mecanismo general de avulsión (p. 9). La tesis de la PUCP quedó como referencia
+  secundaria: el repositorio no permitió abrirla en esta auditoría, así que no se usa
+  para una afirmación específica. El detalle se marca como interpretación histórica.
+- **1998: 161 días.** SIAR 200 consigna un período de 161 días, pero no se verificó con
+  una serie diaria; el texto no afirma que el evento durara exactamente 161 días.
+- **2023: La Niña.** Andina documenta el desborde y 120 m de carretera destruidos;
+  NASA documenta la laguna con Landsat 9. No hay informe hidrológico de SENAMHI/ANA en
+  el catálogo; no se publica área ni volumen para 2023. No se localizó una fuente que
+  documente un cambio de desembocadura; no se afirma que lo haya habido ni que no lo
+  haya.
 - **ENFEN, Sentinel-1 y UNOSAT.** ENFEN se usa solo como contexto: falta identificar la
   edición concreta de sus informes. Sentinel-1 no es la fuente del vector publicado; el
   vector EMSR199 se basa en Radarsat/Cosmo según sus atributos. UNOSAT se usa como

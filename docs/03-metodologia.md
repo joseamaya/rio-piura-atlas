@@ -48,6 +48,20 @@ la zona 17S. 32718 es el sistema en el que ANA calculó `Shape_Area`, no el de l
 geometría publicada. Si una subcuenca trae un agujero interior, la reconciliación
 se detiene para revisión manual; no se rellena en silencio.
 
+La **validez se comprueba antes de reparar**. `inspect_geometry()` registra el
+motivo, el tipo y la vacuidad; `repair_to_polygonal()` solo actúa cuando se autoriza
+y deja un registro con el tipo reparado y los componentes descartados. Una geometría
+inválida produce un hallazgo de error aunque tenga una reparación posible.
+
+La fidelidad de la reconciliación se mide en EPSG:32717: IoU, diferencia simétrica,
+Hausdorff, distancia media y p95 entre límites. La distancia media y el p95 se
+muestrean cada 50 m; Hausdorff es el máximo exacto y se publica como diagnóstico
+porque un vértice aislado puede dispararlo. Los cambios de área se separan en
+simplificación y reconciliación. La superficie asignada por proximidad (sin
+solapamiento) se publica aparte. Los umbrales de aviso son 0,01 km² para el cambio de
+área de reconciliación y para la superficie por proximidad, y p95 > 3 × 0,0006°
+(≈200 m), derivado de la tolerancia de simplificación.
+
 ### Relieve
 Copernicus DEM GLO-30 como producto de origen, remuestreado a una **malla de trabajo
 de ~143 × 134 m**. El atlas no presenta perfiles a 30 m: la malla no tiene ese detalle.
@@ -97,37 +111,68 @@ reconstrucción propia. Se usan dos áreas de interés:
 
 Se conserva la clase `Flooded Area`, se disuelve, se descartan fragmentos menores de
 0,5 ha y se simplifica a 25 m. La capa publica la **unión de las observaciones por
-fecha**, no una mancha simultánea: AOI10 suma 80,8 km² del 26/03 y 73,0 km² del
-30/03, con una unión simplificada de 96,5 km²; AOI11 pasa de 457,4 km² originales a
-459,0 km² simplificados. El total publicado es ≈555 km². La capa cubre la llanura
-baja y el desierto adyacente, **no toda la cuenca**: en la sierra el evento se expresó
-como crecidas y deslizamientos, no como una mancha continua. No es un modelo
-hidráulico ni una predicción. No se publica una clase `Potential Flooded Area`
-porque el vector no la trae; la extensión total del evento no se publica.
+fecha**, no una mancha simultánea. Todas las áreas se miden en EPSG:32717, que es el
+CRS de los shapefiles de Copernicus:
 
-El PDF v2 de AOI10 declara Sentinel-1A, pero el DBF del mismo producto declara
-Radarsat y Cosmo-SkyMed. El atlas usa los atributos del vector y deja la
-discrepancia visible. El AOI12 Piura North se descartó porque sus registros no
+| AOI | Paso | Área |
+|---|---|---:|
+| AOI10 | 26/03, Radarsat | 80,785 km² |
+| AOI10 | 30/03, Cosmo-SkyMed | 73,040 km² |
+| AOI10 | suma de observaciones | 153,825 km² |
+| AOI10 | solapamiento entre fechas | 56,772 km² |
+| AOI10 | unión original | 97,053 km² |
+| AOI10 | tras filtro <0,5 ha | 96,347 km² |
+| AOI10 | tras simplificación 25 m y publicación | 96,507 km² |
+| AOI11 | 26/03, Radarsat | 457,408 km² |
+| AOI11 | unión original | 457,408 km² |
+| AOI11 | tras filtro | 457,213 km² |
+| AOI11 | tras simplificación y publicación | 458,970 km² |
+
+Total publicado: **555,477 km²**. La suma 80,785 + 73,040 = 153,825 km² **no es una
+superficie**: 56,772 km² se observaron en ambas fechas. La diferencia entre la unión
+original y la publicada (97,053 → 96,507 km²) se explica por el filtro de fragmentos
+menores de 0,5 ha y por la simplificación a 25 m; no se ajustó manualmente. La
+simplificación puede aumentar el área en algunas geometrías; se reporta el valor
+medido, no el esperado.
+
+La capa cubre la llanura baja y el desierto adyacente, **no toda la cuenca**: en la
+sierra el evento se expresó como crecidas y deslizamientos, no como una mancha
+continua. No es un modelo hidráulico ni una predicción. No se publica una clase
+`Potential Flooded Area` porque el vector no la trae; la extensión total del evento
+no se publica. «Área delineada» no es «superficie inundada»: la primera es lo que el
+radar permitió delimitar en una fecha; la segunda requeriría un levantamiento o un
+modelo, que el atlas no tiene.
+
+La ficha del PDF v2 de AOI10 declara Sentinel-1A, pero el DBF del mismo producto
+declara Radarsat y Cosmo-SkyMed. El atlas usa los atributos del vector. En la
+auditoría de v0.2.2 no se reabrió el PDF: la discrepancia queda visible y pendiente
+de confirmación documental. El AOI12 Piura North se descartó porque sus registros no
 traen fecha ni sensor.
 
 ### Escenarios históricos
 Cada afirmación se clasifica como dato medido, documento, interpretación o pendiente:
 
 - **1891.** SIAR registra la salida al mar antes de 1891, el cambio a la laguna San
-  Ramón desde ese año y la reocupación del cauce antiguo en 1983 (p. 5 y 7). Una tesis
-  de la PUCP, que cita a Huertas (1999) y Rocha (2014), respalda el mecanismo de
-  crecidas y avulsión. El detalle del mecanismo se marca como interpretación histórica.
+  Ramón desde ese año y la reocupación del cauce antiguo en 1983 (p. 5 y 7). SIAR
+  describe el mecanismo general de avulsión (p. 9). La tesis de la PUCP queda como
+  referencia secundaria: en esta auditoría el repositorio no permitió abrirla, así que
+  no se usa para una afirmación específica. El detalle del mecanismo se marca como
+  interpretación histórica.
 - **1983.** 3 200 m³/s el 21 de abril de 1983 en Puente Sánchez Cerro (SIAR 200 p. 15;
   SIAR 204 p. 49). La duración diaria del episodio no se localizó; no se afirma.
 - **1998.** 4 424 m³/s (SIAR 204 p. 27 y 49). SIAR 200 consigna el 12 de marzo en la
   introducción (p. 1) y el 16 de marzo en el análisis de niveles (p. 15); la fecha
-  exacta queda como discrepancia. El evento duró 161 días. La laguna La Niña se formó
-  en 1998; IMARPE estima 2 326 km² en 1998 y 2 172 km² en 2017 con MODIS-Aqua de
-  500 m (Escudero & Xu, 2019).
+  exacta queda como discrepancia. SIAR 200 consigna un período de 161 días; no se
+  verificó con una serie diaria, así que no se afirma que el evento durara exactamente
+  161 días. IMARPE estima 2 326 km² en 1997-98 y 2 172 km² el 5 de abril de 2017 con
+  MODIS-Aqua de 500 m (Escudero & Xu, 2019).
 - **2017.** La geometría es el vector oficial EMSR199, no una reconstrucción propia.
-- **2023.** La laguna La Niña volvió a desbordar en marzo; lo documentan Andina y
-  Landsat 9. No hay informe hidrológico de SENAMHI/ANA en el catálogo, así que no se
-  publica una cifra de área o volumen para 2023.
+  Se publica la unión de observaciones, no una mancha simultánea.
+- **2023.** La laguna La Niña volvió a desbordar en marzo; Andina documenta 120 m de
+  carretera destruidos y NASA Landsat 9 documenta la laguna. No hay informe
+  hidrológico de SENAMHI/ANA en el catálogo, así que no se publica una cifra de área o
+  volumen. No se localizó una fuente que documente un cambio de desembocadura; no se
+  afirma que lo haya habido ni que no lo haya.
 
 ### Obras hidráulicas
 Poechos se dibuja como **punto en el dique** documentado por el PECHP, no como un
@@ -143,8 +188,10 @@ en el diorama es un recurso visual, no el ancho real.
 - Se comprueba: validez Shapely, autointersecciones, agujeros, MultiPolygon,
   **solapamientos por par**, **superficie fuera de la cuenca por subcuenca**,
   **huecos por componente** y su unión, líneas fuera de cuenca, coherencia de áreas
-  geodésicas y correspondencia entre perfil y resolución efectiva del DEM. La suma de
-  áreas es solo una comprobación secundaria; no sustituye la topología.
+  geodésicas, **fidelidad (IoU, diferencia simétrica, Hausdorff, media y p95)** y
+  correspondencia entre perfil y resolución efectiva del DEM. La suma de áreas es
+  solo una comprobación secundaria; no sustituye la topología. Los avisos de
+  fidelidad se publican aunque el resultado deje de ser «0 avisos».
 - Los desacuerdos entre fuentes se dejan visibles en la ficha, no se promedian.
 - La mancha de 2017 conserva la clase `Flooded Area`, se revisa contra la máscara de
   mar y declara su cobertura; las obras se validan por su marca `esquematico: true`.

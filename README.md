@@ -44,6 +44,7 @@ docs/                 por qué y cómo (empezar por 01-alcance.md)
 docs/00-plan-fase-0.md  plan de trabajo inmediato
 docs/08-pendientes.md   estado y pendientes de la fase 1
 docs/09-auditoria-estabilizacion.md  auditoría, evidencias y límites
+docs/10-contexto-historico.md  registro de afirmaciones históricas y fuentes
 data/sources.yml      registro maestro de fuentes
 data/raw/             datos tal como llegan (inmutables)
 data/processed/       datos derivados, reproducibles
@@ -96,8 +97,9 @@ solo se descarga al abrir esa página.
   superficie fuera por subcuenca, huecos por componente y agujeros interiores**, áreas
   geodésicas, cortes, resolución efectiva, malla de elevación, GLB y presupuesto de
   datos. Las tolerancias están justificadas a escala 1:100 000.
-- `python3 -m unittest discover -s etl/tests -v` ejecuta 38 pruebas de geometría,
-  topología sintética y contrato de datos publicados.
+- `python3 -m unittest discover -s etl/tests -v` ejecuta **52 pruebas** de geometría,
+  validación antes de reparar, topología sintética, fidelidad y contrato de datos
+  publicados.
 - En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas),
   `npm run check:a11y` (axe WCAG A/AA en Chrome headless) y `npm run test:e2e`
   (Playwright: mapa, dibujo de perfil, capas, ficha, teclado, fallo de red, móvil y

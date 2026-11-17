@@ -299,8 +299,14 @@ fuentes:
       Atributos del vector: AOI10, Radarsat Ultra-Fine Beam (26/03) y
       Cosmo-SkyMed 3-15m Stripmap (30/03); AOI11, Radarsat (26/03). El PDF v2
       declara Sentinel-1A, en contradicción con el DBF; se usan los atributos
-      del vector y se advierte en la ficha. La capa publica solo «Flooded
-      Area» y es la unión de fechas, no una mancha simultánea. DOI de la
+      del vector y se advierte en la ficha. En la auditoría de v0.2.2 no se
+      reabrió el PDF: la discrepancia queda pendiente de confirmación
+      documental. La capa publica solo «Flooded Area» y es la unión de fechas,
+      no una mancha simultánea. Áreas en EPSG:32717: AOI10 80,785 + 73,040 =
+      153,825 km² de suma, 56,772 km² de solapamiento, 97,053 km² de unión
+      original y 96,507 km² publicados; AOI11 457,408 km² originales y 458,970
+      km² publicados. Un polígono de AOI10 traía autointersección de anillo y
+      se reparó con make_valid, sin descartar componentes. DOI de la
       activación: 10.2905/JRC.GKDVN10.
 
   - id: sentinel-1-2017
@@ -409,10 +415,12 @@ fuentes:
     pagina: "1, 15"
     consultado: "2026-11-16"
     notas: >
-      p. 1: 4 424 m³/s el 12 de marzo de 1998, 161 días de evento y 13,5 MMC
-      de escorrentía. p. 15: 3 200 m³/s el 21 de abril de 1983 y 4 424 m³/s el
-      16 de marzo de 1998. La discrepancia de fecha (12 vs 16 de marzo) se deja
-      visible; no se elige una sin fuente adicional.
+      p. 1: 4 424 m³/s el 12 de marzo de 1998, «durante un período de 161 días»
+      y 13,5 MMC de escorrentía. p. 15: 3 200 m³/s el 21 de abril de 1983 y
+      4 424 m³/s el 16 de marzo de 1998. La discrepancia de fecha (12 vs 16 de
+      marzo) se deja visible; no se elige una sin fuente adicional. La redacción
+      de los 161 días no permite afirmar que el evento durara exactamente ese
+      número de días sin una serie diaria.
 
   - id: siar-cambios-cauce
     titulo: SIAR Piura — cambios de la embocadura del río Piura
@@ -433,27 +441,30 @@ fuentes:
       p. 5: «al mar antes de 1891 y en 1983; a laguna San Ramón desde 1891».
       p. 7: en 1982/83 hubo «cambio de la embocadura al mar por reocupación del
       cauce antiguo». p. 8: en 1997/98 se activaron cauces temporales y lagunas.
-      Es una síntesis técnica, no una serie medida.
+      p. 9: las avulsiones se producen por progradación del lóbulo de derrame o
+      por reocupación de cauces antiguos. Es una síntesis técnica, no una serie
+      medida; no menciona «Sechura».
 
   - id: pucp-1891
     titulo: Modelamiento hidrológico e hidráulico de inundaciones en Piura
     institucion: Pontificia Universidad Católica del Perú
     url: http://hdl.handle.net/20.500.12404/18304
-    fecha: null
+    fecha: "2021-02-19"
     escala: cuenca / tramo urbano
     licencia: uso académico con atribución
-    estado: disponible
-    metodo: consulta de tesis; cita a Huertas (1999) y Rocha (2014)
+    estado: por_verificar
+    metodo: consulta bibliográfica; el repositorio no permitió abrir el PDF
     grupo: Estudios
-    certeza: documentado
+    certeza: por_verificar
     tipo: documento
-    documento: Tesis de modelamiento hidrológico e hidráulico para el análisis de inundaciones en la ciudad de Piura
+    documento: Orellana Cabello, R. E. (2021). Modelamiento hidrológico e hidráulico para el análisis de inundaciones en la ciudad de Piura utilizando HEC-HMS y HEC-RAS
     consultado: "2026-11-16"
     notas: >
-      Contraste académico para 1891: antes de ese año el río era devuelto
-      artificialmente a su lecho originario; las crecidas de 1891 cambiaron el
-      lecho principal hacia el sureste, hacia el lago San Ramón. No se copian
-      figuras. Fecha de la tesis pendiente de confirmar.
+      El registro bibliográfico existe y el resumen menciona 1925, 1983, 1998
+      y 2017, pero no 1891. El PDF devolvió 403/Anubis en la auditoría de
+      v0.2.2. No se usa para la afirmación específica de 1891 ni para las
+      cifras de 1983/1998. Si se abre el documento, revisar las citas a
+      Huertas (1999) y Rocha (2014) antes de restaurar la afirmación.
 
   - id: udep-estudios
     titulo: Universidad de Piura — estudios de agua e inundaciones
@@ -507,8 +518,9 @@ fuentes:
     consultado: "2026-11-16"
     notas: >
       La laguna se formó en 1998 y reapareció en 2017. Área máxima estimada:
-      2 326 km² en 1998 y 2 172 km² en 2017. La cifra es una estimación con
-      MODIS-Aqua de 500 m, no un levantamiento.
+      2 326 km² en 1997-98 y 2 172 km² el 5 de abril de 2017. La cifra es una
+      estimación con MODIS-Aqua de 500 m y un DEM ASTER, no un levantamiento.
+      El resumen del artículo no cuantifica 2023.
 
   - id: andina-la-nina-2023
     titulo: Agencia Andina — desborde de la laguna La Niña en 2023
@@ -527,7 +539,8 @@ fuentes:
     notas: >
       Documenta el desborde de marzo de 2023 y la destrucción de 120 m de la
       carretera Bayóvar–Chiclayo. No es un informe hidrológico ni cuantifica
-      el volumen; se usa solo para la reactivación de La Niña.
+      el volumen; se usa solo para la reactivación de La Niña. No menciona un
+      cambio de desembocadura del río.
 
   - id: nasa-la-nina-2023
     titulo: NASA Earth Observatory — Warming Water and Downpours in Peru
@@ -545,7 +558,8 @@ fuentes:
     consultado: "2026-11-16"
     notas: >
       Muestra La Niña antes y durante las lluvias de 2023 y el desborde del
-      23/03/2023. Es teledetección, no un aforo.
+      23/03/2023; las imágenes son del 24/02 y 12/03/2023. Es teledetección, no
+      un aforo. No documenta un cambio de desembocadura del río.
 
   - id: banco-mundial-gfdrr
     titulo: Banco Mundial / GFDRR — análisis de la inundación de 2017

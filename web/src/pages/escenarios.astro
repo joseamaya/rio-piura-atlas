@@ -14,7 +14,8 @@ import { withBase } from "../lib/url";
     <p class="lead">
       Estos no son pronósticos. 1891 y 1983 documentan la salida al mar; 1998 y 2017
       documentan inundaciones y cambios en el Bajo Piura. Cuatro episodios principales
-      y una nota sobre la laguna La Niña en 2023, que no cambió la desembocadura.
+      y una nota sobre la laguna La Niña en 2023. Para 2023 no se localizó evidencia de
+      un cambio de desembocadura; la reactivación de la laguna no lo implica por sí sola.
     </p>
 
     <p class="small muted">
@@ -33,22 +34,22 @@ import { withBase } from "../lib/url";
 
     <h2>1891 · el río cambia de desembocadura</h2>
     <p>
-      Antes de 1891 el Piura desembocaba en el mar, en el litoral de Sechura. La
-      síntesis técnica de SIAR registra el cambio: desde 1891 el cauce principal se
-      dirige a la laguna San Ramón y el antiguo corredor hacia el mar queda como vía
-      de evacuación de grandes avenidas. En 1983 el río volvió a conectar con el mar
-      por ese corredor.
+      Antes de 1891 el Piura desembocaba en el mar. La síntesis técnica de SIAR
+      registra el cambio: desde 1891 el cauce principal se dirige a la laguna San
+      Ramón y el antiguo corredor hacia el mar queda como vía de evacuación de
+      grandes avenidas. En 1983 el río volvió a conectar con el mar por ese corredor.
       <span class="badge ok">documentado</span>
     </p>
     <p class="small muted">
-      El detalle del mecanismo —crecidas, avulsión y sedimentación— se apoya en una
-      tesis de la PUCP que cita a Huertas (1999) y Rocha (2014); se marca como
+      SIAR describe el mecanismo general de avulsión (p. 9), pero no se usa la tesis
+      de la PUCP para una afirmación específica de 1891: en esta auditoría el
+      repositorio no permitió abrir el documento. El detalle del mecanismo queda como
       <span class="badge warn">interpretación histórica</span>, no como una medición.
     </p>
     <p class="small muted">
       Fuente: <a href={withBase("/fuentes#siar-cambios-cauce")}>SIAR Piura, cambios de la
-      embocadura</a>, p. 5 y 7. Contraste:
-      <a href={withBase("/fuentes#pucp-1891")}>tesis PUCP</a>.
+      embocadura</a>, p. 5, 7 y 9. Referencia secundaria:
+      <a href={withBase("/fuentes#pucp-1891")}>tesis PUCP</a>, pendiente de abrir.
     </p>
 
     <h2>1983 · el Mega-Niño</h2>
@@ -82,10 +83,12 @@ import { withBase } from "../lib/url";
       <span class="badge pending">fecha por verificar</span>
     </p>
     <p>
-      El evento duró 161 días. También se formó la laguna La Niña: IMARPE estima un
-      área máxima de <strong>2 326 km²</strong> en 1998, frente a 2 172 km² en 2017,
-      con imágenes MODIS-Aqua de 500 m. La laguna volvió a activarse en 2017 y 2023.
-      <span class="badge ok">documentado</span>
+      SIAR 200 consigna un período de 161 días; no se verificó con una serie diaria,
+      así que no se afirma que el evento durara exactamente 161 días. También se formó
+      la laguna La Niña: IMARPE estima un área máxima de <strong>2 326 km²</strong> en
+      1997-98, frente a <strong>2 172 km²</strong> el 5 de abril de 2017, con imágenes
+      MODIS-Aqua de 500 m. La laguna volvió a activarse en 2017 y 2023.
+      <span class="badge ok">documentado con salvedad</span>
     </p>
     <p class="small muted">
       Fuente: <a href={withBase("/fuentes#siar-piura")}>SIAR, Apéndice D</a>, p. 27 y
@@ -100,21 +103,43 @@ import { withBase } from "../lib/url";
       reconstrucción propia: es el vector oficial de Copernicus EMSR199. AOI10 (Piura,
       Catacaos y La Unión) combina Radarsat Ultra-Fine Beam del 26/03 y Cosmo-SkyMed
       del 30/03; AOI11 (Parachique) usa Radarsat del 26/03.
-      <span class="badge ok">dato medido</span>
+      <span class="badge ok">observación satelital</span>
     </p>
     <p>
       La capa publica la <strong>unión de las observaciones</strong>, no una mancha
-      simultánea. En AOI10, el vector original suma 80,8 km² del 26/03 y 73,0 km² del
-      30/03; la unión simplificada es 96,5 km². En AOI11, el vector original mide
-      457,4 km² y la versión simplificada 459,0 km².
+      simultánea. La suma de las dos fechas de AOI10 no es una superficie porque parte
+      del área se observó en ambas fechas:
       <span class="badge warn">advertencia metodológica</span>
     </p>
+    <table>
+      <thead><tr><th>AOI</th><th>Observación</th><th>Área</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="6">AOI10</td><td>26/03 · Radarsat</td><td>80,785 km²</td></tr>
+        <tr><td>30/03 · Cosmo-SkyMed</td><td>73,040 km²</td></tr>
+        <tr><td>Suma de observaciones</td><td>153,825 km²</td></tr>
+        <tr><td>Solapamiento entre fechas</td><td>56,772 km²</td></tr>
+        <tr><td>Unión original</td><td>97,053 km²</td></tr>
+        <tr><td>Unión simplificada publicada</td><td><strong>96,507 km²</strong></td></tr>
+        <tr><td rowspan="3">AOI11</td><td>26/03 · Radarsat</td><td>457,408 km²</td></tr>
+        <tr><td>Unión original</td><td>457,408 km²</td></tr>
+        <tr><td>Unión simplificada publicada</td><td><strong>458,970 km²</strong></td></tr>
+      </tbody>
+    </table>
     <p class="small muted">
-      El PDF v2 del producto declara Sentinel-1A, pero los atributos del vector
-      declaran Radarsat y Cosmo-SkyMed. El atlas usa los atributos del vector y deja
-      la discrepancia visible. Solo se publica la clase <code>Flooded Area</code>
-      (observada); el vector no trae una clase potencial y la extensión total del
-      evento no se publica.
+      Total publicado: <strong>555,477 km²</strong> en EPSG:32717. La suma
+      80,785 + 73,040 = 153,825 km² no es una superficie: 56,772 km² se observaron en
+      ambas fechas. La diferencia entre la unión original y la publicada
+      (97,053 → 96,507 km²) viene del filtro de fragmentos menores de 0,5 ha y de la
+      simplificación a 25 m; no se ajustó a mano.
+    </p>
+    <p class="small muted">
+      <strong>Qué mide el vector.</strong> La clase <code>Flooded Area</code> es una
+      delineación satelital por fecha, no un levantamiento ni una superficie inundada
+      continua. No incluye zonas que el radar no observó ni una clase potencial. El PDF
+      v2 del producto declara Sentinel-1A; los atributos del vector declaran Radarsat y
+      Cosmo-SkyMed. El atlas usa los atributos del vector. En esta auditoría no se
+      reabrió el PDF: la discrepancia queda visible y pendiente de confirmación
+      documental.
     </p>
     <figure class="flood-figure">
       <img
@@ -125,9 +150,9 @@ import { withBase } from "../lib/url";
         loading="lazy"
       />
       <figcaption>
-        Inundación observada en marzo de 2017 (AOI10 y AOI11 de Copernicus EMSR199).
-        El área azul es el vector oficial simplificado; no es un modelo hidráulico ni
-        una predicción. Fuente:
+        Inundación delineada en marzo de 2017 (AOI10 y AOI11 de Copernicus EMSR199).
+        El área azul es la unión simplificada de las observaciones; no es un modelo
+        hidráulico ni una predicción. Fuente:
         <a href={withBase("/fuentes#copernicus-ems-emsr199")}>© European Union,
         Copernicus EMS</a>. <a href={withBase("/mapa?capa=inundacion")}>Ver la capa en
         el mapa</a>.
@@ -140,18 +165,20 @@ import { withBase } from "../lib/url";
     </p>
 
     <div class="note">
-      <h2>2023 · la laguna, no la desembocadura</h2>
+      <h2>2023 · la laguna La Niña</h2>
       <p>
         En marzo de 2023 la laguna La Niña volvió a activarse y desbordó; el agua
-        destruyó un tramo de la carretera Bayóvar–Chiclayo. Lo documentan una nota de
-        la Agencia Andina y las imágenes Landsat 9 de NASA Earth Observatory.
+        destruyó 120 m de la carretera Bayóvar–Chiclayo. Lo documentan una nota de la
+        Agencia Andina y las imágenes Landsat 9 de NASA Earth Observatory.
         <span class="badge ok">documentado</span>
       </p>
       <p class="small muted">
         No hay en el catálogo un informe hidrológico de SENAMHI/ANA que cuantifique el
         volumen o el área de 2023. Por eso no se publica una cifra:
-        <span class="badge pending">por verificar</span>. La reactivación de la laguna
-        no equivale a una nueva salida del río al mar.
+        <span class="badge pending">por verificar</span>. Tampoco se localizó una fuente
+        que documente un cambio de desembocadura en 2023; la reactivación de la laguna
+        no implica por sí sola una nueva salida del río al mar.
+        <span class="badge pending">sin evidencia de cambio</span>
       </p>
       <p class="small muted">
         Fuente: <a href={withBase("/fuentes#andina-la-nina-2023")}>Agencia Andina,
@@ -198,6 +225,11 @@ import { withBase } from "../lib/url";
           <td>La Niña 2023</td>
           <td><span class="badge ok">documentado</span></td>
           <td>prensa institucional y Landsat; falta informe hidrológico</td>
+        </tr>
+        <tr>
+          <td>Desembocadura 2023</td>
+          <td><span class="badge pending">sin evidencia</span></td>
+          <td>no se localizó una fuente que documente un cambio</td>
         </tr>
       </tbody>
     </table>

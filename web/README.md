@@ -52,7 +52,9 @@ El GLB se genera en el proyecto Blender hermano
   como recta de referencia, marcados con `esquematico: true`; no es un inventario
   de ANA/PECHP ni el eje oficial del canal.
 - `flood_2017.geojson` es el vector oficial de Copernicus EMSR199 (AOI10 + AOI11),
-  simplificado. Cubre la llanura baja y el desierto adyacente, no toda la cuenca.
+  simplificado. Publica áreas por observación, solapamiento, unión original, filtrada,
+  simplificada y publicada en UTM/geodésica. Cubre la llanura baja y el desierto
+  adyacente, no toda la cuenca.
 - `flood_2017.jpg` es la figura estática de `/escenarios`, generada por
   `build_layers.py` a partir del relieve y de la mancha.
 - `cortes.geojson`, `cortes_perfiles.json`, `dem_grid.bin` y `dem_grid.meta.json` se

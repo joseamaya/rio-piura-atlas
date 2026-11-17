@@ -53,7 +53,9 @@ python3 etl/build_layers.py
 Salidas nuevas de `build_layers.py`:
 
 - `web/public/data/flood_2017.geojson` — vector oficial EMSR199 (AOI10 + AOI11),
-  filtrado a `Flooded Area`, disuelto, simplificado y reproyectado a WGS84.
+  filtrado a `Flooded Area`, disuelto, simplificado y reproyectado a WGS84. Publica
+  áreas por observación, solapamiento, unión original, área filtrada, simplificada,
+  publicada en UTM y geodésica.
 - `web/public/data/obras.geojson` — Poechos y canal Daniel Escobar, esquemáticos.
 - `web/public/data/flood_2017.jpg` — figura estática para `/escenarios`.
 
@@ -92,10 +94,18 @@ agujeros interiores**, áreas geodésicas, líneas fuera de cuenca, perfiles y s
 resolución efectiva, malla de elevación, estructura del GLB y presupuesto de datos.
 No necesita DEM ni conexión.
 
-`topology.py` concentra la auditoría y la reconciliación. `download_ana.py` la usa
-para repartir los slivers de simplificación entre subcuencas sin crear superficie
-nueva; si una subcuenca trae un agujero interior, el proceso se detiene para revisión
-manual.
+`topology.py` concentra la auditoría y la reconciliación. La validez se comprueba
+**antes** de reparar: `inspect_geometry()` no toca la geometría y
+`repair_to_polygonal()` solo actúa cuando se autoriza, dejando un registro con el
+motivo, el tipo reparado y los componentes descartados. `download_ana.py` usa esa
+reconciliación para repartir los slivers de simplificación sin crear superficie
+nueva; si una subcuenca trae un agujero interior o una geometría inválida, el proceso
+se detiene salvo autorización explícita.
+
+`reconciliacion.fidelidad` publica IoU, diferencia simétrica, Hausdorff, distancia
+media y p95 entre límites, además de la superficie asignada por solapamiento y por
+proximidad. `check_data.py` puede terminar con avisos de fidelidad; no se ocultan
+para forzar un resultado verde.
 
 Los scripts del laboratorio (`../blender/projects/piura/scripts/`) resolvieron el
 DEM y la textura del diorama; este ETL reutiliza esos productos. Los límites y la

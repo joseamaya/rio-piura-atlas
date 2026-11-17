@@ -797,6 +797,12 @@ import { withBase } from "../lib/url";
       if (floodHit) {
         const p = floodHit.properties || {};
         const area = Number(p.area_km2 || 0);
+        const areaTexto = area.toLocaleString("es-PE", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        });
+        const unionOriginal = Number(p.area_union_original_km2 || 0);
+        const overlap = Number(p.solapamiento_observaciones_km2 || 0);
         const observations = Array.isArray(p.observaciones) ? p.observaciones : [];
         const obsHtml = observations.length
           ? observations
@@ -807,8 +813,9 @@ import { withBase } from "../lib/url";
               .join("<br>")
           : `${p.fecha_texto || p.fecha}: ${p.sensores || "sensor no declarado"}`;
         show(`<h3>Inundación de marzo de 2017</h3>
-              <p><strong>${p.zona}</strong> · ${Math.round(area).toLocaleString("es-PE")} km² de unión simplificada</p>
+              <p><strong>${p.zona}</strong> · ${areaTexto} km² publicados (unión simplificada)</p>
               <p class="muted">${obsHtml}</p>
+              <p class="muted">Unión original: ${unionOriginal.toLocaleString("es-PE", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} km² · solapamiento entre fechas: ${overlap.toLocaleString("es-PE", { minimumFractionDigits: 3, maximumFractionDigits: 3 })} km².</p>
               <p class="muted">${p.cobertura || ""}</p>
               <p class="muted">${p.advertencia || ""}</p>
               <p class="muted">Fuente: <a href="${withBase("/fuentes#copernicus-ems-emsr199")}">Copernicus EMSR199</a>. Solo clase <code>Flooded Area</code>; no es un modelo hidráulico ni una mancha simultánea.</p>`);

@@ -1,322 +1,336 @@
-# 09 · Auditoría de estabilización
+# 09 · Auditoría científica y geométrica
 
 Fecha: 2026-11-16.
-Alcance: topología de subcuencas, afirmaciones históricas, catálogo de fuentes,
-pruebas funcionales y verificación del sitio.
+Rama local: `audit/cientifica-v0.2.2`.
+Base auditada: `15c9b58` (`v0.2.1`). El commit `d2fae02` citado en el encargo es
+anterior a la corrección del pie y al release; no se usó como base.
+Alcance: cuatro correcciones limitadas —validación antes de reparar, cifras de 2017,
+fidelidad de la reconciliación y auditoría documental— sin cambiar la arquitectura,
+sin publicar y sin desplegar.
 
 ## 1. Resumen ejecutivo
 
-La intervención corrigió los defectos topológicos que la simplificación independiente
-de las subcuencas había dejado: **15 solapamientos (0,7828 km²)**, **0,6747 km² fuera
-de la cuenca** y **1,4725 km² de huecos**. La cuenca y las nueve subcuencas se
-reconciliaron como una partición topológica en EPSG:32717; el resultado tiene
-**0 solapamientos, 0 superficie fuera y 0 huecos por encima de 0,01 km²**, sin crear
-superficie nueva. La suma de áreas sigue siendo 10 938,4 km².
+La auditoría encontró que la estabilización anterior había limpiado la topología,
+pero todavía ocultaba información en tres frentes:
 
-También se corrigieron afirmaciones históricas y metadatos: la fecha del pico de 1998
-es discrepante en la propia fuente (12 vs 16 de marzo), el vector de 2017 es una unión
-de observaciones de dos fechas y no una mancha simultánea, el PDF de AOI10 declara un
-sensor distinto al del DBF, y Bajo Piura estaba atribuido a ANA aunque es derivado por
-el proyecto. Se añadieron fuentes verificables para 1891, 1983, 1998, 2017 y 2023.
+1. **La validez se comprobaba después de reparar.** `make_valid()` se aplicaba antes
+   de la auditoría; el error original no se reportaba. Un polígono bow-tie se
+   convertía en MultiPolygon válido y la auditoría no lo veía. Además, una geometría
+   vacía podía producir un hueco `nan`.
+2. **Las cifras de 2017 no estaban reconciliadas.** 96,5 km² es correcto para la capa
+   publicada, pero no se explicaba que la unión original mide 97,053 km² y que las
+   dos fechas de AOI10 se solapan en 56,772 km². La suma 80,8 + 73,0 = 153,8 km² no
+   es una superficie.
+3. **La fidelidad de la reconciliación no estaba medida.** La topología quedaba en
+   0/0/0, pero ocho de las nueve subcuencas cambian más de 0,01 km² entre la fuente
+   ANA y la geometría reconciliada. Parte es simplificación; parte es reasignación.
+   No se publicaba IoU, diferencia simétrica, Hausdorff ni distancia media/p95.
 
-Resultado: `check_data.py` en verde sin avisos, **38 pruebas Python** y **10 pruebas
-Playwright** en verde, `npm run check` sin errores, build y enlaces correctos,
-accesibilidad sin violaciones WCAG A/AA.
+También se corrigieron afirmaciones históricas: se retiró «litoral de Sechura»
+porque SIAR no lo dice; se suavizó «161 días»; se retiró la atribución específica a
+la tesis PUCP porque no se pudo abrir; y se cambió «2023 no cambió la desembocadura»
+por «no se localizó evidencia de cambio».
 
-## 2. Problemas detectados
+Resultado: **52 pruebas Python** y **10 Playwright** en verde; `check_data.py` sin
+errores y con **10 avisos** declarados; build, enlaces y accesibilidad
+correctos. Los avisos no se ocultaron.
 
-| Hallazgo | Evidencia | Severidad |
-|---|---|---|
-| 15 solapamientos entre subcuencas; 0,7839 km² medidos (0,7828 km² en la rejilla de reconciliación); máximo 0,1187 km² (Bajo Piura / Medio Bajo Piura) | Shapely en EPSG:32717 sobre `web/public/data/subcuencas.geojson` antes de la corrección | Alta |
-| 0,6725 km² de subcuencas fuera de la cuenca medidos (0,6747 km² en la rejilla); máximo 0,2370 km² (Alto Piura) | Ibídem | Alta |
-| Hueco de 1,4760 km² medido (1,4725 km² en la rejilla) en 176 fragmentos; máximo 0,0487 km² | Ibídem | Alta |
-| Las ocho subcuencas ANA originales no se solapan; los slivers nacen de simplificar cada una por separado | Consulta directa al geoservidor ANA | Alta |
-| Bajo Piura atribuido a `ana-subcuencas` aunque es derivado por el proyecto | `subcuencas.geojson` antes de la corrección | Alta |
-| AOI10 de 2017 es la unión de 26/03 (Radarsat, 80,785 km²) y 30/03 (Cosmo-SkyMed, 73,040 km²); unión 97,053 km²; se publicaban 96,5 km² sin declarar la unión | Atributos `src_date` y `source_nam` del DBF de EMSR199 | Alta |
-| El PDF v2 de AOI10 declara Sentinel-1A, pero el DBF declara Radarsat/Cosmo-SkyMed | PDF v2 vs DBF | Media |
-| 1998: el pico de 4 424 m³/s aparece con fecha 12 de marzo en la introducción y 16 de marzo en el análisis de niveles | SIAR 200, p. 1 y p. 15 | Media |
-| 1891: el cambio de embocadura está documentado, pero el mecanismo y el detalle “cerca de Sechura” requieren matiz | SIAR 1392 p. 5 y 7; tesis PUCP 2021 | Media |
-| 2023: la reactivación de La Niña no tenía fuente en el catálogo | Andina 22/03/2023; NASA 10/04/2023 | Media |
-| HydroRIVERS se citaba como “v10.0” y el mapa decía “HydroSHEDS” | Página oficial de HydroRIVERS: producto versión 1.0, archivos v10 | Media |
-| Fechas marcador de posición (`2017-03-01`, `2018-01-01`) y enlaces genéricos (ENFEN) | `data/sources.yml` antes de la corrección | Media |
-| La ficha de la cuenca no se abría al hacer clic en el relleno: `cuenca-fill` no estaba en `queryRenderedFeatures` | `mapa.astro` antes de la corrección | Media |
-| WebGL sin soporte mostraba el mensaje pero sin enlace de salida | `maqueta.astro` antes de la corrección | Baja |
-| Las pruebas Playwright no cubrían dibujo de perfil, capas, ficha, Escape ni WebGL ausente | `web/tests/e2e/atlas.spec.ts` antes de la corrección | Media |
+## 2. Problemas encontrados
 
-## 3. Problemas corregidos
-
-### 3.1 Topología
-
-- `etl/topology.py` concentra la auditoría y la reconciliación.
-- `etl/download_ana.py` simplifica la cuenca y las nueve subcuencas por separado,
-  polygoniza el grafo de límites y asigna cada cara a la subcuenca con mayor
-  solapamiento. Los huecos sin solapamiento se asignan a la más cercana.
-- La cuenca y las subcuencas comparten una rejilla de 1e-6° (~0,11 m) antes de
-  serializar, para que el redondeo no abra slivers en el borde.
-- Si una subcuenca tuviera agujeros interiores, la reconciliación se detiene; no se
-  rellena un cuerpo de agua o un enclave en silencio.
-- `etl/check_data.py` audita `limits.json` y `subcuencas.geojson` con la misma
-  función: solapamientos por par, superficie fuera por subcuenca, huecos por
-  componente y agujeros interiores. La suma de áreas quedó como comprobación
-  secundaria.
-- Bajo Piura se publica con la fuente `bajo-piura-derivado`, institución
-  «Río Piura Atlas (elaboración propia a partir de ANA)».
-
-Resultado exacto de la reconciliación (`data/raw/limits.json → reconciliacion`):
-
-| Métrica | Antes (rejilla 1e-6°) | Después |
-|---|---:|---:|
-| Solapamientos | 0,7828 km² | 0,0000 km² |
-| Superficie fuera de la cuenca | 0,6747 km² | 0,0000 km² |
-| Huecos | 1,4725 km² | 0,0000 km² |
-| Caras del grafo | — | 374 |
-| Caras de hueco asignadas | — | 209 |
-| Suma de subcuencas | 10 938,4 km² | 10 938,4 km² |
-| Bajo Piura | 4 752,9 km² | 4 752,9 km² |
-
-La auditoría sin rejilla dio 0,7839 km² de solapamientos, 0,6725 km² fuera y
-1,4760 km² de huecos; las diferencias con la tabla son de milésimas y provienen de
-fijar la rejilla común de 1e-6° antes de reconciliar. No se ocultan: ambas medidas
-están en los registros de la intervención.
-
-Cambios de área por subcuenca (km², EPSG:32717): Bajo Piura +0,1080; Alto Piura
-+0,0274; Medio Alto Piura +0,0385; Unidad Hidrográfica 13784 +0,0220; Medio Piura
-+0,1611; Bigote +0,0196; Corrales +0,0074; Medio Bajo Piura −0,2433; San Francisco
-−0,1258. Los cambios son de centésimas de km² y no crean superficie nueva.
-
-### 3.2 Histórico y científico
-
-- **1891.** Se cita SIAR 1392 p. 5 y 7 y la tesis PUCP 2021. El cambio de embocadura
-  se marca como documentado; el mecanismo de crecidas/avulsión, como interpretación
-  histórica.
-- **1983.** Se añade la fecha del pico: 21 de abril de 1983, 3 200 m³/s (SIAR 200
-  p. 15; SIAR 204 p. 49). La duración diaria no se localizó y se declara.
-- **1998.** Se mantiene 4 424 m³/s, pero se retira la falsa precisión de una única
-  fecha: SIAR 200 dice 12 de marzo en la introducción y 16 de marzo en el análisis de
-  niveles. Se añaden los 161 días y la formación de La Niña con IMARPE 2019.
-- **2017.** La ficha declara las observaciones por fecha y sensor, el área original y
-  el área simplificada. Se distingue la unión de fechas de una mancha simultánea. Se
-  declara que solo se publica `Flooded Area` y que no hay clase potencial en el
-  vector. Se advierte la discrepancia PDF/DBF.
-- **2023.** Se añade una nota separada: la laguna La Niña se reactivó y desbordó en
-  marzo; Andina y NASA lo documentan. No se publica área ni volumen porque no hay
-  informe hidrológico de SENAMHI/ANA en el catálogo.
-- Se añadió una leyenda de certidumbre en `/escenarios` y en `/fuentes`: dato medido,
-  derivado, documentado, interpretación y por verificar.
-
-### 3.3 Catálogo de fuentes
-
-- `data/sources.yml` incorpora `certeza` y `tipo`, y campos opcionales `documento`,
-  `pagina` y `consultado`.
-- HydroRIVERS se corrige a **v1.0 (archivos v10)** y se diferencia de HydroSHEDS.
-- Se añaden: `bajo-piura-derivado`, `siar-evaluacion-200`, `pucp-1891`,
-  `imarpe-la-nina-2019`, `andina-la-nina-2023` y `nasa-la-nina-2023`.
-- ENFEN y UDEP quedan como `por_verificar`: no se localizó el documento exacto y no
-  se usan para cifras concretas.
-- Las fechas de consulta de OSM y PECHP pasan a `consultado`; las fechas de
-  documento desconocidas quedan en `null`.
-- `LICENSES/DATOS.md` incluye las fuentes nuevas y suaviza “sin restricciones” para
-  ANA, que no estaba verificado.
-
-### 3.4 Interfaz y accesibilidad
-
-- La ficha de la cuenca se abre al hacer clic en el relleno (`cuenca-fill`) y
-  desde el botón «Ver ficha de la cuenca», accesible con teclado.
-- La ficha de subcuenca distingue ANA de Bajo Piura derivado.
-- La ficha de 2017 muestra las observaciones por fecha y la advertencia de unión.
-- `Escape` cierra el panel de corte y devuelve el foco al botón que lo abrió.
-- La maqueta, si WebGL falla, muestra un enlace al mapa 2D.
-- El mapa expone `data-ready="true"` después de cargar datos, registrar manejadores
-  y completar el primer `idle` de MapLibre; las pruebas esperan ese estado
-  observable en vez de un tiempo arbitrario.
-
-## 4. Validaciones geoespaciales implementadas
-
-`etl/topology.py` ofrece:
-
-- `audit_partition(basin, named_geoms, tolerances, hole_notes)`.
-- `pairwise_overlaps`, `outside_basin`, `gap_components`, `hole_findings`.
-- `reconcile_partition(basin, named_geoms, precision=1e-6)`.
-
-Tolerancias y justificación:
-
-| Control | Error | Aviso | Justificación |
-|---|---:|---:|---|
-| Solapamiento por par | 0,01 km² | 0,001 km² | A 1:100 000, 1 mm² = 0,01 km²; 0,001 km² = 0,1 mm² |
-| Hueco por componente | 0,01 km² | 0,001 km² | Ibídem |
-| Hueco total | >0,01 % de la cuenca | >0,001 % | Evita que muchos slivers pequeños pasen inadvertidos |
-| Fuera de cuenca por subcuenca | 0,01 km² | 0,001 km² | Ibídem |
-| Suma de áreas | 0,5 % | — | Comprobación secundaria; no sustituye la geometría |
-
-No se usa EPSG:32718 para medir: el servicio declara 32717 y el polígono está en la
-zona 17S. 32718 es el CRS en el que ANA calculó `Shape_Area`; la capa declara
-`sourceSpatialReference: 32718`. La medición en 32718 da 11 021,44 km², coherente con
-el campo de ANA; la medición geodésica da 10 938,4 km².
-
-## 5. Afirmaciones históricas verificadas
-
-| Afirmación | Fuente | Evidencia | Estado |
+| # | Hallazgo | Evidencia | Severidad |
 |---|---|---|---|
-| Antes de 1891 el río desembocaba en el mar; desde 1891 va a San Ramón; en 1983 vuelve al mar | SIAR 1392 p. 5 y 7 | «al mar (antes 1891 y en 1983); a laguna San Ramón (desde 1891)»; «reocupación del cauce antiguo» | Verificado |
-| El mecanismo de 1891 incluye crecidas y avulsión | Tesis PUCP 2021, cita a Huertas (1999) y Rocha (2014) | El lecho principal cambió hacia el sureste por las crecidas de 1891 | Documentado con matiz de interpretación |
-| 1983: 3 200 m³/s el 21/04/1983 | SIAR 200 p. 15; SIAR 204 p. 49 | Tabla 1983 = 3200,0; «21 de abril… 3200 m³/s» | Verificado |
-| 1983 y 1998: descarga total hasta 12 veces la media anual | SIAR 204 p. 13 | «la descarga total supera en doce veces la media anual» | Verificado |
-| 1998: 4 424 m³/s | SIAR 204 p. 27 y 49; SIAR 200 p. 1 y 15 | Serie de Puente Sánchez Cerro | Verificado |
-| 1998: 12 o 16 de marzo | SIAR 200 p. 1 y p. 15 | «12 de marzo 1998» vs «16 de marzo de 1998» | Discrepancia declarada |
-| 1998: 161 días de evento | SIAR 200 p. 1 | «durante un período de 161 días» | Verificado |
-| 1998/2017: La Niña, 2 326 / 2 172 km² | IMARPE 2019, Escudero & Xu | MODIS-Aqua 500 m; área máxima | Verificado con límite de resolución |
-| 2017: AOI10 Radarsat 26/03 y Cosmo-SkyMed 30/03; AOI11 Radarsat 26/03 | DBF de EMSR199 | `src_date` y `source_nam` de 1 378 + 413 registros | Verificado en el vector |
-| 2017: PDF v2 declara Sentinel-1A | PDF EMSR199 10PIURA v2 | Texto del pie de mapa | Discrepancia declarada |
-| 2023: La Niña se reactiva y desborda | Andina 22/03/2023; NASA 10/04/2023 | Nota de prensa y Landsat 9 | Documentado; sin informe hidrológico |
+| 1 | `make_valid()` se aplicaba antes de comprobar validez; la comprobación posterior era código muerto | `as_polygonal(bow-tie)` devolvía MultiPolygon válido; `audit_partition` no emitía `invalid` | Alta |
+| 2 | Una geometría vacía podía generar un hueco `nan` | Prueba sintética: `gap nan` en `audit_partition` | Alta |
+| 3 | `_geometry_from_record()` reparaba `limits.json` antes de validarlo | `check_raw_limits` no podía ver un anillo inválido | Alta |
+| 4 | `geometry_record_from_geometry()` comprobaba validez después de `make_valid()` | La comprobación era tautológica | Media |
+| 5 | El redondeo a 6 decimales de `limits.json` creó una autointersección en San Francisco | El registro era inválido y `check_data` lo reparaba en silencio | Alta |
+| 6 | La unión de AOI10 no se explicaba: 97,053 km² originales frente a 96,507 km² publicados | Web y docs mostraban solo 96,5 km² | Alta |
+| 7 | No se declaraba el solapamiento de 56,772 km² entre las dos fechas de AOI10 | Cálculo en EPSG:32717 | Alta |
+| 8 | Un polígono de AOI10 traía autointersección de anillo | DBF/Shapefile EMSR199; reparado con registro | Media |
+| 9 | La reconciliación no medía IoU, diferencia simétrica, Hausdorff ni distancia media/p95 | `limits.json` solo tenía cambios de área | Alta |
+| 10 | No se registraba cuánta superficie se asignaba por proximidad | 209 caras, 1,4725 km² | Alta |
+| 11 | Ocho de nueve subcuencas cambian más de 0,01 km² en la reconciliación | `cambios_area_km2` | Media |
+| 12 | «Litoral de Sechura» no está en SIAR 1392 | La fuente dice «al mar»; p. 4 habla de una bahía al sur de Piura, no de Sechura | Media |
+| 13 | «El evento duró 161 días» sobreinterpreta la fuente | SIAR 200 p. 1 dice «durante un período de 161 días» | Media |
+| 14 | La tesis PUCP no se pudo abrir y se usaba para el mecanismo de 1891 | 403/Anubis; el resumen no menciona 1891 | Media |
+| 15 | «2023 no cambió la desembocadura» no tiene fuente | Andina y NASA describen el desborde, no la desembocadura | Media |
+| 16 | No se reabrió el PDF de Copernicus para la discrepancia Sentinel-1A | El DBF sí está verificado | Baja |
 
-## 6. Afirmaciones pendientes de verificación
+## 3. Correcciones implementadas
 
-- **Fecha exacta del pico de 1998.** Se necesitan las series diarias de SENAMHI o
-  una fuente que resuelva la discrepancia 12/16 de marzo de SIAR 200.
-- **Duración del episodio de 1983.** No se localizó una serie diaria.
-- **Área y volumen de La Niña en 2023.** Andina y NASA documentan el evento, pero no
-  hay informe hidrológico de SENAMHI/ANA en el catálogo.
-- **Documento ENFEN concreto.** La ficha actual es genérica; no se usa para cifras.
-- **Documento UDEP concreto.** La URL es un handle; falta identificar la tesis o
-  informe exacto.
-- **Geometría oficial del vaso de Poechos y eje del canal Daniel Escobar.** Se
-  mantiene el punto del dique y la recta de referencia.
-- **Manchas de 1983 y 1998.** No hay geometría pública localizada.
-- **Prueba manual de accesibilidad con personas.** La auditoría automática está
-  limpia; falta teclado real, lector de pantalla y prueba con los tres públicos.
+### 3.1 Validación antes de reparar
 
-## 7. Fuentes documentales incorporadas
+`etl/topology.py` ahora separa:
 
-| id | Documento | Uso |
-|---|---|---|
-| `siar-piura` | Estudio para el Tratamiento Integral del Río Piura, Apéndice D (2000) | caudales 1983/1998, 12 veces la media |
-| `siar-evaluacion-200` | Evaluación hidrológica y erosión-sedimentación del Río Piura | 21/04/1983; 12/16/03/1998; 161 días |
-| `siar-cambios-cauce` | Cambios de la embocadura del río Piura | 1891 y 1983; p. 5, 7, 8 |
-| `pucp-1891` | Tesis de modelamiento hidrológico e hidráulico | contraste para 1891 |
-| `imarpe-la-nina-2019` | Escudero & Xu (2019), Bol. Inst. Mar Perú 34(1) | La Niña 1998/2017 |
-| `andina-la-nina-2023` | Agencia Andina, 22/03/2023 | desborde de 2023 |
-| `nasa-la-nina-2023` | NASA Earth Observatory, 10/04/2023 | Landsat 9 de 2023 |
-| `bajo-piura-derivado` | Río Piura Atlas | subcuenca derivada, no ANA |
+- `inspect_geometry(geom)`: comprueba validez, vacuidad, tipo y motivo sin tocar la
+  geometría.
+- `repair_to_polygonal(geom, allow_repair=False)`: normaliza solo cuando se le pide;
+  devuelve un `GeometryAudit` con tipo original, tipo reparado, partes poligonales,
+  componentes descartados y longitud descartada.
+- `as_polygonal()`: no repara; falla ante geometría inválida o una GeometryCollection.
+- `metric_area_km2()` y `geodesic_area_km2()`: no reparan; devuelven `0.0` para
+  geometría vacía y nunca `nan`.
+- `audit_partition()`: registra `invalid`, `empty` y `repair` antes de medir. Conserva
+  el error original aunque la reparación sea posible.
+- `reconcile_partition(..., allow_repair=False)`: se detiene ante una geometría
+  inválida o compuesta. Solo repara si se autoriza y lo registra en `repairs`.
+- `download_ana.py`: valida la fuente; si repara, escribe
+  `reconciliacion.reparaciones`. Serializa con comprobación del registro y añade
+  decimales si el redondeo crea una autointersección.
+- `check_data.py`: valida los anillos crudos antes de reconstruir; reporta la
+  reparación y no la usa para silenciar el error.
+- `build_layers.py`: no repara `limits.json` ni `water.json`; si son inválidos, el
+  build se detiene. En la mancha de 2017, cada reparación de origen queda en
+  `reparaciones`.
 
-Las fuentes de 2017 ya existentes se conservaron; se corrigieron sus notas y se
-añadieron los atributos del vector. `unosat-copernicus-ems` pasó a documento directo
-de ReliefWeb y se mantiene como contraste, no como geometría.
+La prueba clave: un bow-tie produce un hallazgo `invalid` de severidad error **antes**
+de que `make_valid` lo convierta en MultiPolygon. La prueba falla con el código
+anterior y pasa con el actual.
 
-## 8. Pruebas añadidas
+### 3.2 Cifras de 2017
 
-### Python
+`flood_2017.geojson` publica ahora, por AOI:
 
-`etl/tests/test_topology.py` (10 pruebas):
+- `area_observaciones_sum_km2`
+- `solapamiento_observaciones_km2`
+- `area_union_original_km2`
+- `area_filtrada_km2`
+- `area_simplificada_km2`
+- `area_publicada_utm_km2`
+- `area_publicada_geodesica_km2`
+- `area_original_km2` como alias de la unión original
+- `reparaciones`
 
-- dos subcuencas que se solapan;
-- hueco entre dos subcuencas;
-- subcuenca parcialmente fuera;
-- subcuencas contiguas sin hallazgos;
-- MultiPolygon sin falso hueco;
-- agujero interior no justificado;
-- agujero justificado como aviso;
-- sliver pequeño como aviso vs solape grande como error;
-- reconciliación que elimina solapamientos y huecos y conserva el área;
-- reconciliación que rechaza agujeros interiores.
+`area_km2` se calcula sobre el GeoJSON final reproyectado a EPSG:32717 y se guarda con
+3 decimales. La web redondea a 1 decimal para mostrar 96,5 y 459,0. `check_data.py`
+exige 0,01 km² de tolerancia, no el 1 % anterior, y comprueba las invariantes
+suma − solapamiento = unión y unión ≥ mayor observación.
 
-`etl/tests/test_published_contract.py` se amplió para comprobar la partición limpia,
-la fuente derivada de Bajo Piura, las observaciones de 2017 y el total de la mancha.
-Total: **38 pruebas**, todas OK.
+### 3.3 Fidelidad de la reconciliación
 
-### Playwright
+`data/raw/limits.json → reconciliacion.fidelidad` incluye, por subcuenca:
 
-`web/tests/e2e/atlas.spec.ts` (10 pruebas):
+- área fuente, simplificada y reconciliada;
+- Δ de simplificación, Δ de reconciliación, Δ total y porcentaje;
+- IoU, diferencia simétrica;
+- Hausdorff, distancia media y p95 entre límites;
+- componentes de fuente y destino.
 
-- carga, inundación y cierre de corte con retorno de foco;
-- dibujo de un perfil con dos clics y nota de resolución;
-- activación/desactivación de cuenca, subcuencas, ríos, agua, cortes, lugares,
-  obras e inundación;
-- consulta de la ficha de la cuenca desde el botón accesible;
-- cierre con `Escape` y retorno de foco;
-- fallo de una capa base;
-- fallo de la capa de inundación;
-- panel móvil plegado/abierto con `aria-expanded`;
-- carga de la maqueta, reinicio y teclado;
-- WebGL no disponible con enlace al mapa 2D.
+También se publica `reasignacion`: superficie asignada por solapamiento, por
+proximidad, caras por proximidad, distancia máxima/media y superficies originales
+solapada y fuera.
 
-## 9. Resultados de los comandos
+La distancia media y el p95 se muestrean cada 50 m en EPSG:32717. Hausdorff es el
+máximo exacto entre límites y se publica como diagnóstico: un solo vértice aislado
+puede dispararlo. Por eso se reportan también p95 y media.
+
+Umbrales:
+
+- Error topológico: 0,01 km² (1 mm² a 1:100 000).
+- Aviso topológico: 0,001 km² (0,1 mm²).
+- Aviso de fidelidad: |Δ reconciliación| > 0,01 km².
+- Aviso de proximidad: superficie asignada por proximidad > 0,01 km².
+- Aviso de p95: > 3 × 0,0006° ≈ 200 m. Es una regla derivada de la tolerancia de
+  simplificación, no un estándar externo.
+- IoU, diferencia simétrica y Hausdorff se publican como diagnóstico; no se usan
+  solos para aprobar o rechazar.
+
+### 3.4 Histórico
+
+- **1891:** se retira «litoral de Sechura». Se mantiene el cambio de embocadura de
+  SIAR 1392 p. 5 y 7. El mecanismo se apoya en la descripción general de avulsión de
+  SIAR p. 9 y se marca como interpretación.
+- **PUCP:** `pucp-1891` pasa a `por_verificar`; no se usa para una afirmación
+  específica. El PDF no se pudo abrir.
+- **1983:** se mantiene 3 200 m³/s del 21/04/1983; no se afirma una duración.
+- **1998:** se mantiene 4 424 m³/s y la discrepancia 12/16 de marzo. «161 días» pasa
+  a «SIAR 200 consigna un período de 161 días», con salvedad.
+- **2017:** se publica la tabla completa; se distingue área delineada de superficie
+  inundada; se declara el solapamiento y la reparación de AOI10.
+- **2023:** se añaden los 120 m de Andina y la fecha de las imágenes de NASA. Se
+  cambia «no cambió la desembocadura» por «no se localizó evidencia de cambio».
+- Se crea `docs/10-contexto-historico.md` con el registro de afirmaciones, fuente,
+  página, cita, acceso directo y estado.
+
+## 4. Métricas topológicas y de fidelidad
+
+Topología de la partición publicada:
+
+| Métrica | Valor |
+|---|---:|
+| Cuenca | 10 938,4 km² |
+| Suma de subcuencas | 10 938,4 km² |
+| Solapamientos | 0,0000 km² |
+| Superficie fuera de la cuenca | 0,0000 km² |
+| Huecos por encima de 0,01 km² | 0,0000 km² |
+| Caras del grafo | 374 |
+| Caras de hueco | 209 |
+| Superficie asignada por proximidad | 1,4725 km² |
+| Superficie solapada original | 0,7828 km² |
+| Superficie fuera original | 0,6747 km² |
+
+Fidelidad fuente ANA → reconciliada, en EPSG:32717:
+
+| Subcuenca | Fuente km² | Reconciliada km² | Δ total km² | Δ total % | IoU | Dif. sim. km² | Hausdorff m | Media m | p95 m | Δ reconciliación km² |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Bajo Piura | 4 749,485 | 4 749,354 | −0,1309 | −0,00276 | 0,998646 | 6,4343 | 513,9 | 17,9 | 49,6 | +0,1080 |
+| Alto Piura | 1 158,217 | 1 158,219 | +0,0020 | +0,00017 | 0,997428 | 2,9825 | 1 565,9 | 22,4 | 46,5 | +0,0275 |
+| Medio Alto Piura | 508,492 | 508,540 | +0,0487 | +0,00958 | 0,995750 | 2,1656 | 65,8 | 17,5 | 47,8 | +0,0385 |
+| Unidad Hidrográfica 13784 | 917,912 | 917,949 | +0,0368 | +0,00401 | 0,997143 | 2,6261 | 66,0 | 17,3 | 48,5 | +0,0220 |
+| Medio Piura | 73,700 | 73,662 | −0,0376 | −0,05100 | 0,989643 | 0,7670 | 156,4 | 18,1 | 48,4 | +0,1611 |
+| Bigote | 678,462 | 678,489 | +0,0275 | +0,00405 | 0,996754 | 2,2062 | 66,5 | 17,6 | 47,5 | +0,0194 |
+| Corrales | 589,712 | 589,888 | +0,1758 | +0,02981 | 0,996306 | 2,1828 | 314,5 | 18,7 | 50,7 | +0,0075 |
+| Medio Bajo Piura | 1 798,650 | 1 798,438 | −0,2128 | −0,01183 | 0,997817 | 3,9309 | 65,4 | 17,6 | 50,1 | −0,2433 |
+| San Francisco | 457,863 | 457,605 | −0,2583 | −0,05641 | 0,996224 | 1,7316 | 190,3 | 16,1 | 46,1 | −0,1258 |
+
+Lectura:
+
+- La topología es limpia, pero la fidelidad no es perfecta. La mayor diferencia de
+  área total es San Francisco (−0,258 km², −0,056 %). La mayor diferencia simétrica
+  es Bajo Piura (6,434 km², 0,135 % de su área).
+- Hausdorff es un valor extremo: Bajo Piura tiene 513,9 m, pero su p95 es 49,6 m y su
+  media 17,9 m. Usarlo solo describiría mal la transformación.
+- Ocho de las nueve subcuencas tienen |Δ reconciliación| > 0,01 km². Se reportan como
+  **ADVERTENCIA**, no como error: la reconciliación redistribuye slivers y conserva
+  la superficie total. No se ocultan.
+- La superficie asignada por proximidad es 1,4725 km² en 209 caras. La distancia
+  máxima es 0 m porque las caras de hueco tocan el borde de la subcuenca asignada;
+  «proximidad» aquí significa «sin solapamiento», no «lejos».
+
+## 5. Comparación de superficies de 2017
+
+| AOI | Paso | Área |
+|---|---|---:|
+| AOI10 | 26/03, Radarsat | 80,785 km² |
+| AOI10 | 30/03, Cosmo-SkyMed | 73,040 km² |
+| AOI10 | suma de observaciones | 153,825 km² |
+| AOI10 | solapamiento entre fechas | 56,772 km² |
+| AOI10 | unión original | 97,053 km² |
+| AOI10 | tras filtro <0,5 ha | 96,347 km² |
+| AOI10 | tras simplificación 25 m | 96,507 km² |
+| AOI10 | GeoJSON publicado, UTM | 96,507 km² |
+| AOI10 | área geodésica | 96,582 km² |
+| AOI11 | 26/03, Radarsat | 457,408 km² |
+| AOI11 | unión original | 457,408 km² |
+| AOI11 | tras filtro | 457,213 km² |
+| AOI11 | tras simplificación | 458,975 km² |
+| AOI11 | GeoJSON publicado, UTM | 458,970 km² |
+| AOI11 | área geodésica | 459,322 km² |
+
+Total publicado: **555,477 km²** en EPSG:32717. La diferencia geodésica es +0,075 km²
+en AOI10 y +0,352 km² en AOI11 (≈0,08 %). No se mezcla con el área geodésica de la
+cuenca.
+
+La suma 80,785 + 73,040 = 153,825 km² **no es una superficie**. La unión original es
+97,053 km² porque 56,772 km² se observaron en ambas fechas. La diferencia hasta
+96,507 km² viene del filtro de fragmentos menores de 0,5 ha y de la simplificación a
+25 m. No se ajustó ninguna cifra a mano.
+
+## 6. Afirmaciones históricas verificadas
+
+| Afirmación | Fuente abierta | Evidencia | Estado |
+|---|---|---|---|
+| Antes de 1891 el río iba al mar; desde 1891 va a San Ramón; en 1983 vuelve al mar | SIAR 1392 p. 5 y 7 | Cita textual | VERIFICADO |
+| El mecanismo general es avulsión | SIAR 1392 p. 9 | Cita textual | VERIFICADO como interpretación general |
+| 1983: 3 200 m³/s el 21/04/1983 | SIAR 200 p. 15; SIAR 204 p. 49 | Texto y tabla | VERIFICADO |
+| 1983 y 1998: hasta 12 veces la media anual | SIAR 204 p. 13 | Cita textual | VERIFICADO |
+| 1998: 4 424 m³/s | SIAR 204 p. 27 y 49; SIAR 200 p. 1 y 15 | Texto y tabla | VERIFICADO |
+| 1998: discrepancia 12 vs 16 de marzo | SIAR 200 p. 1 y 15 | Dos pasajes | VERIFICADO |
+| 1998: «período de 161 días» | SIAR 200 p. 1 | Cita textual | VERIFICADO con salvedad |
+| La Niña: 2 326 km² en 1997-98 y 2 172 km² el 5/04/2017 | IMARPE, resumen | Cita textual | VERIFICADO como estimación MODIS 500 m |
+| 2017: sensores y fechas por AOI | DBF de EMSR199 | `src_date` y `source_nam` | VERIFICADO |
+| 2017: áreas y solapamiento | Cálculo propio EPSG:32717 | Tabla | VERIFICADO |
+| 2023: desborde y 120 m de carretera | Andina 22/03/2023 | Cita textual | VERIFICADO |
+| 2023: imágenes del 24/02 y 12/03; desborde del 23/03 | NASA 10/04/2023 | Texto e imágenes | VERIFICADO |
+| 1891: mecanismo específico con Huertas/Rocha | Tesis PUCP | No se pudo abrir | PENDIENTE / no verificado |
+| 2017: la ficha del PDF v2 declara Sentinel-1A | PDF Copernicus | No se reabrió | PENDIENTE |
+| 2023: no cambió la desembocadura | — | Sin fuente | PENDIENTE / sin evidencia |
+
+## 7. Fuentes consultadas y evidencia documental
+
+Se abrieron directamente:
+
+- SIAR Piura, *Cambios de la embocadura del río Piura* (1392), p. 4–9.
+- SIAR Piura, *Evaluación hidrológica y erosión-sedimentación del Río Piura* (200),
+  p. 1 y 15.
+- SIAR Piura, *Estudio para el Tratamiento Integral del Río Piura, Apéndice D* (204),
+  p. 13, 27 y 49.
+- IMARPE, Escudero & Xu (2019), página del artículo y resumen.
+- Agencia Andina, 22/03/2023.
+- NASA Earth Observatory, 10/04/2023.
+- Shapefile DBF de Copernicus EMSR199, AOI10 y AOI11.
+
+No se abrieron:
+
+- Tesis PUCP: 403/Anubis; solo registro bibliográfico y resumen.
+- PDF 10PIURA v2 de Copernicus: no se reabrió en esta auditoría. El DBF sí se
+  verificó.
+
+## 8. Pruebas ejecutadas y resultados
 
 | Comando | Resultado |
 |---|---|
-| `python3 etl/check_data.py` | OK; 0 errores, 0 avisos; 30 fuentes, 20 disponibles; topología 0/0/0 |
-| `python3 -m unittest discover -s etl/tests -v` | 38 pruebas OK |
+| `python3 -m unittest discover -s etl/tests -v` | **52 pruebas OK** |
+| `python3 etl/check_data.py` | **0 errores**, **10 avisos** de fidelidad/reparación |
 | `npm run check` | 0 errores, 0 warnings, 31 hints del Draco público |
 | `npm run build` | 6 páginas, OK |
 | `npm run check:links` | 94 enlaces internos, sin roturas |
-| `npm run check:a11y` | 0 violaciones WCAG A/AA en 6 páginas + mapa/móvil + maqueta/móvil |
-| `npm run test:e2e` | 10 pruebas OK |
-| `BASE_PATH=/rio-piura-atlas npm run build` | OK |
-| `BASE_PATH=/rio-piura-atlas npm run test:e2e` | 10 pruebas OK |
+| `npm run check:a11y` | 0 violaciones WCAG A/AA |
+| `npm run test:e2e` | **10 pruebas OK** |
 
-CI final: run **43981449273**, commit `7e52822`; jobs «Sitio web», «Datos y ETL» y
-«GitHub Pages» en éxito. Sitio en vivo:
-<https://joseamaya.github.io/rio-piura-atlas/> y `/mapa/`, `/escenarios/`, `/fuentes/`
-responden 200. El GeoJSON desplegado conserva las observaciones por fecha.
+Avisos de `check_data.py`:
 
-Los dos primeros intentos de CI fallaron en la prueba de ficha por coordenadas:
-el encuadre de MapLibre cambiaba entre entornos. Se corrigió la interfaz con un
-botón accesible «Ver ficha de la cuenca» y se hizo que `data-ready` espere el primer
-`idle` del mapa. No se relajó ninguna aserción; la prueba actual verifica el mismo
-contenido por un camino estable.
+- Ocho subcuencas con |Δ reconciliación| > 0,01 km²: Bajo Piura, Alto Piura,
+  Medio Alto Piura, Unidad Hidrográfica 13784, Medio Piura, Bigote, Medio Bajo Piura
+  y San Francisco.
+- 1,4725 km² asignados por proximidad.
+- AOI10 reparó un polígono con autointersección de anillo.
 
-Nota de entorno: el Python del sistema de esta máquina no tiene Shapely instalado;
-las ejecuciones locales usaron `PYTHONPATH=/tmp/opencode/pylib`. CI instala
-`etl/requirements.txt` y no necesita ese ajuste. No se alteró el resultado para
-obtener un CI verde.
+No se ocultaron para obtener un resultado verde.
 
-## 10. Limitaciones abiertas
+## 9. Limitaciones pendientes
 
-- La reconciliación reparte slivers de simplificación; no sustituye una revisión
-  cartográfica oficial de ANA. Los cambios de área son de centésimas de km².
-- La mancha de 2017 es una unión de observaciones de dos fechas; no representa una
-  extensión simultánea ni la extensión total del evento.
-- La cifra de La Niña 1998/2017 es una estimación MODIS-Aqua de 500 m, no un
-  levantamiento.
-- La fecha de 1998 y la duración de 1983 siguen sin resolverse.
-- No hay geometría oficial de Poechos, del canal ni de las manchas de 1983/1998.
-- La prueba de accesibilidad con personas sigue pendiente.
-- El GLB sigue siendo la excepción de peso (1,6 MB); no se tocó en esta fase.
+- La reconciliación sigue siendo una partición derivada, no una delimitación oficial
+  nueva de ANA. Los cambios de área están medidos, no eliminados.
+- La superficie asignada por proximidad (1,4725 km²) es una decisión metodológica
+  documentada; no se puede justificar parcela por parcela sin cartografía oficial.
+- Hausdorff es sensible a vértices aislados; por eso se publica con media y p95.
+- La fecha del pico de 1998 y la duración de 1983 siguen sin serie diaria.
+- El PDF de Copernicus y la tesis PUCP no se pudieron abrir.
+- No hay informe hidrológico de La Niña 2023 ni geometría oficial de Poechos/canal.
+- No hay manchas oficiales de 1983 y 1998.
+- La prueba manual de accesibilidad con personas sigue pendiente.
+- El GLB sigue en 1,6 MB.
 
-## 11. Recomendaciones
+## 10. Tabla final de severidad y estado
 
-1. La versión de parche **v0.2.1** publica esta corrección topológica y de
-   metadatos, sin cambiar la arquitectura.
-2. Solicitar a SENAMHI las series diarias de 1983/1998 y a ANA/PECHP la geometría
-   oficial de Poechos y del canal.
-3. Incorporar el informe hidrológico de 2023 cuando esté disponible; no publicar
-   cifras de área o volumen hasta entonces.
-4. Identificar el informe ENFEN y la tesis UDEP exactos antes de usarlos para cifras.
-5. Repetir la prueba manual de teclado, lector de pantalla y personas.
-6. Si se añaden nuevas capas, mantener la auditoría de partición y las pruebas de
-   regresión antes de publicar.
+| Hallazgo | Severidad | Estado |
+|---|---|---|
+| `make_valid` ocultaba invalidez original | Alta | **CORREGIDO** |
+| Geometría vacía producía `nan` | Alta | **CORREGIDO** |
+| `limits.json` se reparaba antes de validar | Alta | **CORREGIDO** |
+| Redondeo a 6 decimales creaba autointersección en San Francisco | Alta | **CORREGIDO** |
+| AOI10 no explicaba 97,053 vs 96,507 km² | Alta | **CORREGIDO** |
+| No se declaraba el solapamiento de 56,772 km² | Alta | **CORREGIDO** |
+| No se medía IoU, diferencia simétrica, Hausdorff ni p95 | Alta | **CORREGIDO** |
+| No se registraba la asignación por proximidad | Alta | **CORREGIDO** |
+| Ocho subcuencas cambian > 0,01 km² en la reconciliación | Media | **ADVERTENCIA** declarada |
+| Un polígono de AOI10 era inválido | Media | **CORREGIDO** y registrado |
+| «Litoral de Sechura» sin respaldo | Media | **CORREGIDO** |
+| «161 días» sobreinterpretado | Media | **CORREGIDO** con salvedad |
+| Tesis PUCP usada sin abrir | Media | **PENDIENTE**; fuente degradada |
+| «2023 no cambió la desembocadura» sin fuente | Media | **CORREGIDO**; ahora «sin evidencia» |
+| PDF de Copernicus no reabierto | Baja | **PENDIENTE** |
+| Fecha del pico de 1998 | Media | **PENDIENTE** |
+| Duración de 1983 | Baja | **PENDIENTE** |
+| Informe hidrológico de La Niña 2023 | Media | **PENDIENTE** |
+| Geometría oficial de Poechos/canal | Media | **PENDIENTE** |
+| Manchas de 1983 y 1998 | Alta | **PENDIENTE** |
+| Prueba manual con personas | Media | **PENDIENTE** |
 
-## Tabla de hallazgos
+## 11. Estado de publicación
 
-| Hallazgo | Severidad | Estado | Evidencia |
-|---|---|---|---|
-| 15 solapamientos, 0,7828 km² | Alta | Corregido y probado | `etl/topology.py`; `limits.json → reconciliacion`; 0 en `check_data` |
-| 0,6747 km² fuera de la cuenca | Alta | Corregido y probado | Ibídem |
-| 1,4725 km² de huecos | Alta | Corregido y probado | Ibídem |
-| Bajo Piura atribuido a ANA | Alta | Corregido y probado | `bajo-piura-derivado`; test de contrato |
-| 2017: unión de fechas no declarada | Alta | Corregido y probado | `observaciones` en `flood_2017.geojson`; test |
-| 2017: discrepancia PDF/DBF de sensor | Media | Corregido y documentado | Nota en `sources.yml` y ficha |
-| 1998: fecha 12 vs 16 de marzo | Media | Documentado; pendiente de fuente diaria | SIAR 200 p. 1 y 15 |
-| 1983: fecha del pico | Media | Corregido y documentado | 21/04/1983; SIAR 200 p. 15 |
-| 1891: mecanismo y detalle | Media | Documentado como interpretación | SIAR 1392 p. 5/7; tesis PUCP |
-| 2023: La Niña sin fuente | Media | Corregido y documentado; sin cifra | Andina; NASA |
-| HydroRIVERS v10.0 / HydroSHEDS | Media | Corregido | `sources.yml`; `mapa.astro` |
-| Fechas y enlaces genéricos | Media | Corregido | `sources.yml`; `check_sources` |
-| Ficha de cuenca no clickeable | Media | Corregido y probado | `cuenca-fill`; test Playwright |
-| WebGL sin enlace de salida | Baja | Corregido y probado | `maqueta.astro`; test Playwright |
-| Pruebas funcionales incompletas | Media | Corregido y probado | 10 pruebas Playwright |
-| Agujeros interiores en datos actuales | — | No reproducido | 0 agujeros en las 9 subcuencas |
-| Clase `Potential Flooded Area` | — | No reproducido | El DBF solo trae `Flooded Area` |
-| Duración de 1983 | Baja | Pendiente de información externa | No localizada en SIAR |
-| Geometría oficial de Poechos/canal | Media | Pendiente de información externa | PECHP/ANA no la publican |
-| Manchas 1983/1998 | Alta | Pendiente de información externa | ANA/INDECI |
-| Prueba con personas | Media | Pendiente | Auditoría automática limpia; falta prueba humana |
+Los cambios están en la rama local `audit/cientifica-v0.2.2`. **No se hizo push, no
+se hizo merge y no se desplegó nada.** La versión publicada sigue siendo `v0.2.1`;
+`v0.2.2` es la etiqueta propuesta para este diff. No se cambió `package.json` ni
+`CITATION.cff` para no simular una release que no fue autorizada.

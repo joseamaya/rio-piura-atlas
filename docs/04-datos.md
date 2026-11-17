@@ -13,9 +13,19 @@ data/
 `processed/` se puede borrar y regenerar. `limits.json` conserva `ring`/`holes` y,
 si la fuente trae varios polígonos, `polygons`; los agujeros no se descartan. También
 guarda un bloque `reconciliacion` con el CRS métrico, las caras del grafo de límites,
-los slivers asignados, los solapamientos eliminados y los cambios de área por
-subcuenca. La cuenca y las subcuencas comparten la rejilla de 1e-6° (~0,11 m) para
-que el redondeo no abra slivers en el borde.
+los slivers asignados, los solapamientos eliminados, los cambios de área por
+subcuenca, la superficie asignada por solapamiento/proximidad y las métricas de
+fidelidad (IoU, diferencia simétrica, Hausdorff, distancia media y p95). La cuenca y
+las subcuencas comparten la rejilla de 1e-6° (~0,11 m) para que el redondeo no abra
+slivers en el borde. Cada registro guarda `precision_decimales` y, si hubo que
+fusionar componentes que se tocaban en un punto, `componentes_originales`,
+`componentes_serializados` y `fusionado`.
+
+La validez se comprueba antes de reparar. Cualquier reparación queda en
+`reconciliacion.reparaciones` con nombre, motivo, tipo original, tipo reparado,
+partes poligonales y componentes descartados. Un registro serializado que se vuelve
+inválido por redondeo se detecta y se resuelve añadiendo decimales, no con una
+reparación silenciosa.
 
 Los archivos crudos se pueden reconstruir con `etl/download_ana.py`,
 `etl/download_hydrorivers.py`, `etl/download_osm_water.py` y
@@ -26,8 +36,11 @@ productos derivados sean coherentes.
 La mancha de 2017 se construye en dos pasos: `download_emsr199.py` guarda los ZIP
 oficiales en `data/raw/emsr199/` (ignorados por Git) y `build_layers.py` publica una
 versión simplificada en `web/public/data/flood_2017.geojson`. Cada AOI conserva
-`observaciones` por fecha y sensor (`src_date` y `source_nam` del DBF), además del
-área original y el área simplificada. Las obras esquemáticas (Poechos y canal Daniel
+`observaciones` por fecha y sensor (`src_date` y `source_nam` del DBF), la suma de
+observaciones, el solapamiento entre fechas, la unión original, el área filtrada, la
+simplificada, la publicada en UTM y la geodésica. `area_km2` es el área publicada;
+`area_original_km2` es la unión original, no la suma. Las reparaciones de geometrías
+de origen quedan en `reparaciones`. Las obras esquemáticas (Poechos y canal Daniel
 Escobar) se generan en `build_layers.py` desde `water.json` y el eje manual del canal;
 no se descargan de ANA/PECHP.
 

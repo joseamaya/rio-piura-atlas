@@ -47,7 +47,7 @@ Estados: ✅ disponible · ⚠️ disponible con reservas · ❗ hay que solicit
 | SIAR Piura — Apéndice D, hidrología (2000) | cuenca, pendientes, caudales de 1983/1998 | ✅ |
 | SIAR Piura — evaluación hidrológica y erosión-sedimentación | fechas y niveles de 1983/1998; discrepancia 12/16 mar | ✅ |
 | SIAR Piura — cambios de la embocadura | 1891 y 1983; diapositivas 5, 7 y 8 | ✅ |
-| PUCP — tesis de modelamiento hidrológico | contraste para 1891 | ✅ |
+| PUCP — tesis de modelamiento hidrológico | referencia secundaria para 1891; PDF no abierto (403/Anubis) | ❓ por verificar |
 | IMARPE — Escudero & Xu (2019) | formación y área de la laguna La Niña 1998/2017 | ✅ |
 | Andina — desborde de La Niña 2023 | reactivación y afectación de la carretera | ✅ prensa |
 | NASA Earth Observatory — La Niña 2023 | observación Landsat 9 | ✅ |
