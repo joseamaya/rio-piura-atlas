@@ -6,6 +6,8 @@
 **Alcance:** interfaz pública completa; no se modificó la aplicación.  
 **Método:** lectura del repositorio, build de producción, navegación con Chrome/Playwright en escritorio (1440×900, 1280×800, 1024×768) y móvil (390×844, 360×800), medición de DOM, contraste y recursos, y revisión de estados del mapa (capas, inundación, ficha, corte) y de la maqueta 3D.
 
+> **Nota de vigencia (UI-02, 2026-11-17).** Esta auditoría describe el estado previo al rediseño. El foco de fichas y paneles, la semántica de MapLibre, el panel móvil, el desbordamiento de Escenarios a 1024 y la orientación horizontal se actualizan en [06](06-estabilizacion-accesibilidad.md) y [07](07-qa-responsive.md). La diferencia cromática del GLB se documenta en [08](08-coherencia-3d.md). Las capturas `actual-*` siguen siendo evidencia histórica, no el estado actual.
+
 ---
 
 ## 1. Resumen ejecutivo

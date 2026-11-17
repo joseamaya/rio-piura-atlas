@@ -111,7 +111,10 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   autointersección de anillo; se reparó con `make_valid` y se registró en
   `reparaciones` del GeoJSON, sin descartar componentes.
 - **Color del terreno.** La maqueta usa una rampa hipsométrica: el verde indica
-  altitud, no cobertura vegetal.
+  altitud, no cobertura vegetal. La rampa del GLB es más verde que la tinta de
+  papel de la lámina 2D. UI-02 no reexportó el modelo ni aplicó un tinte runtime
+  para no desajustar los pósteres y los renders; la propuesta de reexportación
+  coordinada está en `docs/ui/08-coherencia-3d.md`.
 - **Lagunas.** Los polígonos son de OSM; Ramón y Las Salinas figuran como
   intermitentes. La maqueta las pinta como agua permanente por el relato y las sitúa
   a una cota simbólica (+25 m), no a un nivel medido.
