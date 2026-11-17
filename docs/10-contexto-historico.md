@@ -39,6 +39,15 @@ abrir, se dice y no se usa para una afirmación concreta.
 | 17 | 2023: la laguna se ve el 24/02 y el 12/03; el desborde ocurrió el 23/03 | NASA Earth Observatory | *Warming Water and Downpours in Peru* (10/04/2023) | Texto e imágenes | Sí, página web | Landsat 9 OLI-2; «On March 23, overflow from the lagoon destroyed a section…» | Documentado (teledetección) |
 | 18 | 2023: no cambió la desembocadura | — | — | — | **No hay fuente** | Andina y NASA describen el desborde hacia el desierto y la carretera, no la desembocadura | Sin evidencia; no se afirma |
 
+| 19 | 1983: 3 200 m³/s el 21/04/1983 en Puente Sánchez Cerro | INDECI / OEA / PNUD | *Estudio Mapa de peligros de la ciudad de Piura*, Vol. I (2009) | Cap. 2, hidrogramas y tabla de caudales | Sí, PDF | Serie 1983 = 3 200,0; «21/04/1983» | Dato medido (corroboración) |
+| 20 | 1998: 4 424 m³/s el 12/03/1998 en Puente Sánchez Cerro | INDECI / OEA / PNUD | Ibídem | Cap. 2 y tabla de caudales | Sí, PDF | «12/03/1998 4424» | Dato medido (corroboración; la discrepancia 12/16 sigue visible) |
+| 21 | En 2002 la salida principal era el Manglar de San Pedro; Virrilá era la segunda salida y Reventazón la tercera en El Niño | Asociación Perú Verde / IUCN | *Expedición en la cuenca baja del río Piura, junio del 2002* (2003) | Introducción y resultados | Sí, PDF | «curso regular por su desembocadura principal a través del Manglar de San Pedro»; «Virrilá… segunda desembocadura»; «tercera salida… Reventazón» | Registro histórico |
+| 22 | En 2002, Tres Bocas dividía el cauce en Chutuque, Ñapique y Ramón | Asociación Perú Verde / IUCN | Ibídem | Resultados, sector 1 | Sí, PDF | «se divide en tres canales conocidos como Tres Bocas» | Registro histórico |
+| 23 | El modelo de Lund encuentra depósito en el tramo bajo de Virrilá y mayor exceso de esfuerzo cortante hacia Sechura | Lund University | Ladewig Piscoya (2024), tesis TVVR24/5008 | Resumen, resultados y discusión | Sí, PDF | «general trend for Virrilá is deposition»; «course towards Sechura produces considerably larger excess shear values» | Modelamiento académico |
+| 24 | En 2026 se verificó paso de agua en Tapa de Cuy, Virrilá, el puente de Bayóvar y Chutuque | PECHP / MIDAGRI / PSI / ANA | Nota del PECHP, 04/03/2026 | Nota completa | Sí, web | «caudal aproximado de 280 m³/s»; «paso de las aguas… despejado»; «condiciones favorables» en Chutuque | Documentado (prensa institucional) |
+| 25 | PISCOp v3.0 tiene 0,1° (~10 km) y cubre 1981–2025 | SENAMHI / *Hydrology* | Artículo y ficha de Figshare (2026) | Artículo y readme | Sí, metadatos | «0.1°»; «1981–2025» | Dato derivado; licencia en disputa |
+| 26 | No se localizó una capa vectorial de susceptibilidad a inundaciones para Piura en INGEMMET | INGEMMET | Fichas y servicios consultados (2026) | Ítems de ArcGIS | Sí, metadatos | Solo se encontraron servicios de Ancash y Apurímac | Pendiente / no incorporado |
+
 ## Notas de lectura
 
 - SIAR 1392 p. 4 habla de una bahía antigua al sur de la ciudad de Piura, pero no de
@@ -59,3 +68,8 @@ abrir, se dice y no se usa para una afirmación concreta.
    de 1983.
 4. Obtener un informe hidrológico de SENAMHI/ANA para área y volumen de 2023.
 5. Verificar si alguna fuente documenta explícitamente la desembocadura en 2023.
+6. Aclarar la licencia de PISCOp v3.0 antes de publicar una serie derivada.
+7. Obtener los shapefiles de la Carta Geológica de Piura y verificar su licencia.
+8. Obtener coordenadas y fichas técnicas de la inspección de 2026.
+9. Si se reconstruye la ruta de 2002, documentar PSAD56, orden de puntos e
+   incertidumbre.
