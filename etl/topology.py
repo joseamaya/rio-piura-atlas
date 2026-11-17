@@ -24,8 +24,8 @@ from typing import Iterable
 
 import numpy as np
 from pyproj import Geod, Transformer
-from shapely import segmentize, set_precision, transform as shapely_transform
-from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely import STRtree, segmentize, set_precision, transform as shapely_transform
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from shapely.ops import polygonize, unary_union
 from shapely.validation import explain_validity, make_valid
 
@@ -212,6 +212,50 @@ class FidelityMetrics:
             "distancia_p95_limite_m": round(self.boundary_p95_m, 1),
             "componentes_fuente": self.components_source,
             "componentes_objetivo": self.components_target,
+        }
+
+
+@dataclass
+class ComponentAudit:
+    """Auditoría de los componentes individuales de un registro.
+
+    Se ejecuta antes de construir la geometría compuesta. Así un solapamiento
+    entre componentes no queda disuelto por ``unary_union``. El contacto por un
+    límite se cuenta aparte y no se trata como solapamiento.
+    """
+
+    label: str
+    count: int
+    valid_count: int
+    invalid_count: int
+    empty_count: int
+    repaired_count: int
+    discarded_count: int
+    overlap_pairs: int
+    overlap_km2: float
+    touching_pairs: int
+    separated_pairs: int
+    findings: list[Finding] = field(default_factory=list)
+    parts: list[GeometryAudit] = field(default_factory=list)
+    compound_geometry: object | None = None
+    compound_audit: GeometryAudit | None = None
+
+    def as_dict(self) -> dict:
+        return {
+            "registro": self.label,
+            "componentes_originales": self.count,
+            "validos": self.valid_count,
+            "invalidos": self.invalid_count,
+            "vacios": self.empty_count,
+            "reparados": self.repaired_count,
+            "descartados": self.discarded_count,
+            "pares_solapados": self.overlap_pairs,
+            "solapamiento_km2": round(self.overlap_km2, 4),
+            "pares_contacto": self.touching_pairs,
+            "pares_separados": self.separated_pairs,
+            "componentes_compuesto": self.compound_audit.polygonal_parts if self.compound_audit else 0,
+            "hallazgos": [f.message() for f in self.findings],
+            "compuesto": self.compound_audit.as_dict() if self.compound_audit else None,
         }
 
 
@@ -405,6 +449,14 @@ def as_polygonal(geom):
     )
 
 
+def to_metric_crs(geom):
+    """Proyecta una geometría WGS84 a EPSG:32717 (UTM 17S).
+
+    Es la operación métrica que usa el atlas para áreas, distancias y fidelidad.
+    """
+    return _project(geom)
+
+
 def _project(geom):
     if geom is None or geom.is_empty:
         return geom
@@ -534,6 +586,205 @@ def _pairwise(named: list[tuple[str, object]], tol: Tolerances) -> tuple[list[Fi
                 )
             )
     return findings, total, count, maximum
+
+
+def audit_components(
+    parts,
+    label: str,
+    tol: Tolerances | None = None,
+    allow_repair: bool = True,
+) -> ComponentAudit:
+    """Audita los componentes de un registro antes de construir su unión.
+
+    No usa ``unary_union`` como sustituto de la inspección: primero reconstruye
+    y audita cada polígono, después mide los solapamientos y contactos entre
+    componentes válidos, y solo al final construye la geometría compuesta.
+    """
+    tol = tol or Tolerances()
+    original_parts = list(parts or [])
+    findings: list[Finding] = []
+    audits: list[GeometryAudit] = []
+    usable: list[tuple[str, object]] = []
+    invalid_count = 0
+    empty_count = 0
+    repaired_count = 0
+    discarded_count = 0
+    valid_count = 0
+
+    for index, part in enumerate(original_parts):
+        name = f"{label}[{index}]"
+        audit = inspect_geometry(part, name)
+        if audit.empty:
+            empty_count += 1
+            discarded_count += 1
+            findings.append(
+                Finding(
+                    kind="empty",
+                    severity=FINDING_ERROR,
+                    area_km2=0.0,
+                    names=(name,),
+                    detail=audit.reason or "componente vacío",
+                )
+            )
+            audits.append(audit)
+            continue
+
+        if not audit.valid:
+            invalid_count += 1
+            findings.append(
+                Finding(
+                    kind="invalid",
+                    severity=FINDING_ERROR,
+                    area_km2=0.0,
+                    names=(name,),
+                    detail=audit.reason or "componente inválido",
+                )
+            )
+            if allow_repair:
+                fixed, repair_audit = repair_to_polygonal(part, name, allow_repair=True)
+                if fixed is not None:
+                    repaired_count += 1
+                    valid_count += 1
+                    usable.extend(_named_parts(name, fixed))
+                    audits.append(repair_audit)
+                    findings.append(
+                        Finding(
+                            kind="repair",
+                            severity=FINDING_WARNING,
+                            area_km2=0.0,
+                            names=(name,),
+                            detail=repair_audit.note or "reparación registrada",
+                        )
+                    )
+                    continue
+                discarded_count += 1
+                findings.append(
+                    Finding(
+                        kind="repair",
+                        severity=FINDING_ERROR,
+                        area_km2=0.0,
+                        names=(name,),
+                        detail=repair_audit.note or "no se pudo reparar",
+                    )
+                )
+                audits.append(repair_audit)
+            else:
+                discarded_count += 1
+                audits.append(audit)
+            continue
+
+        if part.geom_type not in {"Polygon", "MultiPolygon"}:
+            invalid_count += 1
+            discarded_count += 1
+            findings.append(
+                Finding(
+                    kind="invalid",
+                    severity=FINDING_ERROR,
+                    area_km2=0.0,
+                    names=(name,),
+                    detail=f"componente no poligonal: {part.geom_type}",
+                )
+            )
+            audits.append(audit)
+            continue
+
+        valid_count += 1
+        audits.append(audit)
+        usable.extend(_named_parts(name, part))
+
+    overlap_pairs = 0
+    overlap_km2 = 0.0
+    touching_pairs = 0
+    separated_pairs = 0
+    for i in range(len(usable)):
+        for j in range(i + 1, len(usable)):
+            name_a, geom_a = usable[i]
+            name_b, geom_b = usable[j]
+            area = metric_area_km2(geom_a.intersection(geom_b))
+            if area >= tol.warn_km2:
+                overlap_pairs += 1
+                overlap_km2 += area
+                severity = FINDING_ERROR if area >= tol.error_km2 else FINDING_WARNING
+                findings.append(
+                    Finding(
+                        kind="overlap",
+                        severity=severity,
+                        area_km2=area,
+                        names=(name_a, name_b),
+                        detail=f"intersección de {area:.4f} km² entre componentes",
+                    )
+                )
+            elif geom_a.touches(geom_b):
+                touching_pairs += 1
+            else:
+                separated_pairs += 1
+
+    compound_geometry = None
+    compound_audit = None
+    if usable:
+        merged = unary_union([geom for _, geom in usable])
+        compound_geometry, compound_audit = repair_to_polygonal(
+            merged,
+            label,
+            allow_repair=allow_repair,
+        )
+        if compound_audit.repaired:
+            repaired_count += 1
+            findings.append(
+                Finding(
+                    kind="repair",
+                    severity=FINDING_WARNING,
+                    area_km2=0.0,
+                    names=(label,),
+                    detail=compound_audit.note or "reparación de la geometría compuesta",
+                )
+            )
+        if compound_geometry is None:
+            findings.append(
+                Finding(
+                    kind="invalid",
+                    severity=FINDING_ERROR,
+                    area_km2=0.0,
+                    names=(label,),
+                    detail=compound_audit.note or "la geometría compuesta no es válida",
+                )
+            )
+    else:
+        findings.append(
+            Finding(
+                kind="empty",
+                severity=FINDING_ERROR,
+                area_km2=0.0,
+                names=(label,),
+                detail="no quedó ningún componente utilizable",
+            )
+        )
+
+    return ComponentAudit(
+        label=label,
+        count=len(original_parts),
+        valid_count=valid_count,
+        invalid_count=invalid_count,
+        empty_count=empty_count,
+        repaired_count=repaired_count,
+        discarded_count=discarded_count,
+        overlap_pairs=overlap_pairs,
+        overlap_km2=overlap_km2,
+        touching_pairs=touching_pairs,
+        separated_pairs=separated_pairs,
+        findings=findings,
+        parts=audits,
+        compound_geometry=compound_geometry,
+        compound_audit=compound_audit,
+    )
+
+
+def _named_parts(label: str, geom) -> list[tuple[str, object]]:
+    """Nombra las componentes poligonales de una geometría ya validada."""
+    parts = polygonal_parts(geom)
+    if len(parts) == 1:
+        return [(label, parts[0])]
+    return [(f"{label}.{i}", part) for i, part in enumerate(parts)]
 
 
 def _outside(named: list[tuple[str, object]], basin, tol: Tolerances) -> tuple[list[Finding], float, float]:
@@ -826,18 +1077,52 @@ def _snap_geometry(
 def _boundary_points(boundary, step_m: float = 50.0) -> list[tuple[float, float]]:
     if boundary is None or boundary.is_empty:
         return []
-    dense = segmentize(boundary, step_m)
-    lines = list(dense.geoms) if hasattr(dense, "geoms") else [dense]
+    lines = list(boundary.geoms) if hasattr(boundary, "geoms") else [boundary]
     points: list[tuple[float, float]] = []
     for line in lines:
-        if line.is_empty:
+        if line is None or line.is_empty or len(line.coords) < 2:
             continue
-        points.extend((float(x), float(y)) for x, y in line.coords)
+        coords = list(line.coords)
+        if all(point == coords[0] for point in coords):
+            continue
+        try:
+            dense = segmentize(line, step_m)
+        except Exception:
+            # Un componente degenerado del límite no debe invalidar toda la
+            # medición; se conservan sus vértices y se sigue con el resto.
+            points.extend((float(x), float(y)) for x, y in coords)
+            continue
+        dense_lines = list(dense.geoms) if hasattr(dense, "geoms") else [dense]
+        for dense_line in dense_lines:
+            if dense_line is None or dense_line.is_empty or len(dense_line.coords) < 2:
+                continue
+            points.extend((float(x), float(y)) for x, y in dense_line.coords)
     return points
 
 
+def _boundary_segments(boundary) -> list:
+    """Segmentos del límite para consultar la distancia con un índice espacial."""
+    if boundary is None or boundary.is_empty:
+        return []
+    lines = list(boundary.geoms) if hasattr(boundary, "geoms") else [boundary]
+    segments = []
+    for line in lines:
+        if line is None or line.is_empty or len(line.coords) < 2:
+            continue
+        coords = list(line.coords)
+        for start, end in zip(coords, coords[1:]):
+            if start != end:
+                segments.append(LineString([start, end]))
+    return segments
+
+
 def _boundary_stats(source, target) -> tuple[float, float, float]:
-    """Distancia media, p95 y máxima muestreada entre dos límites, en metros."""
+    """Distancia media, p95 y máxima muestreada entre dos límites, en metros.
+
+    Las consultas de distancia usan un STRtree de segmentos del límite de
+    destino. El resultado es la distancia exacta al segmento más cercano; no se
+    sustituye el límite por una nube de puntos.
+    """
     source_boundary = source.boundary
     target_boundary = target.boundary
     if source_boundary.is_empty or target_boundary.is_empty:
@@ -845,11 +1130,27 @@ def _boundary_stats(source, target) -> tuple[float, float, float]:
 
     source_points = _boundary_points(source_boundary)
     target_points = _boundary_points(target_boundary)
+    if not source_points or not target_points:
+        return 0.0, 0.0, 0.0
+
+    target_segments = _boundary_segments(target_boundary)
+    source_segments = _boundary_segments(source_boundary)
+    if not target_segments or not source_segments:
+        return 0.0, 0.0, 0.0
+    target_tree = STRtree(target_segments)
+    source_tree = STRtree(source_segments)
+
     distances: list[float] = []
     for x, y in source_points:
-        distances.append(target_boundary.distance(Point(x, y)))
+        point = Point(x, y)
+        index = target_tree.nearest(point)
+        if index is not None:
+            distances.append(point.distance(target_segments[int(index)]))
     for x, y in target_points:
-        distances.append(source_boundary.distance(Point(x, y)))
+        point = Point(x, y)
+        index = source_tree.nearest(point)
+        if index is not None:
+            distances.append(point.distance(source_segments[int(index)]))
     if not distances:
         return 0.0, 0.0, 0.0
     distances.sort()
@@ -859,12 +1160,49 @@ def _boundary_stats(source, target) -> tuple[float, float, float]:
     return mean, p95, maximum
 
 
+def directed_hausdorff_sampled(source, target, step_m: float = 50.0) -> float:
+    """Cota inferior de la distancia Hausdorff dirigida source→target.
+
+    Se muestrea el límite de ``source`` cada ``step_m`` metros y se busca el
+    segmento más cercano del límite de ``target`` con un STRtree. No sustituye
+    al Hausdorff exacto: sirve para acotarlo junto con la distancia simétrica.
+    """
+    source_points = _boundary_points(source.boundary, step_m)
+    target_segments = _boundary_segments(target.boundary)
+    if not source_points or not target_segments:
+        return 0.0
+    tree = STRtree(target_segments)
+    maximum = 0.0
+    for x, y in source_points:
+        point = Point(x, y)
+        index = tree.nearest(point)
+        if index is None:
+            continue
+        maximum = max(maximum, point.distance(target_segments[int(index)]))
+    return maximum
+
+
 def _component_count(geom) -> int:
     return len(_extract_polygonal_parts(geom))
 
 
-def fidelity_metrics(source, target) -> FidelityMetrics:
+def fidelity_metrics(
+    source,
+    target,
+    *,
+    already_metric: bool = False,
+    hausdorff_override: float | None = None,
+) -> FidelityMetrics:
     """Compara dos geometrías poligonales en EPSG:32717.
+
+    Por defecto las entradas están en WGS84 y se proyectan a EPSG:32717. Con
+    ``already_metric=True`` se asume que ambas ya están en EPSG:32717; es el modo
+    que usa el ETL de la mancha, cuyos pasos intermedios viven en ese CRS.
+
+    ``hausdorff_override`` permite sustituir el cálculo exacto por un valor
+    dirigido ya calculado y documentado por el llamador, por ejemplo una cota
+    inferior muestreada con error acotado. No es un umbral de aceptación ni una
+    estimación libre: el método y su error deben quedar en el informe.
 
     IoU y diferencia simétrica se miden en área. Hausdorff es el máximo exacto
     entre límites; la distancia media y el p95 se calculan muestreando ambos
@@ -876,8 +1214,8 @@ def fidelity_metrics(source, target) -> FidelityMetrics:
     if source_poly is None or target_poly is None:
         raise ValueError("fidelity_metrics necesita dos geometrías poligonales no vacías")
 
-    source_metric = _project(source_poly)
-    target_metric = _project(target_poly)
+    source_metric = source_poly if already_metric else _project(source_poly)
+    target_metric = target_poly if already_metric else _project(target_poly)
     area_source = abs(source_metric.area) / 1e6
     area_target = abs(target_metric.area) / 1e6
     delta = area_target - area_source
@@ -887,7 +1225,11 @@ def fidelity_metrics(source, target) -> FidelityMetrics:
     union = source_metric.union(target_metric).area
     iou = intersection / union if union else 1.0
     symmetric = abs(source_metric.symmetric_difference(target_metric).area) / 1e6
-    hausdorff = source_metric.boundary.hausdorff_distance(target_metric.boundary)
+    hausdorff = (
+        hausdorff_override
+        if hausdorff_override is not None
+        else source_metric.boundary.hausdorff_distance(target_metric.boundary)
+    )
     mean, p95, _ = _boundary_stats(source_metric, target_metric)
 
     return FidelityMetrics(

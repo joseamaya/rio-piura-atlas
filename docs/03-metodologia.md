@@ -135,6 +135,11 @@ menores de 0,5 ha y por la simplificación a 25 m; no se ajustó manualmente. La
 simplificación puede aumentar el área en algunas geometrías; se reporta el valor
 medido, no el esperado.
 
+La fidelidad entre la unión original, la geometría filtrada, la simplificada y la
+publicada se mide en EPSG:32717: IoU, diferencia simétrica, Hausdorff, distancia
+media y p95 entre límites. El informe reproducible está en
+`web/public/data/flood_2017_audit.json`; el detalle de la auditoría, en `docs/09`.
+
 La capa cubre la llanura baja y el desierto adyacente, **no toda la cuenca**: en la
 sierra el evento se expresó como crecidas y deslizamientos, no como una mancha
 continua. No es un modelo hidráulico ni una predicción. No se publica una clase

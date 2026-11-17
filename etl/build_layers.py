@@ -26,19 +26,29 @@ from shapely.validation import explain_validity
 
 try:  # Ejecución como módulo (`python -m etl.build_layers`)
     from etl.topology import (
+        Tolerances,
         as_polygonal,
+        audit_components,
+        directed_hausdorff_sampled,
+        fidelity_metrics,
         geodesic_area_km2,
         inspect_geometry,
         metric_area_km2,
         repair_to_polygonal,
+        to_metric_crs,
     )
 except ModuleNotFoundError:  # Ejecución directa (`python etl/build_layers.py`)
     from topology import (
+        Tolerances,
         as_polygonal,
+        audit_components,
+        directed_hausdorff_sampled,
+        fidelity_metrics,
         geodesic_area_km2,
         inspect_geometry,
         metric_area_km2,
         repair_to_polygonal,
+        to_metric_crs,
     )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -260,8 +270,29 @@ def _geom_from_record(record, label: str = "registro"):
             return None
         if not parts:
             return None
-        merged = parts[0] if len(parts) == 1 else unary_union(parts)
-        return as_polygonal(merged)
+        component_audit = audit_components(
+            parts,
+            label,
+            Tolerances(),
+            allow_repair=False,
+        )
+        errors = [f for f in component_audit.findings if f.severity == "error"]
+        if errors:
+            detail = "; ".join(f.message() for f in errors)
+            raise SystemExit(f"{label}: componentes inválidos o solapados: {detail}")
+        for finding in component_audit.findings:
+            if finding.severity == "warning":
+                print(f"  aviso: {label}: {finding.message()}")
+        if component_audit.compound_geometry is None:
+            note = (
+                component_audit.compound_audit.note
+                if component_audit.compound_audit
+                else "sin geometría compuesta"
+            )
+            raise SystemExit(f"{label}: no se pudo construir la geometría: {note}")
+        return as_polygonal(component_audit.compound_geometry)
+    except SystemExit:
+        raise
     except Exception as exc:
         raise SystemExit(f"{label}: no se pudo reconstruir la geometría: {exc}") from exc
 
@@ -450,6 +481,143 @@ def _fecha_texto(fechas) -> str:
     )
 
 
+def _group_flood_records(records):
+    """Agrupa observaciones por fecha y sensor, sin inferir valores ausentes."""
+    grouped: dict[tuple[str | None, str], list] = {}
+    for record in records:
+        grouped.setdefault(
+            (record.get("fecha"), record.get("sensor") or "Sensor no declarado"),
+            [],
+        ).append(record["geom"])
+    return grouped
+
+
+def _flood_observations(records):
+    """Devuelve observaciones, uniones por fecha/sensor y cierre de áreas.
+
+    La suma de observaciones no es una superficie de inundación: las fechas
+    pueden solaparse. Se devuelven ambos valores para que el llamador no los
+    confunda.
+    """
+    grouped = _group_flood_records(records)
+    observaciones = []
+    observation_unions = []
+    for (fecha, sensor), geoms in sorted(
+        grouped.items(),
+        key=lambda item: (item[0][0] or "", item[0][1] or ""),
+    ):
+        raw_union = unary_union(geoms)
+        observation_unions.append(raw_union)
+        observaciones.append(
+            {
+                "fecha": fecha,
+                "sensor": sensor,
+                "area_original_km2": round(raw_union.area / 1e6, 3),
+                "partes": len(geoms),
+            }
+        )
+
+    observation_sum = sum(o["area_original_km2"] for o in observaciones)
+    observation_overlap = 0.0
+    for i in range(len(observation_unions)):
+        for j in range(i + 1, len(observation_unions)):
+            observation_overlap += (
+                observation_unions[i].intersection(observation_unions[j]).area / 1e6
+            )
+    union_original = unary_union([record["geom"] for record in records])
+    return observaciones, observation_unions, observation_sum, observation_overlap, union_original
+
+
+def _flood_date_sensor_summary(observaciones):
+    """Resume fechas y sensores conservando los ausentes de forma explícita."""
+    fechas = sorted({o["fecha"] for o in observaciones if o.get("fecha")})
+    fechas_incompletas = any(o.get("fecha") is None for o in observaciones)
+    if not fechas or fechas_incompletas:
+        fecha = None
+        fecha_texto = "fecha no declarada"
+    elif len(fechas) == 1:
+        fecha = fechas[0]
+        fecha_texto = _fecha_texto(fechas)
+    else:
+        fecha = f"{min(fechas)}/{max(fechas)}"
+        fecha_texto = _fecha_texto(fechas)
+    sensores = []
+    for observacion in observaciones:
+        sensor = observacion.get("sensor") or "Sensor no declarado"
+        fecha_obs = observacion.get("fecha")
+        if fecha_obs:
+            sensores.append(f"{sensor} ({fecha_obs[8:10]}/{fecha_obs[5:7]})")
+        else:
+            sensores.append(f"{sensor} (fecha no declarada)")
+    return fecha, fecha_texto, "; ".join(sensores)
+
+
+def _filter_flood_geometry(geom, min_area_m2: float):
+    """Filtra componentes menores y registra la superficie eliminada."""
+    parts = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+    kept = [part for part in parts if part.area >= min_area_m2]
+    removed = [part for part in parts if part.area < min_area_m2]
+    removed_km2 = sum(part.area for part in removed) / 1e6
+    removed_geom = None
+    if removed:
+        removed_geom = removed[0] if len(removed) == 1 else MultiPolygon(removed)
+    if not kept:
+        return None, removed_km2, len(parts), 0, removed_geom
+    filtered = kept[0] if len(kept) == 1 else MultiPolygon(kept)
+    return filtered, removed_km2, len(parts), len(kept), removed_geom
+
+
+def _simplify_flood_geometry(geom, tolerance_m: float):
+    """Simplifica conservando topología y registra el cambio de área."""
+    simplified = geom.simplify(tolerance_m, preserve_topology=True)
+    audit = inspect_geometry(simplified, "simplificada")
+    if audit.empty or not audit.valid:
+        raise ValueError(f"simplificación inválida: {audit.reason or 'vacía'}")
+    simplified = _polygonal(simplified)
+    if simplified is None:
+        raise ValueError("la simplificación no es poligonal")
+    delta_km2 = simplified.area / 1e6 - geom.area / 1e6
+    return simplified, audit, delta_km2
+
+
+def _publish_flood_geometry(geom, transformer):
+    """Reproyecta, redondea y registra el cambio de área de la publicación."""
+    wgs = transform(transformer.transform, geom)
+    wgs = _polygonal(set_precision(wgs, 1e-5))
+    audit = inspect_geometry(wgs, "publicada")
+    if wgs is None or audit.empty or not audit.valid:
+        raise ValueError(f"publicación inválida: {audit.reason or 'vacía'}")
+    published_utm_geom = to_metric_crs(wgs)
+    published_utm = metric_area_km2(wgs)
+    delta_km2 = published_utm - geom.area / 1e6
+    return wgs, published_utm_geom, audit, published_utm, delta_km2
+
+
+def _flood_fidelity(source, target, *, hausdorff_override=None):
+    """Fidelidad entre dos etapas ya expresadas en EPSG:32717."""
+    return fidelity_metrics(
+        source,
+        target,
+        already_metric=True,
+        hausdorff_override=hausdorff_override,
+    )
+
+
+def _flood_hausdorff_override(removed_geom, filtered_geom):
+    """Hausdorff dirigido de la unión a la geometría filtrada.
+
+    La geometría filtrada es un subconjunto de la unión; el Hausdorff dirigido
+    desde la unión es el de los fragmentos eliminados hacia la geometría
+    filtrada. Se muestrea el límite de los fragmentos cada 1 m y se consulta el
+    segmento más cercano del límite filtrado con un STRtree. Es una cota
+    inferior con error máximo de 0,5 m; el método se declara en el informe.
+    """
+    if removed_geom is None or removed_geom.is_empty:
+        return 0.0, "sin componentes eliminados"
+    value = directed_hausdorff_sampled(removed_geom, filtered_geom, step_m=1.0)
+    return value, "dirigido muestreado a 1 m (error ≤ 0,5 m)"
+
+
 def _flood_records(shp_path: Path, label: str):
     """Lee `crisis_information_poly` y conserva solo `Flooded Area`.
 
@@ -505,6 +673,16 @@ def build_flood():
 
     transformer = Transformer.from_crs("EPSG:32717", "EPSG:4326", always_xy=True)
     feats = []
+    audit_report = {
+        "crs_metrico": "EPSG:32717",
+        "fuente": "copernicus-ems-emsr199",
+        "nota": (
+            "Unión de observaciones por fecha; no es una mancha simultánea. "
+            "La fidelidad se mide en EPSG:32717. La etapa publicada se proyecta "
+            "de vuelta a EPSG:32717 para comparar la reproyección y el redondeo."
+        ),
+        "aois": {},
+    }
     for aoi in FLOOD_AOIS:
         shp_files = list((EMSR / aoi["carpeta"]).glob("*crisis_information_poly.shp"))
         if not shp_files:
@@ -515,79 +693,109 @@ def build_flood():
             print(f"  ({aoi['id']} sin polígonos 'Flooded Area'; se omite)")
             continue
 
-        grouped: dict[tuple[str | None, str], list] = {}
-        for record in records:
-            grouped.setdefault((record["fecha"], record["sensor"]), []).append(record["geom"])
+        (
+            observaciones,
+            _observation_unions,
+            observation_sum,
+            observation_overlap,
+            union_original_geom,
+        ) = _flood_observations(records)
+        fecha, fecha_texto, sensores = _flood_date_sensor_summary(observaciones)
+        union_original = union_original_geom.area / 1e6
 
-        observaciones = []
-        observation_unions = []
-        for (fecha, sensor), geoms in sorted(
-            grouped.items(), key=lambda item: (item[0][0] or "", item[0][1])
-        ):
-            raw_union = unary_union(geoms)
-            observation_unions.append(raw_union)
-            observaciones.append(
-                {
-                    "fecha": fecha,
-                    "sensor": sensor,
-                    "area_original_km2": round(raw_union.area / 1e6, 3),
-                    "partes": len(geoms),
-                }
-            )
-
-        fechas = [o["fecha"] for o in observaciones if o["fecha"]]
-        fecha = fechas[0] if len(fechas) == 1 else f"{min(fechas)}/{max(fechas)}"
-        sensores = "; ".join(
-            f"{o['sensor']} ({o['fecha'][8:10]}/{o['fecha'][5:7]})"
-            for o in observaciones
-            if o["fecha"]
-        )
-
-        observation_sum = sum(o["area_original_km2"] for o in observaciones)
-        observation_overlap = 0.0
-        for i in range(len(observation_unions)):
-            for j in range(i + 1, len(observation_unions)):
-                observation_overlap += (
-                    observation_unions[i].intersection(observation_unions[j]).area / 1e6
-                )
-
-        merged = unary_union([record["geom"] for record in records])
-        union_original = merged.area / 1e6
-        kept = _keep_parts(merged, FLOOD_MIN_AREA_M2)
-        if kept is None:
+        (
+            filtered_geom,
+            removed_area_km2,
+            _components_union,
+            _components_filtered,
+            removed_geom,
+        ) = _filter_flood_geometry(union_original_geom, FLOOD_MIN_AREA_M2)
+        if filtered_geom is None:
             print(f"  ({aoi['id']} sin partes por encima del área mínima; se omite)")
             continue
-        filtered = kept.area / 1e6
-        simplified = kept.simplify(FLOOD_SIMPLIFY_M, preserve_topology=True)
-        simplified_audit = inspect_geometry(simplified, f"EMSR199 {aoi['id']} simplificada")
-        if simplified_audit.empty or not simplified_audit.valid:
-            raise SystemExit(
-                f"EMSR199 {aoi['id']}: la simplificación produjo una geometría "
-                f"inválida: {simplified_audit.reason or 'vacía'}"
-            )
-        simplified = _polygonal(simplified)
-        if simplified is None:
-            raise SystemExit(f"EMSR199 {aoi['id']}: la simplificación no es poligonal")
-        simplified_area = simplified.area / 1e6
+        filtered = filtered_geom.area / 1e6
 
-        wgs = transform(transformer.transform, simplified)
-        wgs = _polygonal(set_precision(wgs, 1e-5))
-        if wgs is None:
-            raise SystemExit(f"EMSR199 {aoi['id']}: no se pudo reproyectar")
-        wgs_audit = inspect_geometry(wgs, f"EMSR199 {aoi['id']} publicada")
-        if wgs_audit.empty or not wgs_audit.valid:
-            raise SystemExit(
-                f"EMSR199 {aoi['id']}: la geometría publicada no es válida: "
-                f"{wgs_audit.reason or 'vacía'}"
+        try:
+            simplified_geom, _simplified_audit, simplify_delta_km2 = _simplify_flood_geometry(
+                filtered_geom,
+                FLOOD_SIMPLIFY_M,
             )
+            (
+                wgs,
+                published_utm_geom,
+                _wgs_audit,
+                published_utm,
+                publish_delta_km2,
+            ) = _publish_flood_geometry(simplified_geom, transformer)
+        except ValueError as exc:
+            raise SystemExit(f"EMSR199 {aoi['id']}: {exc}") from exc
 
-        published_utm = metric_area_km2(wgs)
+        simplified_area = simplified_geom.area / 1e6
         published_geo = geodesic_area_km2(wgs)
         if abs((observation_sum - observation_overlap) - union_original) > 0.02:
             raise SystemExit(
                 f"EMSR199 {aoi['id']}: la unión no cierra con las observaciones "
                 f"({observation_sum - observation_overlap:.3f} vs {union_original:.3f} km²)"
             )
+
+        hausdorff_override, hausdorff_metodo = _flood_hausdorff_override(
+            removed_geom,
+            filtered_geom,
+        )
+        fidelity_filter = _flood_fidelity(
+            union_original_geom,
+            filtered_geom,
+            hausdorff_override=hausdorff_override,
+        )
+        fidelity_simplify = _flood_fidelity(filtered_geom, simplified_geom)
+        fidelity_publish = _flood_fidelity(simplified_geom, published_utm_geom)
+        component_counts = {
+            "union_original": fidelity_filter.components_source,
+            "filtrada": fidelity_filter.components_target,
+            "simplificada": fidelity_simplify.components_target,
+            "publicada": fidelity_publish.components_target,
+        }
+        auditoria_geometrica = {
+            "crs": "EPSG:32717",
+            "informe": "flood_2017_audit.json",
+            "iou_union_filtrada": round(fidelity_filter.iou, 6),
+            "iou_filtrada_simplificada": round(fidelity_simplify.iou, 6),
+            "iou_simplificada_publicada": round(fidelity_publish.iou, 6),
+            "componentes": component_counts,
+            "superficie_eliminada_filtro_km2": round(removed_area_km2, 3),
+            "cambio_area_simplificacion_km2": round(simplify_delta_km2, 3),
+            "cambio_area_reproyeccion_redondeo_km2": round(publish_delta_km2, 3),
+        }
+        audit_report["aois"][f"EMSR199_{aoi['id']}"] = {
+            "zona": aoi["zona"],
+            "observaciones": observaciones,
+            "areas_km2": {
+                "union_original": round(union_original, 3),
+                "filtrada": round(filtered, 3),
+                "simplificada": round(simplified_area, 3),
+                "publicada_utm": round(published_utm, 3),
+                "publicada_geodesica": round(published_geo, 3),
+            },
+            "componentes": component_counts,
+            "fidelidad": {
+                "union_a_filtrada": {
+                    **fidelity_filter.as_dict(),
+                    "hausdorff_metodo": hausdorff_metodo,
+                },
+                "filtrada_a_simplificada": {
+                    **fidelity_simplify.as_dict(),
+                    "hausdorff_metodo": "exacto",
+                },
+                "simplificada_a_publicada": {
+                    **fidelity_publish.as_dict(),
+                    "hausdorff_metodo": "exacto",
+                },
+            },
+            "superficie_eliminada_filtro_km2": round(removed_area_km2, 3),
+            "cambio_area_simplificacion_km2": round(simplify_delta_km2, 3),
+            "cambio_area_reproyeccion_redondeo_km2": round(publish_delta_km2, 3),
+            "reparaciones": [audit.as_dict() for audit in repairs],
+        }
 
         feats.append(
             feature(
@@ -597,7 +805,7 @@ def build_flood():
                     "zona": aoi["zona"],
                     "aoi": f"EMSR199_{aoi['id']}",
                     "fecha": fecha,
-                    "fecha_texto": _fecha_texto(fechas),
+                    "fecha_texto": fecha_texto,
                     "sensores": sensores,
                     "observaciones": observaciones,
                     "clase": "Flooded Area",
@@ -610,6 +818,7 @@ def build_flood():
                     "area_simplificada_km2": round(simplified_area, 3),
                     "area_publicada_utm_km2": round(published_utm, 3),
                     "area_publicada_geodesica_km2": round(published_geo, 3),
+                    "auditoria_geometrica": auditoria_geometrica,
                     "reparaciones": [audit.as_dict() for audit in repairs],
                     "fuente": "copernicus-ems-emsr199",
                     "metodo": (
@@ -642,6 +851,8 @@ def build_flood():
 
     if feats:
         write("flood_2017.geojson", feature_collection(feats))
+        if audit_report["aois"]:
+            write("flood_2017_audit.json", audit_report)
 
 
 def build_obras():
