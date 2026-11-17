@@ -1,7 +1,9 @@
 ---
 import Base from "../layouts/Base.astro";
+import { withBase } from "../lib/url";
 import fs from "node:fs";
 import yaml from "js-yaml";
+import "../styles/editorial.css";
 
 const file = new URL("../../../data/sources.yml", import.meta.url);
 const data = yaml.load(fs.readFileSync(file, "utf8")) as {
@@ -26,23 +28,50 @@ const data = yaml.load(fs.readFileSync(file, "utf8")) as {
 };
 
 const estado = (e: string) =>
-  e === "disponible" ? ["ok", "disponible"] : e === "por_solicitar" ? ["pending", "por solicitar"] : ["warn", "por verificar"];
+  e === "disponible" ? ["status available", "disponible"]
+  : e === "por_solicitar" ? ["status requested", "por solicitar"]
+  : ["status verify", "por verificar"];
 
 const certeza = (c: string | undefined) => {
-  if (c === "medido") return ["ok", "dato medido"];
-  if (c === "derivado") return ["ok", "derivado"];
-  if (c === "documentado") return ["ok", "documentado"];
-  if (c === "interpretacion") return ["warn", "interpretación"];
-  return ["pending", "por verificar"];
+  if (c === "medido") return ["status", "dato medido"];
+  if (c === "derivado") return ["status derived", "derivado"];
+  if (c === "documentado") return ["status documented", "documentado"];
+  if (c === "interpretacion") return ["status interpretation", "interpretación"];
+  return ["status pending", "por verificar"];
 };
 
-const orden = ["Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"];
-const grupos = orden
-  .map((titulo) => ({ titulo, fuentes: data.fuentes.filter((f) => f.grupo === titulo) }))
-  .filter((g) => g.fuentes.length > 0);
+const tipo = (t: string | undefined) =>
+  t === "dataset" ? "dataset"
+  : t === "documento" ? "documento"
+  : t === "prensa" ? "prensa"
+  : t === "elaboracion_propia" ? "elaboración propia"
+  : "registro";
 
-const resto = data.fuentes.filter((f) => !orden.includes(f.grupo ?? ""));
-if (resto.length > 0) grupos.push({ titulo: "Otras fuentes", fuentes: resto });
+const orden = ["Límites, relieve y red", "Agua", "Inundaciones y riesgo", "Estudios"];
+const intros: Record<string, string> = {
+  "Límites, relieve y red": "Límites oficiales, relieve de trabajo, red hídrica y toponimia.",
+  Agua: "Cuerpos de agua, obras hidráulicas y datos pendientes de estaciones y operación.",
+  "Inundaciones y riesgo": "Delineaciones satelitales, escenarios de riesgo y documentos de contexto.",
+  Estudios: "Informes técnicos, tesis y artículos que sostienen las cifras y el relato histórico.",
+};
+const ids: Record<string, string> = {
+  "Límites, relieve y red": "grupo-limites",
+  Agua: "grupo-agua",
+  "Inundaciones y riesgo": "grupo-inundaciones",
+  Estudios: "grupo-estudios",
+};
+const fuentes = data.fuentes;
+const groups = orden
+  .map((titulo) => ({ titulo, id: ids[titulo], intro: intros[titulo], fuentes: fuentes.filter((f) => f.grupo === titulo) }))
+  .filter((g) => g.fuentes.length > 0);
+const resto = fuentes.filter((f) => !orden.includes(f.grupo ?? ""));
+if (resto.length) groups.push({ titulo: "Otras fuentes", id: "grupo-otras", intro: "Registros no clasificados en los grupos principales.", fuentes: resto });
+const counts = {
+  total: fuentes.length,
+  disponible: fuentes.filter((f) => f.estado === "disponible").length,
+  porSolicitar: fuentes.filter((f) => f.estado === "por_solicitar").length,
+  porVerificar: fuentes.filter((f) => f.estado === "por_verificar").length,
+};
 ---
 
 <Base
@@ -50,68 +79,177 @@ if (resto.length > 0) grupos.push({ titulo: "Otras fuentes", fuentes: resto });
   current="fuentes"
   description="Catálogo de fuentes del Atlas del río Piura: institución, escala, licencia y estado de cada dato, con enlaces directos a la fuente original."
 >
-  <main id="main">
-    <p class="eyebrow">Trazabilidad</p>
-    <h1>De dónde sale cada dato</h1>
-    <p class="lead">
-      Toda capa del atlas apunta a una fuente con institución, escala, fecha —cuando
-      existe— y licencia. Si un dato no está confirmado, figura como pendiente y no se
-      publica.
-    </p>
+  <main id="main" class="wide">
+    <div class="container">
+      <header class="page-hero">
+        <p class="kicker">Trazabilidad</p>
+        <div class="sources-hero">
+          <div>
+            <h1>De dónde sale cada dato</h1>
+            <p class="lead">
+              Toda capa del atlas apunta a una fuente con institución, escala,
+              fecha —cuando existe— y licencia. Si un dato no está confirmado,
+              figura como pendiente y no se publica.
+            </p>
+          </div>
+          <div class="sources-stats" aria-label="Resumen del catálogo">
+            <div><div class="v">{counts.total}</div><div class="l">fuentes</div></div>
+            <div><div class="v">{counts.disponible}</div><div class="l">disponibles</div></div>
+            <div><div class="v">{counts.porSolicitar}</div><div class="l">por solicitar</div></div>
+            <div><div class="v">{counts.porVerificar}</div><div class="l">por verificar</div></div>
+          </div>
+        </div>
+        <div class="sources-key" aria-label="Clave de certeza">
+          <div class="key-item"><span class="status"><span class="mark"></span><strong>Dato medido</strong></span>Serie, imagen o geometría medida por la institución.</div>
+          <div class="key-item"><span class="status derived"><span class="mark"></span><strong>Derivado</strong></span>Producto calculado: modelo, red o DEM.</div>
+          <div class="key-item"><span class="status documented"><span class="mark"></span><strong>Documentado</strong></span>Informe, tesis o nota con referencia verificable.</div>
+          <div class="key-item"><span class="status interpretation"><span class="mark"></span><strong>Interpretación</strong></span>Geometría elaborada por el atlas.</div>
+          <div class="key-item"><span class="status pending"><span class="mark"></span><strong>Por verificar</strong></span>Falta confirmar el documento o el dato.</div>
+        </div>
+      </header>
 
-    <p class="small muted">
-      Certidumbre:
-      <span class="badge ok">dato medido</span>
-      <span class="badge ok">derivado</span>
-      <span class="badge ok">documentado</span>
-      <span class="badge warn">interpretación</span>
-      <span class="badge pending">por verificar</span>
-    </p>
+      <div class="note" style="margin-top:26px;">
+        <div class="note-title">Cómo leer esta página</div>
+        <p>
+          No se distinguen «fuentes primarias» y «secundarias»: esa clasificación no
+          está definida en el proyecto. Se usan el <strong>tipo</strong> de registro
+          (dataset, documento, prensa o elaboración propia) y la
+          <strong>certeza</strong> declarada en <code>data/sources.yml</code>. Los
+          estados se refieren a la disponibilidad del dato para el atlas.
+        </p>
+      </div>
 
-    {grupos.map((g) => (
-      <section>
-        <h2>{g.titulo}</h2>
-        <table>
-          <thead>
-            <tr><th>Fuente</th><th>Institución</th><th>Escala</th><th>Licencia</th><th>Estado</th></tr>
-          </thead>
-          <tbody>
-            {g.fuentes.map((f) => {
-              const [cls, label] = estado(f.estado);
-              const [ccls, clabel] = certeza(f.certeza);
-              return (
-                <tr id={f.id}>
-                  <td>
-                    {f.url ? <a href={f.url} target="_blank" rel="noopener">{f.titulo}</a> : f.titulo}
-                    {f.documento && <div class="small muted">{f.documento}</div>}
-                    <div class="small muted">
-                      {f.fecha ?? "sin fecha"}
-                      {f.consultado ? ` · consultado ${f.consultado}` : ""}
-                      {f.pagina ? ` · p. ${f.pagina}` : ""}
-                      {" · "}
-                      {f.metodo ?? "método no declarado"}
-                    </div>
-                    {f.notas && <div class="small muted">{f.notas}</div>}
-                  </td>
-                  <td>{f.institucion}</td>
-                  <td>{f.escala ?? "—"}</td>
-                  <td>{f.licencia}</td>
-                  <td>
-                    <span class={`badge ${cls}`}>{label}</span>{" "}
-                    <span class={`badge ${ccls}`}>{clabel}</span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
-    ))}
+      <div class="sources-layout">
+        <aside class="sources-index" aria-label="Grupos de fuentes">
+          <div class="index-title">Grupos</div>
+          <ul>
+            {groups.map((g) => (
+              <li><a href={`#${g.id}`}>{g.titulo} <span>{g.fuentes.length}</span></a></li>
+            ))}
+          </ul>
+          <p class="source-line" style="margin-top:14px;">Las fuentes pendientes no se dibujan. <a href="https://github.com/joseamaya/rio-piura-atlas/blob/main/docs/07-solicitudes.md">Ver solicitudes</a>.</p>
+        </aside>
 
-    <div class="note">
-      <strong>Las fuentes pendientes no se dibujan.</strong> SENAMHI, PECHP y CENEPRED
-      aparecen aquí porque son necesarias, no porque ya tengamos el dato. La solicitud
-      formal está descrita en <code>docs/07-solicitudes.md</code>.
+        <div>
+          <div class="filters" role="search" aria-label="Filtrar fuentes">
+            <button class="filter-button" type="button" data-group="all" aria-pressed="true">Todas</button>
+            <button class="filter-button" type="button" data-group="Límites, relieve y red" aria-pressed="false">Límites y relieve</button>
+            <button class="filter-button" type="button" data-group="Agua" aria-pressed="false">Agua</button>
+            <button class="filter-button" type="button" data-group="Inundaciones y riesgo" aria-pressed="false">Inundaciones</button>
+            <button class="filter-button" type="button" data-group="Estudios" aria-pressed="false">Estudios</button>
+            <select class="filter-search" id="stateFilter" aria-label="Filtrar por estado">
+              <option value="all">Todos los estados</option>
+              <option value="disponible">Disponible</option>
+              <option value="por_solicitar">Por solicitar</option>
+              <option value="por_verificar">Por verificar</option>
+            </select>
+            <select class="filter-search" id="certaintyFilter" aria-label="Filtrar por certeza">
+              <option value="all">Toda la certeza</option>
+              <option value="medido">Dato medido</option>
+              <option value="derivado">Derivado</option>
+              <option value="documentado">Documentado</option>
+              <option value="interpretacion">Interpretación</option>
+              <option value="por_verificar">Por verificar</option>
+            </select>
+            <input class="filter-search" id="searchFilter" type="search" placeholder="Buscar por título, institución o id…" aria-label="Buscar fuentes" />
+          </div>
+          <p class="source-line" id="filterCount" aria-live="polite"></p>
+          <div id="sourcesList">
+            {groups.map((g) => (
+              <section class="source-group" id={g.id} data-group={g.titulo}>
+                <div class="row-between"><h2>{g.titulo}</h2><span class="group-count">{g.fuentes.length} fuentes</span></div>
+                <p class="group-intro">{g.intro}</p>
+                {g.fuentes.map((f) => {
+                  const [estadoClass, estadoLabel] = estado(f.estado);
+                  const [certClass, certLabel] = certeza(f.certeza);
+                  const meta = [f.institucion, f.fecha ?? "sin fecha", f.escala ?? "escala no declarada", f.licencia].join(" · ");
+                  return (
+                    <article class="record" id={f.id} data-state={f.estado} data-certainty={f.certeza ?? "por_verificar"}>
+                      <div class="record-head">
+                        <span class="record-id">{f.id}</span>
+                        <span class="record-kind">{tipo(f.tipo)}</span>
+                      </div>
+                      <h3 class="record-title">
+                        {f.url ? <a href={f.url} target="_blank" rel="noopener">{f.titulo}</a> : f.titulo}
+                      </h3>
+                      <div class="record-meta">{meta}</div>
+                      <div class="record-tags">
+                        <span class={estadoClass}><span class="mark"></span>{estadoLabel}</span>
+                        <span class={certClass}><span class="mark"></span>{certLabel}</span>
+                      </div>
+                      <details class="record-details">
+                        <summary>Método, notas y documento</summary>
+                        {f.metodo && <p><strong>Método:</strong> {f.metodo}.</p>}
+                        {f.documento && <p><strong>Documento:</strong> {f.documento}{f.pagina ? ` · p. ${f.pagina}` : ""}.</p>}
+                        {f.notas && <p><strong>Notas:</strong> {f.notas}</p>}
+                        {f.consultado && <p><strong>Consultado:</strong> {f.consultado}.</p>}
+                        {!f.metodo && !f.documento && !f.notas && <p>Sin notas adicionales.</p>}
+                      </details>
+                    </article>
+                  );
+                })}
+              </section>
+            ))}
+          </div>
+          <p class="record-empty" id="emptyState">No hay fuentes que coincidan con el filtro.</p>
+        </div>
+      </div>
     </div>
   </main>
+
+  <script>
+    const filterState = { group: "all", estado: "all", certeza: "all", text: "" };
+    const records = [...document.querySelectorAll<HTMLElement>(".record")];
+    const groupEls = [...document.querySelectorAll<HTMLElement>(".source-group")];
+    const filterCount = document.getElementById("filterCount");
+    const emptyState = document.getElementById("emptyState");
+    const filterButtons = [...document.querySelectorAll<HTMLButtonElement>(".filters [data-group]")];
+
+    function applyFilters() {
+      let visible = 0;
+      for (const record of records) {
+        const group = record.closest<HTMLElement>(".source-group")!;
+        const groupOk = filterState.group === "all" || group.dataset.group === filterState.group;
+        const stateOk = filterState.estado === "all" || record.dataset.state === filterState.estado;
+        const certOk = filterState.certeza === "all" || record.dataset.certainty === filterState.certeza;
+        const textOk = !filterState.text || record.textContent!.toLowerCase().includes(filterState.text);
+        const show = groupOk && stateOk && certOk && textOk;
+        record.style.display = show ? "" : "none";
+        if (show) visible++;
+      }
+      for (const group of groupEls) {
+        const any = [...group.querySelectorAll<HTMLElement>(".record")].some((r) => r.style.display !== "none");
+        group.style.display = any ? "" : "none";
+      }
+      if (filterCount) filterCount.textContent = `${visible} de ${records.length} fuentes visibles`;
+      if (emptyState) emptyState.style.display = visible ? "none" : "block";
+    }
+
+    filterButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        filterButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+        button.setAttribute("aria-pressed", "true");
+        filterState.group = button.dataset.group!;
+        applyFilters();
+      });
+    });
+    document.getElementById("stateFilter")?.addEventListener("change", (event) => {
+      filterState.estado = (event.target as HTMLSelectElement).value;
+      applyFilters();
+    });
+    document.getElementById("certaintyFilter")?.addEventListener("change", (event) => {
+      filterState.certeza = (event.target as HTMLSelectElement).value;
+      applyFilters();
+    });
+    document.getElementById("searchFilter")?.addEventListener("input", (event) => {
+      filterState.text = (event.target as HTMLInputElement).value.trim().toLowerCase();
+      applyFilters();
+    });
+    applyFilters();
+
+    if (location.hash) {
+      const target = document.querySelector(location.hash);
+      if (target) setTimeout(() => target.scrollIntoView({ block: "start" }), 80);
+    }
+  </script>
 </Base>
