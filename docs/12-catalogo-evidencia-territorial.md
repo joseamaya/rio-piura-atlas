@@ -125,3 +125,24 @@ ser más valioso que una capa `validada` de baja resolución.
 - No confunde una propuesta con una obra ejecutada.
 - No confunde susceptibilidad geológica con probabilidad hidrológica.
 - No presenta un modelo académico como decisión oficial.
+
+## 9. Fuentes de la segunda ronda (fase 2.1)
+
+La búsqueda agresiva de 2026-11-17 añadió fuentes que no estaban en la primera
+fase. Ninguna se publicó como capa.
+
+| Fuente | Tipo de evidencia | Disponibilidad | Uso |
+|---|---|---|---|
+| `senamhi-historico-estaciones` | oficial + dato medido | `descargable` | Precipitación/temperatura diaria por estación, 1961–2015; no caudales |
+| `ingemmet-geologia-integrada-100k` | oficial + científica | `localizada` | Geología vectorial 1:100 000; falta licencia/metadatos |
+| `ingemmet-geomorfologia-vector` | oficial + científica | `localizada` | Geomorfología vectorial; escala no declarada |
+| `ingemmet-susceptibilidad-inundacion-vector` | oficial + científica | `localizada` | Susceptibilidad a inundación; sin escala/fecha/método |
+| `ana-zee-piura` | oficial | `localizada` | Geología, geomorfología, peligro y vulnerabilidad ZEE |
+| `sigrid-sullana-inundacion-1983-1998` | oficial + histórica | `documental` | Mapas PDF de Sullana 1983/1998 |
+| `sigrid-cura-mori-riesgo-1998` | oficial + histórica | `documental` | 48 mapas JPG de Cura Mori 1998 |
+| `sigrid-piura-peligros-inundacion` | oficial + histórica | `documental` | Mapas PDF de peligros urbanos |
+| `pechp-batimetria-poechos` | oficial | `pendiente` | Batimetría del reservorio, no del cauce |
+
+La regla sigue siendo la misma: una fuente `documental` no se convierte en capa; una
+fuente `localizada` no se publica hasta confirmar licencia, escala y fecha; una
+fuente `pendiente` no se dibuja.

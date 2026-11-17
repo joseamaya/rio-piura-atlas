@@ -20,8 +20,11 @@ Para cada fuente se hizo, cuando fue posible:
    falta solicitar.
 
 No se digitalizaron mapas ni se convirtieron tablas en capas durante esta
-auditoría. La única fuente con una eventual serie derivable es PISCOp v3.0; su
-licencia quedó pendiente y no se publicó ninguna serie.
+auditoría. Las fuentes con series derivables son PISCOp v3.0 y la API histórica
+por estación de SENAMHI; sus licencias o términos quedaron pendientes y no se
+publicó ninguna serie. La segunda ronda de búsqueda (2026-11-17) encontró capas
+vectoriales de INGEMMET y ANA que antes se creían inexistentes; se documentan en
+la sección 15 y se mantienen como candidatas, no como capas publicadas.
 
 ## 2. Resumen
 
@@ -30,7 +33,7 @@ licencia quedó pendiente y no se publicó ninguna serie.
 | A. ANA — Tratamiento del cauce | PDF de 199 pp, 13,4 MB, descargado | Índice, capítulos 2–7, tabla de 89 peligros, inventario de defensas, mapas PDF | Tramos críticos, erosión, sedimentación, propuestas; sin GIS | `documental` |
 | B. INDECI — Piura y Castilla, 2009 | Vol. I de 320 pp y Vol. II de 419 pp, descargados | Índice, capítulos 2–3, planos 1–16, hidrogramas 1983/1998, drenaje y cuencas ciegas | Categorías de inundación, cifras, drenaje; sin shapefiles | `documental` |
 | C. Lund — Ladewig Piscoya (2024) | PDF de 155 pp, 11 MB, descargado | Metodología, resultados, discusión y apéndices | Modelo HEC-RAS 1D; depósito en Virrilá; mayor exceso de esfuerzo cortante hacia Sechura | `documental` |
-| D. INGEMMET | Metadatos y servicios consultados; PDFs de Piura no descargados | Carta 1:100 000, Geología Integrada, Peligros Geológicos | Geología y geomorfología; sin vector de susceptibilidad a inundaciones para Piura | `localizada` / `documental` |
+| D. INGEMMET | Metadatos y servicios consultados; PDFs de Piura no descargados | MapServer vectorial de geología 1:100 000, geomorfología, susceptibilidad a inundación y peligros geológicos | Geología y geomorfología vectoriales; susceptibilidad y peligros con metadatos incompletos | `localizada` / `documental` |
 | E. SENAMHI — PISCO | Readme y NetCDF mensual (54 MB) descargados; diario de 1,5 GB no descargado | Readme, artículo y ficha de Figshare | Precipitación diaria/mensual 1981–2025, 0,1°; serie por subcuenca posible | `descargable` + `pendiente` por licencia |
 | F. PECHP / ANA / MIDAGRI / PSI — 2026 | Nota completa descargada | Dos fotografías; sin mapas ni coordenadas | Registro fechado de inspección y caudales puntuales reportados | `documental` |
 | G. Expedición a la cuenca baja — 2002 | PDF de 27 pp, descargado | Texto, mapas 1–2 y anexo de 178 puntos GPS | Rutas San Pedro/Virrilá/Reventazón; Tres Bocas/Chutuque; sedimentación | `documental` |
@@ -219,51 +222,67 @@ la Universidad de Piura.
 - **Carta Geológica Nacional 1:100 000:** 501 cuadrángulos cartografiados entre
   1960 y 1999; PDF/JPG por hoja.
   <https://portal.ingemmet.gob.pe/web/guest/carta-geologica-nacional>.
-- **Geología Integrada 1:100 000:** 15 mapas integrados según la ficha (27 según el
-  resumen), 2014 y 2016; servicio de teselas de ArcGIS.
-  <https://www.arcgis.com/home/item.html?id=6219264c683649ae864de0442c047d35>.
-- **GEOCATMIN — Peligros Geológicos del Perú:** inventario nacional, 32 019
-  eventos declarados, actualización de enero de 2012; servicio de mapa.
-  <https://www.arcgis.com/home/item.html?id=0df56a7235ff4dd88aad635fc949c4c9>.
+- **Geología Integrada 1:100 000:** MapServer vectorial con hojas, secciones,
+  fallas, pliegues, contactos y geología; 27 mapas digitales de 2014 y 2016.
+  <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_100K_INTEGRADA/MapServer>.
+- **Geomorfología:** MapServer vectorial; 2.281 polígonos en el área de Piura.
+  <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer>.
+- **Susceptibilidad a inundación fluvial:** MapServer vectorial; 59.152 polígonos
+  en el área de Piura, clases Bajo/Medio/Alto.
+  <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1/MapServer>.
+- **GEOCATMIN — Peligros Geológicos:** MapServer vectorial de puntos; 1.729
+  puntos en el área de Piura.
+  <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer>.
 - **Licencia:** la ficha de Geología Integrada dice «de uso y acceso público según
   escala de trabajo»; no es una licencia Creative Commons. Peligros Geológicos no
   declara licencia.
 
 ### Qué se recuperó y revisó
 
-Se consultaron las fichas y los servicios. No se descargaron las hojas de Piura
-de la Carta Geológica ni se verificó su georreferenciación. No se encontró una
-capa vectorial de susceptibilidad a inundaciones para Piura; la búsqueda de
-servicios de INGEMMET devolvió capas de susceptibilidad solo para Ancash y
-Apurímac, que no se pueden extrapolar.
+Se consultaron las fichas y los MapServer vectoriales. No se descargaron las
+hojas completas de la Carta Geológica, pero sí se consultaron las capas
+vectoriales de geología, geomorfología, susceptibilidad y peligros. La capa de
+geología tiene 2.608 polígonos en el área de Piura y cubre las hojas 10d, 11d,
+12d y 13d, entre otras.
+
+La conclusión anterior —«solo PDF/teselas, sin vector»— era incompleta: el ítem de
+ArcGIS Online es una vista de teselas, pero el MapServer subyacente tiene
+capacidades `Map, Query, Data` y capas vectoriales.
 
 ### Contenido útil
 
 - Geología superficial, geomorfología y depósitos aluviales de la cuenca.
 - Inventario de peligros geológicos (inundación fluvial, erosión fluvial, flujos,
   arenamientos, derrumbes).
+- Susceptibilidad a inundación fluvial, con clases Bajo/Medio/Alto; sin metadatos
+  de escala, fecha ni metodología.
 - Contexto para entender la llanura aluvial y los procesos geodinámicos.
 
 ### Anexos y mapas
 
-La Carta Geológica es PDF/JPG; no es vectorial. La Geología Integrada es un
-servicio de teselas sin descarga vectorial verificada. El inventario de peligros
-es un servicio de visualización. No se integró ninguno en runtime.
+La Carta Geológica sigue disponible en PDF/JPG. La Geología Integrada, la
+Geomorfología y la susceptibilidad son servicios vectoriales consultables, no
+paquetes de descarga independientes. El inventario de peligros es un servicio de
+puntos. No se integró ninguno en runtime.
 
 ### Limitaciones
 
-- No hay una capa vectorial de susceptibilidad a inundaciones para Piura.
-- La susceptibilidad geológica no es probabilidad hidrológica de inundación.
-- Usar el servicio de teselas en runtime añadiría una dependencia externa y
-  rompería la reproducibilidad del sitio estático.
-- No se verificaron los términos de reutilización de las hojas.
+- La susceptibilidad de INGEMMET no es una probabilidad hidrológica ni una
+  inundación observada; no se usa como equivalente de la mancha de 2017.
+- La capa de susceptibilidad no declara escala, fecha, metodología ni leyenda en
+  atributos; el servicio no tiene descripción.
+- La licencia no es formal y no se verificaron los términos de cada hoja.
+- Usar estos servicios en runtime añadiría una dependencia externa y rompería la
+  reproducibilidad del sitio estático.
+- La geología y la geomorfología son regionales; no sustituyen un levantamiento
+  local.
 
 ### Recomendación
 
-Mantener como fuentes **localizadas/documentales**. No incorporar capas. Si se
-quiere geología en el atlas, solicitar a INGEMMET los shapefiles de las hojas de
-Piura con licencia y metadatos, y priorizar geología superficial, geomorfología y
-depósitos aluviales.
+Mantener como fuentes **localizadas/documentales**. No incorporar capas hasta
+confirmar licencia, escala, fecha y metodología. Si se integran, priorizar geología
+superficial, geomorfología y depósitos aluviales; no usar la susceptibilidad como
+probabilidad de inundación.
 
 ## 7. Fuente E — SENAMHI, PISCOp v3.0
 
@@ -279,8 +298,12 @@ depósitos aluviales.
 - **Resolución:** 0,1° (~10 km), no ~5 km.
 - **Periodo:** 1981–2025, diario y mensual.
 - **Formatos:** NetCDF diario (1,5 GB), mensual (54 MB) y climatología (1,8 MB).
-- **Licencia:** el artículo es CC BY 4.0; el conjunto de datos en Figshare declara
-  **GPL 3.0+**. La discrepancia no se resolvió.
+- **Portal:** <https://observatorio.senamhi.gob.pe/investigadores/descarga-pisco>;
+  permite descargar por punto, archivo o área en CSV/XLSX, pero usa Cloudflare
+  Turnstile.
+- **Licencia:** el artículo es CC BY 4.0 y aclara que el **código** es GPL 3.0; el
+  conjunto de datos en Figshare declara **GPL 3.0+**, pero la licencia del NetCDF
+  no está explícita. La discrepancia no se resolvió.
 
 ### Qué se recuperó y revisó
 
@@ -454,13 +477,19 @@ candidata de fase 3, con método, incertidumbre y estilo de interpretación.
 
 ## 12. Lo que no se recuperó
 
-- Hojas de Piura de la Carta Geológica Nacional 1:100 000: no se descargaron.
+- Las 501 hojas de la Carta Geológica Nacional no se descargaron completas; sí se
+  consultó el MapServer vectorial de 27 mapas de la Geología Integrada.
 - Shapefiles de Piura y Castilla de INDECI 2009: no se publican.
 - Archivos GIS del estudio ANA 2014: no se encontraron.
 - NetCDF diario de PISCOp v3.0: no se descargó por tamaño y por licencia pendiente.
 - Coordenadas y mapas de la inspección de 2026: no se publican.
 - Datos de la topobatimetría del PECHP de 2026: no se publican.
-- Serie diaria oficial de SENAMHI para 1983/1998: sigue pendiente de solicitud.
+- No se localizó una cobertura vectorial de las inundaciones de 1983/1998 para
+  toda la cuenca; existen mapas PDF/JPG de Sullana y Cura Mori.
+- No se localizó batimetría pública del cauce del río; solo notas del PECHP sobre
+  Poechos y el levantamiento de 2026.
+- La precipitación diaria por estación sí está disponible (1961–2015); los
+  caudales diarios de 1983/1998 siguen pendientes.
 
 ## 13. Licencias: resumen operativo
 
@@ -470,18 +499,104 @@ candidata de fase 3, con método, incertidumbre y estilo de interpretación.
 | INDECI 2009 | documento público; sin licencia explícita | No se redistribuyen planos; citar |
 | Lund 2024 | acceso abierto; derechos de la autora | Citar; no reutilizar figuras |
 | INGEMMET | uso público «según escala de trabajo»; sin licencia formal | No hasta confirmar |
-| PISCOp v3.0 | artículo CC BY 4.0; datos GPL 3.0+ | **Pendiente** de aclaración |
+| PISCOp v3.0 | artículo CC BY 4.0; código GPL 3.0; dataset GPL 3.0+ | **Pendiente** de aclaración |
+| SENAMHI histórico por estación | dato público; términos por confirmar | No publicar el crudo hasta confirmar |
+| ANA / MINAM ZEE Piura | servicio público; términos por confirmar | No hasta confirmar |
+| SIGRID Sullana / Cura Mori | documento público; sin licencia explícita | Citar; no reutilizar mapas |
 | PECHP 2026 | documento público; fotografías del PECHP | Citar; no reutilizar fotografías |
 | Expedición 2002 | documento público; sin licencia explícita | Citar; no reutilizar mapas |
 
 ## 14. Recomendaciones
 
-1. No incorporar capas geométricas de A, B, D, F ni G en esta fase.
-2. Mantener PISCO como prioridad 1, pero con compuerta de licencia.
-3. Usar la expedición de 2002 como fuente principal del futuro módulo de la cuenca
+1. Incorporar la API histórica de SENAMHI como fuente de precipitación por
+   estación para 1983/1998, con ETL reproducible y sin publicar el crudo hasta
+   confirmar términos.
+2. Evaluar la geología 1:100 000 de INGEMMET y la geomorfología como candidatas;
+   confirmar licencia, escala y fecha antes de publicar.
+3. Evaluar la capa ZEE Piura de peligro de inundación solo si se localiza el
+   estudio que explique el método; no usarla como probabilidad.
+4. Usar los mapas de Sullana y Cura Mori como evidencia documental; no
+   digitalizarlos sin georreferenciación.
+5. Mantener PISCO como prioridad, pero con compuerta de licencia.
+6. Usar la expedición de 2002 como fuente principal del futuro módulo de la cuenca
    baja; no dibujar su ruta todavía.
-4. Mantener las solicitudes de cartografía vectorial, batimetría, ejes de canales y
-   series diarias.
-5. Revisar los términos de INGEMMET antes de cualquier integración.
-6. No confundir susceptibilidad geológica con probabilidad hidrológica.
-7. No convertir propuestas de ANA en obras ejecutadas.
+7. Mantener las solicitudes de caudales diarios, batimetría del cauce, ejes de
+   infraestructura y cartografía vectorial 1983/1998.
+8. No confundir susceptibilidad geológica con probabilidad hidrológica.
+9. No convertir propuestas de ANA en obras ejecutadas.
+
+## 15. Segunda ronda de búsqueda (2026-11-17)
+
+Esta ronda revisó portales, API y servicios ArcGIS, no solo resultados de búsqueda.
+Corrige dos conclusiones anteriores: **INGEMMET sí tiene geología vectorial** y
+**ANA tiene capas ZEE de Piura con peligro de inundación**. También encuentra una
+API pública de series históricas por estación de SENAMHI.
+
+### 15.1 SENAMHI — series históricas por estación
+
+- **Catálogo:** <https://servicios.senamhi.gob.pe/api/researchers/historical-download/stations>.
+- **Serie:** `https://servicios.senamhi.gob.pe/api/researchers/historical-download/stations/{id}/series`.
+- **Variables:** precipitación diaria, temperatura máxima y mínima.
+- **Estaciones:** 20 en Piura, entre ellas Ayabaca, Bernal, Chulucanas, Chusis,
+  Miraflores, Morropón, San Miguel, Huarmaca, Lancones y Mallares.
+- **Cobertura:** aproximadamente 1961–2015 por estación. Chulucanas tiene 1983 y
+  1998 completos; no cubre 2017 ni 2023.
+- **Caudales:** no están en esta API.
+- **Licencia:** no declarada; usar con atribución y no redistribuir el crudo hasta
+  confirmar términos.
+- **Uso:** ETL `download_senamhi_historico.py` + `build_senamhi_historico.py`;
+  salida local en `data/processed/senamhi/`, no publicada en el sitio.
+
+### 15.2 INGEMMET — geología, geomorfología y susceptibilidad vectorial
+
+- **Geología Integrada 1:100 000:** MapServer con 7 capas vectoriales; 2.608
+  polígonos en el área de Piura; hojas 10d, 11d, 12d y 13d.
+- **Geomorfología:** 2.281 polígonos en el área de Piura; escala no declarada.
+- **Susceptibilidad a inundación fluvial:** 59.152 polígonos en el área de Piura;
+  clases Bajo/Medio/Alto; sin escala, fecha ni metodología.
+- **Peligros geológicos:** 1.729 puntos en el área de Piura; inventario, no
+  probabilidad de inundación.
+- **Licencia:** «de uso y acceso público según escala de trabajo»; no es una
+  licencia formal. No se publica como capa hasta confirmar términos y metadatos.
+
+### 15.3 ANA / MINAM — capas ZEE de Piura
+
+- **Geología:** 1.155 polígonos.
+- **Geomorfología:** 70 polígonos.
+- **Peligro Inundación:** 78 polígonos; Muy Alta 38, Alta 30, Media 6 y Baja 4.
+- **Vulnerabilidad frente a Inundaciones:** 19 polígonos.
+- **Infraestructura Productiva:** 64 polígonos de distritos, no ejes de canales.
+- **Metadata:** el servicio no declara fecha, escala ni metodología; el campo se
+  llama `Nivel_Vuln` aunque la capa se llame Peligro Inundación.
+- **Uso:** candidata; no se publica hasta localizar el estudio ZEE Piura.
+
+### 15.4 Mapas históricos de 1983 y 1998
+
+- **Sullana:** documentos 170 y 3165; PDF de 1 página con áreas de inundación de
+  1983 y 1998.
+- **Cura Mori:** documento 9400; ZIP de 976 MB con 1 PDF y 48 mapas JPG. Incluye
+  altura y velocidad de inundación con Niño 1998, peligro de inundación 1998,
+  sectores críticos, riesgo de líneas vitales, infraestructura agrícola y canales.
+- **Piura:** documentos 676 y 761; mapas de peligros por inundación y origen
+  climático, PDF de 1 página.
+- **Geometría:** no hay shapefiles; son mapas e imágenes. No se digitalizan sin
+  georreferenciación, escala y método.
+
+### 15.5 PISCO — portal de descarga
+
+- El Observatorio de SENAMHI permite descargar PISCO por punto, archivo o área,
+  en CSV/XLSX, diario o mensual, 1981–2025.
+- La consulta usa Cloudflare Turnstile; no es automatizable sin resolver el
+  captcha.
+- El artículo aclara que el **código** es GPL 3.0; la ficha de Figshare del
+  dataset declara GPL 3.0+, pero la licencia del NetCDF no está explícita.
+- Se mantiene `pendiente` para publicación de series derivadas.
+
+### 15.6 Lo que sigue faltando
+
+- Caudales y niveles diarios de 1983, 1998, 2017 y 2023.
+- Batimetría y secciones transversales del cauce del río.
+- Ejes oficiales de canales, diques y bocatomas.
+- Cartografía vectorial de las inundaciones de 1983 y 1998 para toda la cuenca.
+- Informe hidrológico de La Niña 2023 con área y volumen.
+- Metadatos, fecha, escala y licencia de las capas INGEMMET y ZEE Piura.

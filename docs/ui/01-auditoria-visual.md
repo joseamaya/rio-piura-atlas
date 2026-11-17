@@ -8,7 +8,7 @@
 
 > **Nota de vigencia (UI-02, 2026-11-17).** Esta auditoría describe el estado previo al rediseño. El foco de fichas y paneles, la semántica de MapLibre, el panel móvil, el desbordamiento de Escenarios a 1024 y la orientación horizontal se actualizan en [06](06-estabilizacion-accesibilidad.md) y [07](07-qa-responsive.md). La diferencia cromática del GLB se documenta en [08](08-coherencia-3d.md). Las capturas `actual-*` siguen siendo evidencia histórica, no el estado actual.
 >
-> **Nota de fase 2 (2026-11-17).** El catálogo pasó de 30 a 40 fuentes y ahora distingue disponibilidad y tipo de evidencia. Las cifras de 30 fuentes de este documento son la línea base de UI-01; el estado actual está en [`../11-auditoria-fuentes-ampliacion.md`](../11-auditoria-fuentes-ampliacion.md).
+> **Nota de fase 2.1 (2026-11-17).** El catálogo pasó de 30 a 48 fuentes y ahora distingue disponibilidad y tipo de evidencia. Las cifras de 30 fuentes de este documento son la línea base de UI-01; el estado actual está en [`../11-auditoria-fuentes-ampliacion.md`](../11-auditoria-fuentes-ampliacion.md).
 
 ---
 

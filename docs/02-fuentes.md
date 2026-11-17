@@ -82,3 +82,16 @@ ficha completa está en el catálogo y en [`11-auditoria-fuentes-ampliacion.md`]
 
 Si falla cualquiera de los cinco, la capa no entra al atlas: como mucho, se menciona
 en una nota.
+
+## Fase 2.1 — fuentes nuevas
+
+| Fuente | Uso | Estado | Licencia |
+|---|---|---|---|
+| SENAMHI — API histórica por estación | precipitación y temperatura diaria, 20 estaciones de Piura, 1961–2015 | ✅ descargable; términos por confirmar | dato público; citar |
+| INGEMMET — Geología Integrada 1:100 000 | geología vectorial; hojas 10d, 11d, 12d y 13d | ⚠️ localizada; falta licencia/metadatos | uso público «según escala de trabajo» |
+| INGEMMET — Geomorfología vectorial | geomorfología regional; 2.281 polígonos en Piura | ⚠️ localizada | sin licencia explícita |
+| INGEMMET — susceptibilidad a inundación fluvial | 59.152 polígonos en Piura; clases Bajo/Medio/Alto | ⚠️ localizada; sin escala/fecha | sin licencia explícita |
+| ANA / MINAM — ZEE Piura | geología, geomorfología, peligro de inundación y vulnerabilidad | ⚠️ localizada; falta estudio/metadatos | servicio público; términos por confirmar |
+| SIGRID — Sullana 1983/1998 | mapas de áreas de inundación | ✅ documental | documento público; citar |
+| SIGRID — Cura Mori 1998 | 48 mapas JPG de peligro, riesgo e infraestructura | ✅ documental | documento público; citar |
+| PECHP — batimetría de Poechos | batimetría del reservorio, no del cauce | ❗ pendiente | datos no publicados |
