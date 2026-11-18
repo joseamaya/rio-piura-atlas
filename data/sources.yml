@@ -885,69 +885,83 @@ fuentes:
     titulo: Geología Integrada 1:100 000 — servicio vectorial
     institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
     url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_100K_INTEGRADA/MapServer
-    fecha: "2016-06-01"
+    fecha: "2013-06"
     escala: "1:100 000"
-    licencia: de uso y acceso público según escala de trabajo (INGEMMET); verificar términos
-    estado: por_verificar
-    metodo: consulta del MapServer vectorial y muestreo de atributos
+    licencia: "Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita al INGEMMET; sin uso comercial; aplicación a WFS/WMTS por confirmar"
+    estado: disponible
+    metodo: consulta ArcGIS REST, conteo espacial contra la cuenca ANA, WFS/WMTS y catálogo IDEP
     grupo: Estudios
     certeza: documentado
     tipo: dataset
-    disponibilidad: localizada
+    disponibilidad: descargable
+    publicacion: bloqueada
     tipo_evidencia: [oficial, cientifica]
-    periodo: "2014–2016"
+    periodo: "2013 (metadato); servicio 2014–2016; hojas con fechas propias (1999/2000)"
     formato: "servicio vectorial ArcGIS (MapServer): hojas, secciones, fallas, pliegues, contactos y geología"
-    crs: "EPSG:4326 en las capas; el servicio se publica en Web Mercator"
+    crs: "EPSG:4326 en las capas; servicio 102100; WFS de Hojas en 32718"
     descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_100K_INTEGRADA/MapServer
     documento: Geología Integrada 1:100 000 (27 mapas digitales)
-    consultado: "2026-11-17"
+    consultado: "2026-11-18"
     limitaciones: >
-      El ítem de ArcGIS Online es una vista de teselas, pero el MapServer tiene
-      capas vectoriales con capacidades Map, Query y Data. La capa de geología
-      tiene 2.608 polígonos en el área de Piura y cubre las hojas 10d, 11d,
-      12d y 13d, entre otras. La licencia no es una licencia formal: dice «de
-      uso y acceso público según escala de trabajo». No se publica como capa
-      hasta confirmar términos, fecha y escala de cada hoja.
+      La capa de geología tiene 576 polígonos que intersectan la cuenca ANA,
+      no 2.608. Las hojas que intersectan la cuenca son 12: 10b, 10c, 10d,
+      11a, 11b, 11c, 11d, 11e, 12b, 12c, 12d y 12e. La descripción oficial
+      enumera 27 hojas y no incluye 10d, 11d ni 12d; la capa sí las contiene.
+      13d no intersecta la cuenca. Los conteos anteriores no se reprodujeron
+      con el servicio actual. maxRecordCount=1000 y no hay paginación por
+      resultOffset; se pagina por OBJECTID. El WFS 2.0 se anuncia, pero
+      GetFeature devolvió numberReturned sin miembros. El certificado TLS no
+      es confiable en este entorno. La licencia es no comercial y no es
+      compatible sin revisión con la licencia CC BY 4.0 del atlas.
     capas: []
     notas: >
-      La ficha original describía 15 mapas integrados y el resumen 27; la
-      discrepancia se conserva. El servicio permite consultar geometrías y
-      atributos, pero no se encontró un paquete de descarga independiente.
-      Es la mejor base vectorial de geología 1:100 000 localizada para Piura,
-      junto con la capa ZEE de ANA/MINAM.
+      El ítem de ArcGIS Online es una vista de teselas, pero el MapServer tiene
+      capas vectoriales con capacidades Map, Query y Data. La descripción del
+      servicio lista 27 mapas (09a–14h) y 27 secciones; la capa contiene
+      polígonos de hojas que no están en esa lista. La consulta espacial usó
+      la cuenca publicada (`cuenca.geojson`, SHA-256
+      09e6d974969807a3d8c637503d4653276e74b5a0a603bcf47b0d4cddbd17fc43).
+      Se descargó solo el subconjunto de 576 polígonos para verificar
+      geometrías; 575 son válidos y uno (OBJECTID 6738, hoja 11c) tiene
+      autointersección de anillo y se excluye del área sin repararlo. Ver
+      docs/16-auditoria-vectorial-ingemmet-ana.md.
 
   - id: ingemmet-peligros-geologicos
     titulo: GEOCATMIN — Peligros Geológicos del Perú (servicio vectorial de puntos)
     institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
     url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer
-    fecha: "2013-02-01"
-    escala: "inventario nacional; escala variable"
-    licencia: sin licencia explícita; acceso institucional INGEMMET
-    estado: por_verificar
-    metodo: consulta del MapServer vectorial y muestreo de puntos
+    fecha: "2026-10"
+    escala: "1:100 000 (metadato 2026); inventario heterogéneo"
+    licencia: "Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita al INGEMMET; sin uso comercial"
+    estado: disponible
+    metodo: consulta del MapServer, conteo espacial contra la cuenca ANA y metadato 2026
     grupo: Estudios
     certeza: documentado
     tipo: dataset
-    disponibilidad: localizada
+    disponibilidad: descargable
+    publicacion: bloqueada
     tipo_evidencia: [oficial, cientifica]
-    periodo: "2011–2013 (última actualización declarada: enero de 2012)"
+    periodo: "2013 (descripción del servicio) – 2026-10-28 (metadato); registros heterogéneos"
     formato: "servicio vectorial ArcGIS (MapServer): puntos, zonas críticas y cartografía"
-    crs: "EPSG:4326 en la capa de puntos"
+    crs: "EPSG:4326 en la capa de puntos; servicio 4326; otras capas en 102100"
     descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer
-    documento: GEOCATMIN — Peligros Geológicos del Perú, febrero de 2013
-    consultado: "2026-11-17"
+    documento: GEOCATMIN — Peligros Geológicos, Zonas Críticas y Cartografía de Peligros (2026)
+    consultado: "2026-11-18"
     limitaciones: >
       Es un inventario de peligros geológicos, no una probabilidad hidrológica
-      de inundación ni un mapa de susceptibilidad a inundaciones. El servicio
-      tiene 1.729 puntos en el área de Piura. No tiene licencia formal
-      declarada y la fecha de cada registro varía. No se usa como geometría
-      publicada.
+      de inundación ni un mapa de susceptibilidad a inundaciones. La capa 0
+      tiene 230 puntos que intersectan la cuenca ANA, no 1.729; la capa 1
+      tiene 63, la capa 2 tiene 12 y las capas de cartografía suman 39. La
+      descripción del MapServer dice febrero de 2013, pero el metadato 2026
+      declara actualización a octubre de 2026. Las capas son heterogéneas y
+      no comparten una fecha única. No se usa como geometría publicada.
     capas: []
     notas: >
-      El ítem declara 32 019 eventos registrados y actualización de enero de
-      2012; la edición es de 2011 y el ítem se modificó en 2013. El estudio de
-      ANA (2014) usa 89 ocurrencias de esta base para la cuenca del Piura. No
-      se confunde susceptibilidad geológica con probabilidad hidrológica.
+      El metadato 2026 (UUID c5580ab5-7277-4858-8d16-a982bd2cc23b) declara
+      escala 1:100 000 y descargas de Peligros Geológicos y Zonas Críticas.
+      El estudio de ANA (2014) usa 89 ocurrencias de esta base para la cuenca
+      del Piura. No se confunde susceptibilidad geológica con probabilidad
+      hidrológica. Ver docs/16-auditoria-vectorial-ingemmet-ana.md.
 
   - id: pechp-inspeccion-2026
     titulo: "PECHP garantiza libre desembocadura al mar del río Piura — inspección del 26/02/2026"
@@ -1101,127 +1115,189 @@ fuentes:
     url: https://observatorio.senamhi.gob.pe/investigadores/clima/descarga-datos-historicos
     fecha: null
     escala: "punto de estación"
-    licencia: "dato público; términos de reutilización por confirmar"
+    licencia: "dato público; uso con atribución según términos de SENAMHI; sin licencia abierta; redistribución y derivados por confirmar"
     estado: disponible
-    metodo: consulta de la API REST y descarga de series por estación
+    metodo: consulta de la API REST, descarga cruda con SHA-256 y auditoría de cobertura
     grupo: Agua
     certeza: medido
     tipo: dataset
     disponibilidad: descargable
+    publicacion: bloqueada
     tipo_evidencia: [oficial, dato_medido]
-    periodo: "1961–2015 (varía por estación; no cubre 2017/2023)"
+    periodo: "1961-01-01–2015-10-31 (envolvente; varía por estación; no cubre 2016–2026)"
     formato: "JSON (API REST) y reporte PDF por estación"
     crs: "punto; coordenadas geográficas WGS84 de la estación"
     descarga: https://servicios.senamhi.gob.pe/api/researchers/historical-download/stations
     documento: "SENAMHI — Descarga de datos históricos"
     pagina: "catálogo de estaciones y series"
-    consultado: "2026-11-17"
+    consultado: "2026-11-18"
     limitaciones: >
-      20 estaciones de Piura; variables de precipitación, temperatura máxima y
-      temperatura mínima. No incluye caudales. La cobertura termina en
-      2014/2015 y no cubre 2017 ni 2023. No hay licencia explícita; no se
-      publica el CSV crudo ni una serie derivada hasta confirmar términos. Es
-      una serie observada, no una grillada: no se interpola ni se rellena.
+      20 estaciones de Piura seleccionadas de un catálogo de 293. La
+      envolvente conjunta es 1961-01-01 a 2015-10-31, pero cada estación tiene
+      un intervalo distinto. Siete estaciones no tienen ningún dato de
+      temperatura (San Pedro, Pananga, Sapillica, Hacienda Bigote, Tuluce,
+      Hacienda Shumaya y Porculla); tres tienen temperatura parcial (Bernal,
+      Lancones y Sondorillo); las otras diez tienen cobertura de temperatura
+      superior al 78 %. Los nulos de precipitación van de 0,2 % a 21,9 %. No
+      incluye caudales ni cubre 2017/2023. No hay licencia abierta: no se
+      publica el crudo ni una serie derivada hasta confirmar términos.
     capas: []
     notas: >
       API: /api/researchers/historical-download/stations y
-      /stations/{id}/series. Ejemplo Chulucanas (000255): 1972-01-02 a
-      2014-06-30, con 1983 y 1998 completos. Estaciones de Piura: Ayabaca,
-      Bernal, Chulucanas, Chusis, Miraflores, Morropón, San Miguel, Huarmaca,
-      Lancones, Mallares, etc. El ETL de fase 2.1 descarga y aplana estas
-      series en data/processed/senamhi/.
+      /stations/{id}/series. La descarga de fase 2.2 conserva los bytes crudos
+      y un SHA-256 por archivo; el build genera cobertura, nulos, huecos y
+      banderas de calidad sin imputar. Nueve estaciones caen dentro de la
+      cuenca ANA y once fuera, todas aún en Piura; las exteriores se conservan
+      como contexto regional y no se mezclan con las de la cuenca. La
+      estación Huarmaca está a 0,08 km del borde y se marca como caso límite.
+      Ver docs/15-validacion-series-senamhi.md y docs/17-licencias-y-reutilizacion.md.
+
+  - id: zee-piura-memoria-2012
+    titulo: "Gobierno Regional de Piura — Memoria Final de la ZEE Piura (2012)"
+    institucion: Gobierno Regional de Piura — Gerencia Regional de Recursos Naturales y Gestión del Medio Ambiente
+    url: https://sinia.minam.gob.pe/metadatos/295867
+    fecha: "2012-11"
+    escala: "1:100 000 (mesozonificación)"
+    licencia: "documento público; no declara licencia de reutilización"
+    estado: disponible
+    metodo: lectura de la Memoria Final (255 pp.) y de sus submodelos
+    grupo: Estudios
+    certeza: documentado
+    tipo: documento
+    disponibilidad: documental
+    publicacion: bloqueada
+    tipo_evidencia: [oficial, cientifica]
+    periodo: "2008–2012"
+    formato: "PDF (255 pp.)"
+    crs: "no aplica"
+    descarga: https://sinia.minam.gob.pe/sites/default/files/sinia/archivos/public/docs/estudio_de_la_propuesta_de_zee_7.pdf
+    documento: "La Zonificación Ecológica Económica (ZEE) de la Región Piura — Memoria Final"
+    pagina: "Memoria final"
+    consultado: "2026-11-18"
+    limitaciones: >
+      La Memoria no declara licencia de reutilización. Describe un submodelo
+      de peligros por inundación con geomorfología 40 %, fisiografía 40 %,
+      pendiente 10 %, precipitación 5 % y cobertura vegetal 5 %, y un
+      submodelo de vulnerabilidad separado. No es una probabilidad
+      hidrológica. La relación exacta entre sus mapas y las capas del
+      Geoservidor no está documentada.
+    capas: []
+    notas: >
+      Memoria Final de noviembre de 2012, 255 páginas, proceso 2008–2012,
+      escala 1:100 000. SHA-256 del PDF descargado:
+      c5a68cc6b9ae3fab7cf1312c09be23620b8afb1144425d7c330a4e7cd92256e0.
+      El servicio del Geoservidor no declara fecha, escala, método ni licencia.
+      Ver docs/16-auditoria-vectorial-ingemmet-ana.md y
+      docs/17-licencias-y-reutilizacion.md.
 
   - id: ingemmet-geomorfologia-vector
     titulo: INGEMMET — Geomorfología vectorial (servicio nacional)
     institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
     url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer
-    fecha: null
-    escala: "por confirmar; el servicio no la declara"
-    licencia: sin licencia explícita; acceso institucional INGEMMET
-    estado: por_verificar
-    metodo: consulta del MapServer y muestreo de polígonos
+    fecha: "2016-12"
+    escala: "trabajo 1:100 000; presentación 1:250 000; metadato del registro 1:3 000 000 (contradicción)"
+    licencia: "Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita al INGEMMET; sin uso comercial"
+    estado: disponible
+    metodo: consulta del MapServer, conteo espacial contra la cuenca ANA y metadato IDEP
     grupo: Estudios
     certeza: documentado
     tipo: dataset
-    disponibilidad: localizada
+    disponibilidad: descargable
+    publicacion: bloqueada
     tipo_evidencia: [oficial, cientifica]
-    periodo: "por confirmar"
+    periodo: "2012–2016 (proyecto); metadato 2016-12-01"
     formato: "servicio vectorial ArcGIS (MapServer): polígonos"
-    crs: "EPSG:4326 en la capa"
+    crs: "EPSG:4326 en la capa; servicio 102100"
     descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer
     documento: SERV_GEOMORFOLOGIA — Mapa Geomorfológico por región
-    consultado: "2026-11-17"
+    consultado: "2026-11-18"
     limitaciones: >
       La descripción menciona Tumbes, Piura, Lambayeque, Amazonas, Ucayali,
-      Ancash, Cajamarca, Huánuco, La Libertad y San Martín, pero no declara
-      escala ni fecha. Tiene 2.281 polígonos en el área de Piura. No se publica
-      como capa hasta confirmar licencia, escala y fecha.
+      Ancash, Cajamarca, Huánuco, La Libertad y San Martín. La capa tiene 573
+      polígonos que intersectan la cuenca ANA; el conteo de 2.281 no se
+      reprodujo y corresponde a un área más amplia. El metadato del registro
+      declara 1:3 000 000, pero el abstract declara escala de trabajo
+      1:100 000 y presentación 1:250 000; la capa no declara escala propia.
+      No se publica hasta resolver la escala y la licencia no comercial.
     capas: []
     notas: >
-      Campos: ETIQUETA, SUBUNIDAD y CODIGO. Ejemplos: Abanico de piedemonte,
-      Vertiente o piedemonte aluvio-torrencial, Faja litoral. Es una capa
-      regional; no sustituye un levantamiento local.
+      Campos: ETIQUETA, SUBUNIDAD y CODIGO. Ejemplos: Abanico de piedemonte
+      (105 polígonos en la cuenca), Terraza aluvial (101), Vertiente o
+      piedemonte aluvial (37). Metadato IDEP: 893f41d0-cd70-4bcb-bfad-
+      92bc215e2d82. Es una capa regional; no sustituye un levantamiento local.
+      Ver docs/16-auditoria-vectorial-ingemmet-ana.md.
 
   - id: ingemmet-susceptibilidad-inundacion-vector
     titulo: INGEMMET — Susceptibilidad a inundación fluvial (servicio vectorial)
     institucion: Instituto Geológico, Minero y Metalúrgico (INGEMMET)
     url: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1/MapServer
-    fecha: null
-    escala: "por confirmar; el servicio no la declara"
-    licencia: sin licencia explícita; acceso institucional INGEMMET
-    estado: por_verificar
-    metodo: consulta del MapServer y muestreo de clases
+    fecha: "2018-12"
+    escala: "1:1 000 000 (metadato 2018); pendiente derivada de IGN 1:100 000"
+    licencia: "Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita al INGEMMET; sin uso comercial"
+    estado: disponible
+    metodo: consulta del MapServer, conteo espacial contra la cuenca ANA y metadato 2018
     grupo: Inundaciones y riesgo
     certeza: por_verificar
     tipo: dataset
-    disponibilidad: localizada
+    disponibilidad: descargable
+    publicacion: bloqueada
     tipo_evidencia: [oficial, cientifica]
-    periodo: "por confirmar"
-    formato: "servicio vectorial ArcGIS (MapServer): polígonos"
-    crs: "EPSG:4326 en la capa"
+    periodo: "2005–2015 (estudios); metadato 2018-12-09"
+    formato: "servicio vectorial ArcGIS (MapServer): polígonos; ImageServer ráster de 50 m"
+    crs: "EPSG:4326 en la capa; servicio 102100; ImageServer 32718"
     descarga: https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1/MapServer
     documento: SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1
-    consultado: "2026-11-17"
+    consultado: "2026-11-18"
     limitaciones: >
-      Tiene 59.152 polígonos en el área de Piura, con clases Bajo, Medio y
-      Alto. La capa no declara escala, fecha, metodología ni leyenda en
-      atributos; el servicio no tiene descripción. No se usa como probabilidad
-      de inundación ni se publica hasta completar los metadatos. La
-      susceptibilidad no es un mapa de inundación observada.
+      La capa tiene 16.341 polígonos que intersectan la cuenca ANA; el conteo
+      de 59.152 no se reprodujo y corresponde a un área más amplia. El
+      metadato 2018 declara escala 1:1 000 000 y formato ráster, construido
+      con pendiente y subunidades geomorfológicas. La capa vectorial solo
+      tiene GRIDCODE 2=Bajo, 3=Medio y 4=Alto; la leyenda oficial 2018 tiene
+      cuatro clases e incluye «Muy bajo o nulo». El campo LEYENDA está nulo o
+      vacío. No es una probabilidad hidrológica ni una mancha observada. No
+      se publica hasta resolver la leyenda y la licencia no comercial.
     capas: []
     notas: >
       El renderizador asigna GRIDCODE 2 = Bajo, 3 = Medio y 4 = Alto. Hay un
-      ImageServer asociado, SERV_IMG_SUSCEP_INUN_FLUVIAL, con píxel de 50 m,
-      pero tampoco declara escala ni fecha. Es una capa candidata, no una capa
-      validada.
+      ImageServer asociado, SERV_IMG_SUSCEP_INUN_FLUVIAL, con píxel de 50 m
+      en EPSG:32718. Metadato IDEP: 2183b121-1f29-4cef-96e2-dc102ae96a76.
+      El registro regional 2005–2015 (cc199dc7-7c91-4cc9-8bf3-cc8d5af143c6)
+      es otro producto, a escalas 1:250 000–1:300 000. No se mezclan. Ver
+      docs/16-auditoria-vectorial-ingemmet-ana.md.
 
   - id: ana-zee-piura
-    titulo: "ANA / MINAM — ZEE Piura: geología, geomorfología y peligro de inundación"
-    institucion: Ministerio del Ambiente / Autoridad Nacional del Agua — Geoservidor
+    titulo: "Gobierno Regional de Piura / MINAM — ZEE Piura: geología, geomorfología y peligro de inundación"
+    institucion: Gobierno Regional de Piura — Gerencia Regional de Recursos Naturales y Gestión del Medio Ambiente / MINAM — Geoservidor
     url: https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_POTENCIALIDADES_Y_LIMITACIONES_PIURA/MapServer
-    fecha: null
-    escala: "por confirmar (ZEE Piura)"
-    licencia: "servicio público; términos de reutilización por confirmar"
-    estado: por_verificar
-    metodo: consulta del MapServer y muestreo de capas
+    fecha: "2012-11"
+    escala: "1:100 000 (mesozonificación)"
+    licencia: "servicio público; la Memoria 2012 no declara licencia de reutilización; términos por confirmar"
+    estado: disponible
+    metodo: consulta del MapServer, conteo de clases y lectura de la Memoria Final 2012
     grupo: Inundaciones y riesgo
     certeza: por_verificar
     tipo: dataset
-    disponibilidad: localizada
+    disponibilidad: descargable
+    publicacion: bloqueada
     tipo_evidencia: [oficial]
-    periodo: "por confirmar"
+    periodo: "2008–2012 (estudio); servicio sin fecha"
     formato: "servicio vectorial ArcGIS (MapServer): polígonos"
-    crs: "EPSG:32717 / EPSG:32718"
+    crs: "EPSG:32717 en el servicio"
     descarga: https://geoservidorperu.minam.gob.pe/arcgis/rest/services/ZEE_VISOR/09_POTENCIALIDADES_Y_LIMITACIONES_PIURA/MapServer/3
-    documento: ZEE Piura — capas de caracterización, potencialidades y dimensión territorial
-    consultado: "2026-11-17"
+    documento: ZEE Piura — Memoria Final 2012 y capas de caracterización, potencialidades y dimensión territorial
+    pagina: "Memoria final"
+    consultado: "2026-11-18"
     limitaciones: >
       La capa Peligro Inundación tiene 78 polígonos: Muy Alta 38, Alta 30,
       Media 6 y Baja 4. El campo se llama Nivel_Vuln aunque la capa se llame
-      Peligro Inundación. El servicio no declara fecha, escala ni metodología.
-      No se usa como probabilidad ni se publica hasta localizar el estudio ZEE
-      Piura. La capa de geología tiene 1.155 polígonos y la de geomorfología
-      70; la de vulnerabilidad frente a inundaciones, 19.
+      Peligro Inundación. La capa Vulnerabilidad frente a Inundaciones tiene
+      19 polígonos: Alta 9, Media 4, Muy Alta 3, Baja 3. La Memoria 2012
+      describe un submodelo de peligro con cuatro clases y otro de
+      vulnerabilidad; no se puede asignar la semántica por intuición. El
+      servicio no declara fecha, escala, método ni licencia, y la Memoria
+      tampoco declara licencia de reutilización. No se usa como probabilidad
+      ni se publica hasta que el autor confirme qué representa Nivel_Vuln.
     capas: []
     notas: >
       Servicios: 09_CARACTERIZACIÓN_DEL_TERRITORIO_PIURA (Geología,
@@ -1229,8 +1305,8 @@ fuentes:
       09_POTENCIALIDADES_Y_LIMITACIONES_PIURA (Peligro Inundación) y
       09_DIMENSIÓN_DE_EVALUACIÓN_TERRITORIAL_PIURA (Vulnerabilidad frente a
       Inundaciones, Peligros Múltiples). La capa de Infraestructura Productiva
-      es de distritos, no de ejes de canales. Es una fuente candidata; no se
-      dibuja.
+      es de distritos, no de ejes de canales. El estudio es del Gobierno
+      Regional de Piura, no de ANA. Ver docs/16 y docs/17.
 
   - id: sigrid-sullana-inundacion-1983-1998
     titulo: SIGRID — Mapas de áreas de inundación de 1983 y 1998 en Sullana

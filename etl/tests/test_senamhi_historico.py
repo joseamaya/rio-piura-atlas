@@ -70,10 +70,21 @@ class TestSenamhiHistorico(unittest.TestCase):
         with self.assertRaises(ValueError):
             flatten_series(station(), payload)
 
-    def test_rechaza_precipitacion_negativa(self):
-        payload = {"data": [{"date": "1998-03-12", "precipitation": -0.1}]}
-        with self.assertRaises(ValueError):
-            flatten_series(station(), payload)
+    def test_marca_precipitacion_negativa_sin_eliminarla(self):
+        payload = {
+            "data": [
+                {
+                    "date": "1998-03-12",
+                    "precipitation": -0.1,
+                    "maximumTemperature": None,
+                    "minimumTemperature": None,
+                }
+            ]
+        }
+        rows = flatten_series(station(), payload)
+        self.assertEqual(rows[0]["precipitation_mm"], -0.1)
+        self.assertEqual(rows[0]["qc_precip_negativa"], 1)
+        self.assertIn("precip_negativa", rows[0]["qc_flags"])
 
     def test_rechaza_fecha_invalida(self):
         payload = {"data": [{"date": "1998-02-30", "precipitation": 0.0}]}
@@ -120,8 +131,18 @@ class TestSenamhiHistorico(unittest.TestCase):
                     {
                         "status": True,
                         "data": [
-                            {"date": "1983-04-21", "precipitation": 0.0},
-                            {"date": "1998-03-12", "precipitation": 4.2},
+                            {
+                                "date": "1983-04-21",
+                                "precipitation": 0.0,
+                                "maximumTemperature": None,
+                                "minimumTemperature": None,
+                            },
+                            {
+                                "date": "1998-03-12",
+                                "precipitation": 4.2,
+                                "maximumTemperature": None,
+                                "minimumTemperature": None,
+                            },
                         ],
                     }
                 ),

@@ -1,6 +1,6 @@
-# 08 · Pendientes de la fase 2.1
+# 08 · Pendientes de la fase 2.2
 
-Actualizado: 2026-11-17.
+Actualizado: 2026-11-18.
 
 Este documento separa lo que ya está implementado, lo que se puede hacer sin datos
 externos y lo que está bloqueado por solicitudes. La regla sigue siendo: **lo que no
@@ -20,7 +20,7 @@ tiene fuente, no se dibuja**.
 - Relieve sombreado y maqueta 3D de la cuenca con el desierto y la bahía, exportada con Draco (1,6 MB).
 - Cortes transversales de referencia (5) y corte dibujado por el visitante.
 - Catálogo de fuentes generado desde `data/sources.yml`, con enlaces por capa.
-- **Fase 2:** catálogo ampliado a **48 fuentes**, con `disponibilidad` (7 estados),
+- **Fase 2:** catálogo ampliado a **49 fuentes**, con `disponibilidad` (7 estados),
   `tipo_evidencia` (10 categorías), periodo, formato, CRS, descarga, limitaciones y
   capas respaldadas.
 - **Fase 2:** auditoría individual de las siete fuentes prioritarias y de las
@@ -32,14 +32,31 @@ tiene fuente, no se dibuja**.
   se publicó ninguna serie derivada.
 - **Fase 2.1:** API histórica de SENAMHI catalogada y con ETL reproducible
   (`download_senamhi_historico.py` + `build_senamhi_historico.py`); 20 estaciones
-  de Piura, precipitación y temperatura diaria 1961–2015. La tabla queda en
+  de Piura. La fase 2.2 verificó 357.524 filas, 0 días faltantes y 0 duplicados,
+  pero 7 estaciones sin temperatura y 3 con temperatura parcial. La tabla queda en
   `data/processed/senamhi/` y no se publica hasta confirmar términos.
 - **Fase 2.1:** INGEMMET corregido: la Geología Integrada 1:100 000 sí tiene capas
-  vectoriales (2.608 polígonos en Piura; hojas 10d, 11d, 12d y 13d), además de
-  geomorfología, susceptibilidad a inundación y peligros geológicos.
-- **Fase 2.1:** ANA/MINAM ZEE Piura catalogada: geología, geomorfología, peligro
-  de inundación y vulnerabilidad; 78 polígonos de peligro, sin fecha/escala
-  declaradas.
+  vectoriales, además de geomorfología, susceptibilidad a inundación y peligros
+  geológicos. La fase 2.2 corrigió los conteos: 576 polígonos de geología en 12
+  hojas, 573 de geomorfología, 16.341 de susceptibilidad y 230 puntos de peligros;
+  los conteos anteriores no se reprodujeron.
+- **Fase 2.1:** ZEE Piura catalogada: geología, geomorfología, peligro de
+  inundación y vulnerabilidad; 78 y 19 polígonos, respectivamente. La fase 2.2
+  localizó la Memoria Final 2012, escala 1:100 000, y documentó que el campo
+  `Nivel_Vuln` no permite asignar la semántica sin confirmación del autor.
+- **Fase 2.2:** auditoría de SENAMHI con catálogo completo (293 estaciones), 20
+  seleccionadas, hashes crudos, cobertura por estación, nulos, huecos, banderas de
+  calidad y clasificación geográfica (9 dentro / 11 fuera de la cuenca).
+- **Fase 2.2:** auditoría reproducible de INGEMMET y ZEE: metadatos, conteos
+  espaciales contra la cuenca, CRS, WFS/WMTS, paginación por OBJECTID, catálogo
+  IDEP y licencia de descarga. Se descargó solo el subconjunto de 576 polígonos de
+  geología; 1 resultó inválido y no se reparó.
+- **Fase 2.2:** licencias documentadas en `docs/17`: SENAMHI sin licencia abierta;
+  INGEMMET con licencia no comercial incompatible con CC BY 4.0; ZEE sin licencia
+  declarada. Las fuentes afectadas llevan `publicacion: bloqueada` y
+  `check_data.py` impide que una capa publicada las use.
+- **Fase 2.2:** 136 pruebas de Python, 3 de integración en vivo opt-in
+  (`RUN_LIVE_TESTS=1`); no se ejecutan en CI.
 - **Fase 2.1:** mapas históricos de Sullana y Cura Mori catalogados como evidencia
   documental; no hay shapefiles y no se digitalizan.
 - Escenarios históricos documentados; la mancha de 2017 usa un vector oficial y
@@ -50,9 +67,8 @@ tiene fuente, no se dibuja**.
 - Validación de datos (`etl/check_data.py`) con auditoría por par de subcuencas,
   superficie fuera por subcuenca, huecos por componente, agujeros interiores,
   validación antes de reparar y fidelidad (IoU, diferencia simétrica, Hausdorff,
-  media y p95); 96 pruebas de Python (79 de la estabilización + 10 de esquema de
-  fuentes + 7 del ETL histórico de SENAMHI) y pruebas Playwright de mapa, móvil,
-  fallo de red y maqueta.
+  media y p95); 136 pruebas de Python (3 de integración en vivo opt-in) y pruebas
+  Playwright de mapa, móvil, fallo de red y maqueta.
 - Catálogo de fuentes con `certeza` y `tipo`: distingue dato medido, derivado,
   documentado, interpretación y pendiente de verificación.
 - CI que compila el sitio y valida datos en cada push.
@@ -84,7 +100,7 @@ tiene fuente, no se dibuja**.
 |---|---|---|
 | Caudales y niveles diarios | SENAMHI | hidrogramas, duración y fecha exacta de 1998 |
 | Licencia de PISCOp v3.0 | SENAMHI | publicar o no una serie derivada |
-| Términos de la API histórica | SENAMHI | publicar la tabla de estaciones o solo usarla localmente |
+| Confirmación de términos de la API histórica | SENAMHI | redistribución del crudo y publicación de derivados |
 | Cartografía de inundación 1983/1998 | ANA / INDECI | manchas históricas vectoriales |
 | Bocatomas, diques y ejes de canales | ANA / PECHP | capa de obras completa |
 | Operación de Poechos | PECHP | trasvase y regulación |
@@ -92,8 +108,12 @@ tiene fuente, no se dibuja**.
 | Informe hidrológico de La Niña 2023 | SENAMHI / ANA | área y volumen del evento |
 | Informe ENFEN concreto | ENFEN | edición exacta de 1982-83, 1997-98 o 2017 |
 | Topobatimetría 2026 | PECHP | secciones y capacidad del cauce |
-| Metadatos y licencia de INGEMMET | INGEMMET | publicar geología/geomorfología vectorial |
-| Metadatos y licencia de la ZEE Piura | ANA / MINAM | publicar peligro de inundación ZEE |
+| Licencia aplicable a WFS/WMTS y compatibilidad con CC BY 4.0 | INGEMMET | publicar geología/geomorfología vectorial |
+| Registro ISO 19115 del servicio `SERV_GEOLOGIA_100K_INTEGRADA` | INGEMMET | trazabilidad del servicio |
+| Semántica de `Nivel_Vuln` y relación con la Memoria 2012 | Gobierno Regional de Piura / MINAM | publicar o no el peligro/vulnerabilidad ZEE |
+| Licencia de la Memoria 2012 y de las capas ZEE | Gobierno Regional de Piura / MINAM | reutilización y derivados |
+| Ordenanza Regional de aprobación de la ZEE | Gobierno Regional de Piura | estatus legal del estudio |
+| Leyenda completa de susceptibilidad (4 clases) | INGEMMET | publicar o no la susceptibilidad |
 | Coordenadas de la inspección 2026 | PECHP / ANA | georreferenciar el registro documental |
 | Series diarias 2017 y 2023 | SENAMHI | comparar con PISCO y notas de prensa |
 
@@ -190,15 +210,26 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
   Piura*; Castilla aparece en el capítulo III y en los planos. El estudio separado
   de Castilla de 2001 no se fusiona.
 - **INGEMMET.** La Geología Integrada 1:100 000 sí tiene capas vectoriales; la
-  Carta Geológica sigue en PDF/JPG. También hay geomorfología, susceptibilidad a
-  inundación y peligros geológicos vectoriales, pero sin escala, fecha ni licencia
-  formal. No se integran como capas todavía.
-- **ANA / MINAM ZEE Piura.** Tiene geología, geomorfología, peligro de inundación
-  y vulnerabilidad vectoriales, pero el servicio no declara fecha, escala ni
-  metodología. No se integran como capas.
-- **SENAMHI histórico.** La API por estación cubre precipitación y temperatura
-  hasta 2014/2015; no incluye caudales ni cubre 2017/2023. No se publica el crudo
-  hasta confirmar términos.
+  Carta Geológica sigue en PDF/JPG. La fase 2.2 verificó 576 polígonos en la
+  cuenca, en 12 hojas (10b, 10c, 10d, 11a, 11b, 11c, 11d, 11e, 12b, 12c, 12d y
+  12e); la descripción oficial enumera 27 hojas y no coincide con la capa. La
+  licencia de descarga es no comercial. No se integra como capa.
+- **Gobierno Regional de Piura / MINAM — ZEE Piura.** Tiene geología,
+  geomorfología, peligro de inundación y vulnerabilidad vectoriales. La Memoria
+  Final 2012 está localizada (255 pp., escala 1:100 000), pero el servicio no
+  declara fecha, escala, método ni licencia y el campo `Nivel_Vuln` no permite
+  asignar la semántica. No se integra como capa.
+- **SENAMHI histórico.** La API por estación cubre 1961–2015 como envolvente; no
+  todas las estaciones tienen el mismo intervalo. Siete no tienen temperatura y
+  tres la tienen parcial. No incluye caudales ni cubre 2017/2023. No se publica
+  el crudo hasta confirmar términos.
+- **Susceptibilidad INGEMMET.** La capa vectorial tiene tres clases (2/3/4) y la
+  leyenda oficial 2018 tiene cuatro; falta «Muy bajo o nulo». No se publica como
+  probabilidad ni como leyenda completa.
+- **Conteos INGEMMET.** Los conteos 2.608 / 2.281 / 59.152 / 1.729 de la fase
+  2.1 no se reprodujeron con el servicio actual. Los conteos de la cuenca son
+  576 / 573 / 16.341 / 230. Los primeros correspondían a otra área o a otra
+  fecha; no se usan como cifras de la cuenca.
 - **Ruta 2002.** Los 178 puntos GPS están en PSAD56 y son un track de navegación.
   Una reconstrucción exigiría documentar la transformación, el orden y la
   incertidumbre; no se dibuja en esta fase.
@@ -232,13 +263,17 @@ Mientras no lleguen, esas capas se muestran como «sin dato público» y no se d
 - `check_data.py`, las pruebas Python y `npm run verify` pasan.
 - La dirección visual «Lámina y margen» no cambia.
 
-## Criterios de cierre de la fase 2.1
+## Criterios de cierre de la fase 2.2
 
-- La API histórica de SENAMHI tiene ficha de fuente, ETL y pruebas.
+- La API histórica de SENAMHI tiene ficha de fuente, ETL, cobertura, calidad y
+  hashes.
 - La tabla de estaciones queda en `data/processed/`, no en `web/public/`, hasta
   confirmar términos.
-- Las capas vectoriales de INGEMMET y ANA ZEE quedan catalogadas como candidatas,
-  con sus límites de escala, fecha y licencia.
+- Las capas vectoriales de INGEMMET y ZEE Piura quedan auditadas con conteos de
+  la cuenca, escala, fecha, CRS y límites de licencia.
+- Los conteos antiguos de INGEMMET quedan corregidos y no se reutilizan.
+- La licencia no comercial de INGEMMET y la ausencia de licencia de la ZEE quedan
+  documentadas con preguntas institucionales.
 - Los mapas de Sullana y Cura Mori quedan como evidencia documental, sin
   digitalización.
 - Los pendientes de caudales, batimetría, ejes de infraestructura, vector

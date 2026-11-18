@@ -65,6 +65,7 @@ DISPONIBILIDADES = {
     "pendiente",
     "descartada",
 }
+PUBLICACIONES = {"autorizada", "bloqueada", "pendiente", "no_aplica"}
 TIPOS_EVIDENCIA = {
     "oficial",
     "academica",
@@ -271,6 +272,19 @@ def check_sources():
                 error(f"{fid}: disponibilidad inválida '{disponibilidad}'")
             elif disponibilidad in {"validada", "procesada"} and fuente.get("estado") != "disponible":
                 error(f"{fid}: una fuente validada o procesada debe estar disponible")
+        publicacion = fuente.get("publicacion")
+        if publicacion is not None:
+            if not isinstance(publicacion, str) or publicacion not in PUBLICACIONES:
+                error(f"{fid}: publicación inválida '{publicacion}'")
+            elif publicacion == "autorizada" and disponibilidad not in {
+                "validada",
+                "procesada",
+                "documental",
+            }:
+                error(
+                    f"{fid}: no puede estar autorizada para publicación con "
+                    f"disponibilidad '{disponibilidad}'"
+                )
         tipo_evidencia = fuente.get("tipo_evidencia")
         if tipo_evidencia is not None:
             if not isinstance(tipo_evidencia, list) or not tipo_evidencia:
@@ -440,6 +454,12 @@ def check_layer_fuentes(ids: dict[str, dict]):
                 error(
                     f"{path.name}: usa la fuente '{fuente}', cuya disponibilidad "
                     f"'{ids[fuente].get('disponibilidad')}' no permite publicarla"
+                )
+            publicacion = ids[fuente].get("publicacion")
+            if publicacion is not None and publicacion != "autorizada":
+                error(
+                    f"{path.name}: usa la fuente '{fuente}', cuya publicación "
+                    f"está '{publicacion}'"
                 )
             if not feature.get("geometry"):
                 error(f"{path.name}: feature sin geometría")

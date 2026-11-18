@@ -1,0 +1,23 @@
+# Estaciones de Piura seleccionadas para la auditoría de la fase 2.2.
+# La lista se fija para que un cambio del catálogo de la API no altere la
+# selección sin revisión. Ver docs/15-validacion-series-senamhi.md.
+000207  # MIRAFLORES
+000208  # MALLARES
+000230  # LA ESPERANZA
+000231  # CHUSIS
+000235  # MORROPON
+000237  # AYABACA
+000238  # SAUSAL DE CULUCAN
+000247  # SAN MIGUEL
+000248  # HUARMACA
+000255  # CHULUCANAS
+150001  # SAN PEDRO
+152100  # BERNAL
+152101  # PANANGA
+152103  # LANCONES
+152106  # SAPILLICA
+152111  # HACIENDA BIGOTE
+152126  # SONDORILLO
+152127  # TULUCE
+152128  # HACIENDA SHUMAYA
+152132  # PORCULLA

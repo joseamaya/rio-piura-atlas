@@ -17,8 +17,8 @@ licencia de su fuente original.
 | `obras-esquematicas` | Río Piura Atlas — Poechos y canal Daniel Escobar | CC BY 4.0 | sí, citando; es interpretación, no un dato de campo |
 | `ingemmet-geodinamica` | INGEMMET | documento público | citar |
 | `ingemmet-carta-geologica-100k` | INGEMMET — Carta Geológica Nacional 1:100 000 | uso y acceso público según escala de trabajo; verificar términos | citar; no redistribuir hojas sin confirmar |
-| `ingemmet-geologia-integrada-100k` | INGEMMET — Geología Integrada 1:100 000 | uso y acceso público según escala de trabajo; verificar términos | **no** publicar hasta confirmar; es un servicio vectorial |
-| `ingemmet-peligros-geologicos` | INGEMMET — GEOCATMIN Peligros Geológicos | sin licencia explícita | solo enlace; no se usa como geometría |
+| `ingemmet-geologia-integrada-100k` | INGEMMET — Geología Integrada 1:100 000 | Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita; sin uso comercial | **no** bajo CC BY 4.0; revisar compatibilidad y confirmar aplicación a WFS/WMTS |
+| `ingemmet-peligros-geologicos` | INGEMMET — GEOCATMIN Peligros Geológicos | Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita | **no** bajo CC BY 4.0; no se usa como geometría publicada |
 | `sentinel-1-2017` | Copernicus / ESA | libre con atribución | sí, citando |
 | `unosat-copernicus-ems` | UNOSAT / Copernicus EMS | libre con atribución | citar; verificar términos del producto |
 | `siar-piura` | SIAR Piura / CTAR Piura — Apéndice D | documento público | citar |
@@ -33,12 +33,13 @@ licencia de su fuente original.
 | `andina-la-nina-2023` | Agencia Andina | prensa institucional | citar |
 | `nasa-la-nina-2023` | NASA Earth Observatory | documento público | citar |
 | `sernanp-illescas` | SERNANP | documento público | citar; no se copia el polígono |
-| `senamhi-historico-estaciones` | SENAMHI — series históricas por estación | dato público; términos por confirmar | **no** hasta confirmar; usar con atribución |
+| `senamhi-historico-estaciones` | SENAMHI — series históricas por estación | dato público; uso con atribución según términos de SENAMHI; sin licencia abierta | **no** hasta confirmar redistribución y derivados |
 | `senamhi-pisco` | SENAMHI — PISCOp v3.0 | artículo CC BY 4.0; código GPL 3.0; dataset Figshare GPL 3.0+ (por aclarar) | **no** hasta confirmar |
+| `zee-piura-memoria-2012` | Gobierno Regional de Piura — Memoria Final ZEE 2012 | documento público; no declara licencia de reutilización | **no** hasta confirmar |
 | `senamhi-*` | SENAMHI | por definir | **no** hasta confirmar |
-| `ingemmet-geomorfologia-vector` | INGEMMET — Geomorfología vectorial | sin licencia explícita | **no** hasta confirmar |
-| `ingemmet-susceptibilidad-inundacion-vector` | INGEMMET — susceptibilidad a inundación fluvial | sin licencia explícita | **no** hasta confirmar |
-| `ana-zee-piura` | ANA / MINAM — ZEE Piura | servicio público; términos por confirmar | **no** hasta confirmar |
+| `ingemmet-geomorfologia-vector` | INGEMMET — Geomorfología vectorial | Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita | **no** bajo CC BY 4.0; revisar compatibilidad |
+| `ingemmet-susceptibilidad-inundacion-vector` | INGEMMET — susceptibilidad a inundación fluvial | Licencia para Uso No Comercial de GEOCATMIN; obras derivadas con cita | **no** bajo CC BY 4.0; revisar leyenda y compatibilidad |
+| `ana-zee-piura` | Gobierno Regional de Piura / MINAM — ZEE Piura | servicio público; la Memoria 2012 no declara licencia | **no** hasta confirmar |
 | `sigrid-sullana-inundacion-1983-1998` | SIGRID / CENEPRED — mapas de Sullana 1983/1998 | documento público; citar | citar; no reutilizar mapas |
 | `sigrid-cura-mori-riesgo-1998` | SIGRID / CENEPRED — estudio Cura Mori | documento público; citar | citar; no reutilizar mapas |
 | `sigrid-piura-peligros-inundacion` | SIGRID / CENEPRED — mapas de Piura | documento público; citar | citar; no reutilizar mapas |
@@ -58,6 +59,26 @@ licencia de su fuente original.
 
 Si la licencia no está confirmada, el atlas **enlaza** la fuente y no copia el dato.
 Cuando se confirme, se actualiza esta tabla y `data/sources.yml`.
+
+## Nota de la fase 2.2 (2026-11-18)
+
+- **SENAMHI:** sus términos permiten el uso público con atribución, pero no son
+  una licencia abierta. La redistribución del JSON crudo y la publicación de
+  series derivadas requieren confirmación escrita. Las 20 series se conservan en
+  `data/raw/senamhi/` y `data/processed/senamhi/`, ignorados por Git.
+- **INGEMMET:** la licencia de descarga de GEOCATMIN es «Licencia para Uso No
+  Comercial». Autoriza uso, traducción y obras derivadas con cita, pero no uso
+  comercial. El atlas publica su contenido bajo CC BY 4.0, que permite uso
+  comercial: **no se pueden publicar capas derivadas de INGEMMET bajo la licencia
+  actual del atlas sin una decisión de licencia separada**. Los servicios WFS/WMTS
+  no declaran una licencia propia; el campo `Fees=1` y `AccessConstraints=referencial`
+  no equivalen a permiso.
+- **ZEE Piura:** el servicio es público, pero ni la Memoria 2012 ni el servicio
+  declaran licencia de reutilización. La capa `Peligro Inundación` usa un campo
+  `Nivel_Vuln` y no se usa como probabilidad hidrológica.
+- La ausencia de licencia explícita se registra como **no declarada**: no se
+  interpreta como permiso irrestricto ni como prohibición automática.
+
 
 ## Atribución mínima en pantalla
 
