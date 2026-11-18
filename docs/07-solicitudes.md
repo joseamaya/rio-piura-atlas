@@ -75,7 +75,7 @@ firma, datos personales y registro de expediente.
 
 | Dato | Entidad | Pedido concreto | Uso |
 |---|---|---|---|
-| Licencia de PISCOp v3.0 | SENAMHI | Confirmación escrita de la licencia de los NetCDF de PISCOp v3.0 (Figshare declara GPL 3.0+; el artículo aclara que el código es GPL y los datos CC BY) | Publicar o no una serie derivada por subcuenca |
+| Licencia de PISCOp v3.0 | SENAMHI | Confirmación escrita de la licencia de los NetCDF de PISCOp v3.0 (el artículo es CC BY 4.0 y aclara que el código es GPL 3.0; Figshare declara GPL 3.0+ para el dataset; la licencia del NetCDF no está explícita) | Publicar o no una serie derivada por subcuenca |
 | Términos de la API histórica | SENAMHI | Condiciones de reutilización de las series diarias por estación y del reporte PDF | Publicar o no la tabla de estaciones |
 | Metadatos de INGEMMET | INGEMMET | Escala, fecha, licencia y metodología de las capas vectoriales de geología, geomorfología y susceptibilidad | Evaluar capas candidatas |
 | Metadatos de la ZEE Piura | ANA / MINAM | Estudio ZEE Piura, fecha, escala, método y licencia de la capa Peligro Inundación | Evaluar la capa candidata |

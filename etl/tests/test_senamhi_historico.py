@@ -130,6 +130,8 @@ class TestSenamhiHistorico(unittest.TestCase):
             meta = build(raw, out)
             self.assertTrue((out / "estaciones_piura.csv").exists())
             self.assertEqual(meta["filas"], 2)
+            self.assertEqual(meta["estaciones_catalogo_total"], 1)
+            self.assertEqual(meta["estaciones_seleccionadas"], 1)
             self.assertEqual(meta["estaciones_con_datos"], 1)
             self.assertEqual(meta["periodo"], {"desde": "1983-04-21", "hasta": "1998-03-12"})
             self.assertFalse(meta["publicado"])

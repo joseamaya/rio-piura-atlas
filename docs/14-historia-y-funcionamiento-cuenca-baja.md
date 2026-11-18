@@ -287,7 +287,7 @@ cobertura vectorial de la cuenca.
 | «Libre desembocadura» 2026 | El título afirma; el cuerpo verifica paso en puntos concretos | Se cita como registro documental; no se infiere cambio de desembocadura |
 | La Niña 2023 | Andina y NASA documentan el desborde; no hay área/volumen | No se publica cifra |
 | PISCO | Artículo CC BY 4.0; datos GPL 3.0+ | No se publica serie hasta aclarar |
-| Geología | Carta 1:100 000 en PDF; Geología Integrada en teselas | No se integra sin vector y licencia |
+| Geología | Carta 1:100 000 en PDF; Geología Integrada y geomorfología vectoriales | No se integran sin licencia, escala y fecha |
 | Infraestructura | Menciones y fichas, sin ejes oficiales | No se dibuja; se solicita |
 
 ## 9. Qué se puede decir hoy

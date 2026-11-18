@@ -55,7 +55,7 @@ ficha completa está en el catálogo y en [`11-auditoria-fuentes-ampliacion.md`]
 |---|---|---|
 | INGEMMET — Estudio geodinámico de la cuenca del río Piura (1994) | geomorfología, procesos | ✅ documental |
 | INGEMMET — Carta Geológica Nacional 1:100 000 | geología superficial; PDF/JPG, no vector | ⚠️ localizada; sin vector |
-| INGEMMET — Geología Integrada 1:100 000 | geología/geomorfología; servicio de teselas | ⚠️ localizada; sin descarga vectorial |
+| INGEMMET — Geología Integrada 1:100 000 | geología/geomorfología; MapServer vectorial | ⚠️ localizada; falta licencia/metadatos |
 | INGEMMET — GEOCATMIN Peligros Geológicos | inventario de peligros geológicos; no es susceptibilidad a inundaciones | ⚠️ localizada |
 | Lund University — Ladewig Piscoya (2024) | transporte de sedimentos con HEC-RAS; Virrilá vs Sechura | ✅ documental; modelamiento |
 | Asociación Perú Verde / IUCN — expedición de 2002 | rutas San Pedro/Virrilá/Reventazón; Tres Bocas; sedimentación | ✅ documental; GPS en anexo |

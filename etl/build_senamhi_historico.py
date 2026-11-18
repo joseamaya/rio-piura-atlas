@@ -148,6 +148,7 @@ def build(raw_dir: Path, out_dir: Path) -> dict:
     estaciones = piura_stations(stations_payload)
     if not estaciones:
         raise SystemExit("el catálogo no contiene estaciones de Piura")
+    total_piura = len(estaciones)
 
     # Si existe un manifiesto de descarga, se respeta: permite ejecutar el
     # download con --limit y construir solo esas estaciones.
@@ -188,7 +189,8 @@ def build(raw_dir: Path, out_dir: Path) -> dict:
         "fuente": "senamhi-historico-estaciones",
         "url": "https://servicios.senamhi.gob.pe/api/researchers/historical-download/stations",
         "generado": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "estaciones_catalogo": len(estaciones),
+        "estaciones_catalogo_total": total_piura,
+        "estaciones_seleccionadas": len(estaciones),
         "estaciones_con_datos": con_datos,
         "estaciones_sin_datos": sin_datos,
         "estaciones_sin_serie": sin_serie,
