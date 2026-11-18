@@ -4,7 +4,12 @@ from pathlib import Path
 
 import yaml
 
-from etl.check_data import DISPONIBILIDADES, ESTADOS, TIPOS_EVIDENCIA
+from etl.check_data import (
+    DISPONIBILIDADES,
+    ESTADOS,
+    PUBLICACIONES,
+    TIPOS_EVIDENCIA,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCES = ROOT / "data" / "sources.yml"
@@ -21,6 +26,16 @@ NEW_SOURCES = {
     "peruverde-expedicion-2002",
     "pechp-hidrometeorologia-diaria",
     "pechp-topobatimetria-2026",
+    "zee-piura-memoria-2012",
+}
+
+FUENTES_BLOQUEADAS = {
+    "senamhi-historico-estaciones",
+    "ingemmet-geologia-integrada-100k",
+    "ingemmet-geomorfologia-vector",
+    "ingemmet-susceptibilidad-inundacion-vector",
+    "ingemmet-peligros-geologicos",
+    "ana-zee-piura",
 }
 
 
@@ -52,6 +67,34 @@ class TestSourcesSchema(unittest.TestCase):
                 self.assertIn(
                     fuente["disponibilidad"], DISPONIBILIDADES, fuente["id"]
                 )
+
+    def test_publicacion_valida(self):
+        for fuente in self.fuentes:
+            if "publicacion" in fuente:
+                self.assertIn(
+                    fuente["publicacion"], PUBLICACIONES, fuente["id"]
+                )
+
+    def test_fuentes_bloqueadas(self):
+        for fid in FUENTES_BLOQUEADAS:
+            self.assertEqual(
+                self.por_id[fid].get("publicacion"),
+                "bloqueada",
+                f"{fid}: debe declarar publicacion: bloqueada",
+            )
+
+    def test_capas_no_usan_fuentes_bloqueadas(self):
+        for path in sorted(DATA.glob("*.geojson")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for feature in data.get("features", []):
+                fid = (feature.get("properties") or {}).get("fuente")
+                fuente = self.por_id.get(fid) or {}
+                if fuente.get("publicacion") is not None:
+                    self.assertEqual(
+                        fuente["publicacion"],
+                        "autorizada",
+                        f"{path.name}: usa {fid}, bloqueada para publicación",
+                    )
 
     def test_tipo_evidencia_valido(self):
         for fuente in self.fuentes:
