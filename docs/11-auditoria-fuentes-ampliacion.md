@@ -6,6 +6,18 @@ localizadas durante la búsqueda. Este documento distingue **investigado**,
 **localizado**, **descargado**, **leído**, **procesado**, **validado** e
 **incorporado**. Una URL encontrada no equivale a un dato incorporado.
 
+> **Fe de erratas de la fase 2.2 (2026-11-18).** Los conteos de INGEMMET de este
+> documento (2.608 geología, 2.281 geomorfología, 59.152 susceptibilidad, 1.729
+> peligros) no son los conteos de la cuenca ANA y no se reprodujeron con el
+> servicio actual. Los conteos verificados en la cuenca son **576, 573, 16.341 y
+> 230**, respectivamente. Las hojas que intersectan la cuenca son 12 (10b, 10c,
+> 10d, 11a, 11b, 11c, 11d, 11e, 12b, 12c, 12d, 12e), no «10d, 11d, 12d y 13d»;
+> 13d no intersecta. La licencia de INGEMMET es «Uso No Comercial». La ZEE Piura
+> es del Gobierno Regional de Piura, no de ANA, y su campo `Nivel_Vuln` sigue sin
+> semántica confirmada. La fuente vigente es
+> [`docs/16-auditoria-vectorial-ingemmet-ana.md`](16-auditoria-vectorial-ingemmet-ana.md).
+
+
 ## 1. Método
 
 Para cada fuente se hizo, cuando fue posible:
@@ -225,25 +237,27 @@ la Universidad de Piura.
 - **Geología Integrada 1:100 000:** MapServer vectorial con hojas, secciones,
   fallas, pliegues, contactos y geología; 27 mapas digitales de 2014 y 2016.
   <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_100K_INTEGRADA/MapServer>.
-- **Geomorfología:** MapServer vectorial; 2.281 polígonos en el área de Piura.
+- **Geomorfología:** MapServer vectorial; **573 polígonos en la cuenca ANA**.
   <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOMORFOLOGIA/MapServer>.
-- **Susceptibilidad a inundación fluvial:** MapServer vectorial; 59.152 polígonos
-  en el área de Piura, clases Bajo/Medio/Alto.
+- **Susceptibilidad a inundación fluvial:** MapServer vectorial; **16.341
+  polígonos en la cuenca ANA**, GRIDCODE 2/3/4; leyenda 2018 de cuatro clases.
   <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_SUSCEPTIBILIDAD_INUNDACION_FLUVIAL_MIL1/MapServer>.
-- **GEOCATMIN — Peligros Geológicos:** MapServer vectorial de puntos; 1.729
-  puntos en el área de Piura.
+- **GEOCATMIN — Peligros Geológicos:** MapServer vectorial de puntos; **230
+  puntos en la cuenca ANA** en la capa 0, más 63 «otros» y 12 zonas críticas.
   <https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_PELIGROS_GEOLOGICOS/MapServer>.
-- **Licencia:** la ficha de Geología Integrada dice «de uso y acceso público según
-  escala de trabajo»; no es una licencia Creative Commons. Peligros Geológicos no
-  declara licencia.
+- **Licencia:** la licencia de descarga de GEOCATMIN es «Licencia para Uso No
+  Comercial»; las obras derivadas se autorizan con cita, sin uso comercial. No es
+  una licencia Creative Commons.
 
 ### Qué se recuperó y revisó
 
 Se consultaron las fichas y los MapServer vectoriales. No se descargaron las
 hojas completas de la Carta Geológica, pero sí se consultaron las capas
 vectoriales de geología, geomorfología, susceptibilidad y peligros. La capa de
-geología tiene 2.608 polígonos en el área de Piura y cubre las hojas 10d, 11d,
-12d y 13d, entre otras.
+geología tiene **576 polígonos que intersectan la cuenca ANA**, en 12 hojas
+(10b, 10c, 10d, 11a, 11b, 11c, 11d, 11e, 12b, 12c, 12d y 12e). La lista «10d,
+11d, 12d y 13d» no describe la cuenca: 13d no intersecta y faltan varias hojas.
+El conteo anterior de 2.608 no se reprodujo.
 
 La conclusión anterior —«solo PDF/teselas, sin vector»— era incompleta: el ítem de
 ArcGIS Online es una vista de teselas, pero el MapServer subyacente tiene
@@ -539,8 +553,9 @@ API pública de series históricas por estación de SENAMHI.
 - **Variables:** precipitación diaria, temperatura máxima y mínima.
 - **Estaciones:** 20 en Piura, entre ellas Ayabaca, Bernal, Chulucanas, Chusis,
   Miraflores, Morropón, San Miguel, Huarmaca, Lancones y Mallares.
-- **Cobertura:** aproximadamente 1961–2015 por estación. Chulucanas tiene 1983 y
-  1998 completos; no cubre 2017 ni 2023.
+- **Cobertura:** envolvente 1961–2015; cada estación tiene un intervalo
+  distinto. La fase 2.2 verificó 357.524 filas, 0 días faltantes y 7 estaciones
+  sin temperatura; Chulucanas tiene 1983 y 1998 completos; no cubre 2017 ni 2023.
 - **Caudales:** no están en esta API.
 - **Licencia:** no declarada; usar con atribución y no redistribuir el crudo hasta
   confirmar términos.
@@ -549,15 +564,21 @@ API pública de series históricas por estación de SENAMHI.
 
 ### 15.2 INGEMMET — geología, geomorfología y susceptibilidad vectorial
 
-- **Geología Integrada 1:100 000:** MapServer con 7 capas vectoriales; 2.608
-  polígonos en el área de Piura; hojas 10d, 11d, 12d y 13d.
-- **Geomorfología:** 2.281 polígonos en el área de Piura; escala no declarada.
-- **Susceptibilidad a inundación fluvial:** 59.152 polígonos en el área de Piura;
-  clases Bajo/Medio/Alto; sin escala, fecha ni metodología.
-- **Peligros geológicos:** 1.729 puntos en el área de Piura; inventario, no
-  probabilidad de inundación.
-- **Licencia:** «de uso y acceso público según escala de trabajo»; no es una
-  licencia formal. No se publica como capa hasta confirmar términos y metadatos.
+- **Geología Integrada 1:100 000:** MapServer con 7 capas vectoriales; **576
+  polígonos en la cuenca ANA**, en 12 hojas. La descripción oficial enumera 27
+  hojas y no coincide con la capa. Los conteos de esta auditoría (2.608) no se
+  reprodujeron; ver docs/16.
+- **Geomorfología:** **573 polígonos en la cuenca ANA**; escala de trabajo
+  1:100 000 y presentación 1:250 000, con un denominador de registro de
+  1:3 000 000.
+- **Susceptibilidad a inundación fluvial:** **16.341 polígonos en la cuenca
+  ANA**; GRIDCODE 2/3/4; la leyenda 2018 tiene cuatro clases y la capa vectorial
+  no contiene «Muy bajo o nulo»; escala 1:1 000 000.
+- **Peligros geológicos:** **230 puntos en la cuenca ANA** en la capa 0; el
+  inventario es heterogéneo y no es una susceptibilidad.
+- **Licencia:** «Licencia para Uso No Comercial» de GEOCATMIN; obras derivadas
+  con cita, sin uso comercial. No se publica como capa hasta resolver la
+  compatibilidad con CC BY 4.0.
 
 ### 15.3 ANA / MINAM — capas ZEE de Piura
 

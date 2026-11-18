@@ -268,7 +268,8 @@ documental de las cifras de SIAR, no una serie diaria descargable. La fecha exac
 del pico de 1998 sigue en disputa.
 
 La API histórica de SENAMHI sí ofrece precipitación diaria por estación para
-1983 y 1998 (20 estaciones de Piura, 1961–2015), pero no caudales. Los mapas de
+1983 y 1998 (20 estaciones de Piura; envolvente 1961–2015, con cobertura
+variable), pero no caudales ni una red de temperatura completa. Los mapas de
 Sullana y Cura Mori documentan la extensión local de 1998; no sustituyen una
 cobertura vectorial de la cuenca.
 

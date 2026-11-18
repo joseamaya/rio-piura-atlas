@@ -15,10 +15,14 @@ etl/
 ├── download_<fuente>.py    # trae el dato a raw/
 ├── build_<producto>.py     # transforma raw/ en processed/
 ├── download_senamhi_historico.py  # API histórica por estación
-├── build_senamhi_historico.py     # tabla plana de estaciones de Piura
+├── build_senamhi_historico.py     # tabla, cobertura y calidad de estaciones
+├── senamhi.py              # parseo, QC, cobertura y hashes de SENAMHI
+├── senamhi_geo.py          # clasificación de estaciones contra la cuenca ANA
+├── geoservicios.py         # parseo de WFS/WMTS, hojas y leyendas
+├── audit_geoservicios.py   # auditoría local de INGEMMET y ZEE Piura
 ├── topology.py             # auditoría y reconciliación de la partición
 ├── check_data.py           # valida fuentes, capas y archivos publicados
-├── tests/                  # geometría, topología y contrato de datos
+├── tests/                  # geometría, topología, calidad y contrato de datos
 └── requirements.txt
 ```
 
@@ -44,17 +48,42 @@ modifican `data/processed/`.
 ## Series históricas de SENAMHI
 
 ```bash
-# catálogo y series diarias de las 20 estaciones de Piura (1961–2015)
+# catálogo y series diarias de las 20 estaciones de Piura
 python3 etl/download_senamhi_historico.py
 
-# tabla plana en data/processed/senamhi/estaciones_piura.csv
+# tabla diaria, catálogo, inventario, cobertura, huecos y metadatos
 python3 etl/build_senamhi_historico.py
 ```
 
-El download guarda JSON en `data/raw/senamhi/` (ignorado por Git) y se niega a
-sobrescribir sin `--force`. El build conserva nulos, no interpola y no publica en
-`web/public/`: la licencia de reutilización no está confirmada. `--limit N` y
-`--raw-dir`/`--out-dir` permiten una prueba sin tocar el repositorio.
+El download guarda **bytes crudos** en `data/raw/senamhi/` (ignorado por Git),
+con SHA-256 por archivo en `manifest.json`, y se niega a sobrescribir sin
+`--force`. El build verifica los hashes, conserva nulos, no interpola, añade
+banderas `qc_*` y no publica en `web/public/`: la licencia de reutilización no
+está confirmada. `--limit N` y `--raw-dir`/`--out-dir` permiten una prueba sin
+tocar el repositorio.
+
+Salidas de `build_senamhi_historico.py` en `data/processed/senamhi/`:
+
+- `estaciones_piura.csv` — tabla diaria con nulos y banderas.
+- `catalogo_estaciones.csv` — las 293 estaciones del catálogo.
+- `inventario_estaciones.csv` — las 20 seleccionadas y sus hashes.
+- `cobertura_estaciones.csv` — fechas, días faltantes, nulos, extremos y
+  clasificación geográfica.
+- `huecos_estaciones.csv` — intervalos contiguos faltantes.
+- `metadata.json` y `hashes.sha256`.
+
+## Auditoría de servicios geoespaciales
+
+```bash
+# solo revisión local; GEOCATMIN no presenta una cadena TLS confiable aquí
+python3 etl/audit_geoservicios.py --insecure
+```
+
+Consulta metadatos de INGEMMET y ZEE Piura, cuenta polígonos contra la cuenca
+ANA, verifica CRS, WFS/WMTS, paginación y leyendas, y descarga **solo el
+subconjunto de geología de la cuenca**. Las salidas quedan en
+`data/processed/geoservicios/` (ignorado por Git) y no se publican. El certificado
+TLS se verifica por defecto; `--insecure` es una opción explícita y documentada.
 
 ## Construcción de capas
 

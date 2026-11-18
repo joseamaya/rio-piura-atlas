@@ -89,7 +89,8 @@ ser más valioso que una capa `validada` de baja resolución.
 | 1983/1998 | No hay manchas vectoriales oficiales; fecha de 1998 en disputa | Se cuenta con texto y fuente; no se dibuja |
 | La Niña | Áreas estimadas con MODIS 500 m; 2023 sin volumen | Se cita la estimación y se declara el vacío |
 | PISCO | 0,1° (~10 km), licencia en disputa | No se publica serie; se declara la limitación |
-| INGEMMET | Sin vector de susceptibilidad a inundaciones para Piura | No se integra; no se extrapola de otras regiones |
+| INGEMMET | Sí hay vector de susceptibilidad a inundaciones para Piura; su leyenda 2018 tiene cuatro clases y la capa vectorial solo tres | No se integra; no se usa como probabilidad |
+| ZEE Piura | `Nivel_Vuln` no tiene semántica confirmada; la capa «Peligro Inundación» no usa un campo de peligro | No se integra; queda como referencia documental |
 | Inspección 2026 | Sin coordenadas ni mapas; caudales puntuales | Registro documental, no geometría |
 | Expedición 2002 | Track GPS de estiaje, no eje oficial | Documento; reconstrucción solo con método explícito |
 
@@ -133,11 +134,12 @@ fase. Ninguna se publicó como capa.
 
 | Fuente | Tipo de evidencia | Disponibilidad | Uso |
 |---|---|---|---|
-| `senamhi-historico-estaciones` | oficial + dato medido | `descargable` | Precipitación/temperatura diaria por estación, 1961–2015; no caudales |
-| `ingemmet-geologia-integrada-100k` | oficial + científica | `localizada` | Geología vectorial 1:100 000; falta licencia/metadatos |
-| `ingemmet-geomorfologia-vector` | oficial + científica | `localizada` | Geomorfología vectorial; escala no declarada |
-| `ingemmet-susceptibilidad-inundacion-vector` | oficial + científica | `localizada` | Susceptibilidad a inundación; sin escala/fecha/método |
-| `ana-zee-piura` | oficial | `localizada` | Geología, geomorfología, peligro y vulnerabilidad ZEE |
+| `senamhi-historico-estaciones` | oficial + dato medido | `descargable` | Precipitación/temperatura diaria por estación; envolvente 1961–2015; 7 sin temperatura; no caudales; publicación bloqueada |
+| `ingemmet-geologia-integrada-100k` | oficial + científica | `descargable` | Geología vectorial 1:100 000; 576 polígonos en la cuenca; licencia no comercial |
+| `ingemmet-geomorfologia-vector` | oficial + científica | `descargable` | Geomorfología vectorial; 573 polígonos en la cuenca; escala contradictoria |
+| `ingemmet-susceptibilidad-inundacion-vector` | oficial + científica | `descargable` | Susceptibilidad a inundación; 16.341 polígonos; leyenda incompleta; 1:1 000 000 |
+| `ana-zee-piura` | oficial | `descargable` | Geología, geomorfología, peligro (78) y vulnerabilidad (19); `Nivel_Vuln` ambiguo |
+| `zee-piura-memoria-2012` | oficial + científica | `documental` | Memoria Final 2012, 255 pp., escala 1:100 000 |
 | `sigrid-sullana-inundacion-1983-1998` | oficial + histórica | `documental` | Mapas PDF de Sullana 1983/1998 |
 | `sigrid-cura-mori-riesgo-1998` | oficial + histórica | `documental` | 34 mapas JPG de Cura Mori 1998 |
 | `sigrid-piura-peligros-inundacion` | oficial + histórica | `documental` | Mapas PDF de peligros urbanos |

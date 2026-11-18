@@ -1,6 +1,6 @@
 # 13 · Plan de integración geoespacial
 
-Actualizado: 2026-11-17.
+Actualizado: 2026-11-18.
 
 Este documento decide qué capas pueden incorporarse, cuáles requieren
 procesamiento y cuáles no deben incorporarse todavía. La regla es anterior a la
@@ -24,11 +24,11 @@ justificar, la capa no entra**.
 | Candidata | Fuente | ¿Hay geometría? | ¿Escala compatible? | ¿Licencia? | Decisión |
 |---|---|---|---|---|---|
 | Precipitación por subcuenca | PISCOp v3.0 | No; es una serie derivada | 0,1° (~10 km); suficiente para contexto, no para detalle | **En disputa** (GPL 3.0+ vs CC BY 4.0) | **Diferir**; diseñar ETL, no publicar |
-| Precipitación por estación | SENAMHI API histórica | No; serie puntual | 20 estaciones de Piura; 1961–2015 | Términos por confirmar | **ETL listo**; no publicar crudo |
+| Precipitación por estación | SENAMHI API histórica | No; serie puntual | 20 estaciones de Piura; envolvente 1961–2015; 7 sin temperatura | Términos por confirmar | **ETL validado localmente**; no publicar |
 | Precipitación como ráster | PISCOp v3.0 | Sí, NetCDF | 0,1°; no resuelve el valle | En disputa | **No** publicar como capa decorativa |
-| Geología superficial | INGEMMET Geología Integrada 1:100 000 | **Sí, MapServer vectorial** | 1:100 000; hojas 10d, 11d, 12d y 13d | Sin licencia formal | **Evaluar**; no publicar |
-| Geomorfología / depósitos aluviales | INGEMMET Geomorfología | **Sí, MapServer vectorial** | Escala no declarada | Sin licencia formal | **Evaluar**; no publicar |
-| Susceptibilidad a inundaciones | INGEMMET + ANA ZEE Piura | **Sí, vector** | INGEMMET 59.152 polígonos; ZEE 78 | Escala/fecha sin declarar | **Evaluar**; no publicar |
+| Geología superficial | INGEMMET Geología Integrada 1:100 000 | **Sí, MapServer vectorial** | 1:100 000; 576 polígonos en la cuenca; 12 hojas | Licencia no comercial | **Evaluada**; no publicar bajo CC BY 4.0 |
+| Geomorfología / depósitos aluviales | INGEMMET Geomorfología | **Sí, MapServer vectorial** | 573 polígonos en la cuenca; escala contradictoria | Licencia no comercial | **Evaluada**; no publicar |
+| Susceptibilidad a inundaciones | INGEMMET + ZEE Piura | **Sí, vector** | INGEMMET 16.341 polígonos; ZEE 78/19 | INGEMMET 1:1 000 000; ZEE 1:100 000; licencias pendientes | **Evaluada**; no publicar |
 | Ejes de canales y diques | ANA / PECHP | No hay geometría pública | — | — | **No**; solicitar |
 | Bocatomas y defensas | ANA / PECHP | No hay geometría pública | — | — | **No**; solicitar |
 | Ruta documentada 2002 | Perú Verde / IUCN | 178 puntos GPS en anexo | Track de navegación, no eje | Documento público; sin licencia explícita | **Diferir** a fase 3; no dibujar ahora |
@@ -50,22 +50,28 @@ decorativo. La serie permite comparar:
 
 Hay dos vías complementarias:
 
-1. **SENAMHI histórico por estación** (fase 2.1): 20 estaciones de Piura,
-   precipitación y temperatura diaria 1961–2015. Es la vía inmediata para
-   1983/1998; no cubre 2017/2023 y no incluye caudales.
+1. **SENAMHI histórico por estación** (fase 2.1–2.2): 20 estaciones de Piura,
+   precipitación diaria y temperatura con cobertura variable; la envolvente es
+   1961–2015, pero siete estaciones no tienen temperatura y tres la tienen
+   parcial. Es la vía inmediata para 1983/1998; no cubre 2017/2023 y no incluye
+   caudales.
 2. **PISCOp v3.0**: grilla 0,1° 1981–2025; permite una serie por subcuenca, pero
    su licencia sigue en disputa y el archivo diario pesa 1,5 GB.
 
-### 3.2 ETL de SENAMHI histórico (fase 2.1)
+### 3.2 ETL de SENAMHI histórico (fases 2.1–2.2)
 
 - `etl/download_senamhi_historico.py`: descarga catálogo y series por estación en
-  `data/raw/senamhi/`.
+  `data/raw/senamhi/`, con bytes crudos y SHA-256.
 - `etl/build_senamhi_historico.py`: aplana a
-  `data/processed/senamhi/estaciones_piura.csv` y `metadata.json`.
-- No interpola, no rellena y conserva los nulos.
+  `data/processed/senamhi/estaciones_piura.csv`, `cobertura_estaciones.csv`,
+  `catalogo_estaciones.csv`, `inventario_estaciones.csv`,
+  `huecos_estaciones.csv` y `metadata.json`.
+- No interpola, no rellena y conserva los nulos. Añade banderas de calidad sin
+  eliminar valores.
 - La tabla no se publica en `web/public/` hasta confirmar términos.
-- Pruebas: 20 estaciones, 1983/1998 presentes, sin duplicados, nulos conservados,
-  precipitación no negativa y CSV con columnas/unidades.
+- Pruebas: 20 estaciones seleccionadas, fechas válidas, sin duplicados, nulos
+  conservados, banderas de precipitación negativa/extremos/temperatura, cobertura
+  y huecos, clasificación dentro/fuera de la cuenca y CSV con unidades.
 
 ### 3.3 Diseño del ETL de PISCO (si se autoriza la licencia)
 
@@ -111,28 +117,43 @@ una rama de trabajo, pero no se publica el resultado.
 ### 4.1 Qué existe
 
 - Carta Geológica Nacional 1:100 000: 501 hojas, PDF/JPG, 1960–1999.
-- **Geología Integrada 1:100 000:** MapServer vectorial con 7 capas; 2.608
-  polígonos en el área de Piura; hojas 10d, 11d, 12d y 13d.
-- **Geomorfología:** MapServer vectorial; 2.281 polígonos en el área de Piura.
-- **Susceptibilidad a inundación fluvial:** MapServer vectorial; 59.152 polígonos
-  en el área de Piura, clases Bajo/Medio/Alto.
-- **ANA/MINAM ZEE Piura:** geología (1.155 polígonos), geomorfología (70),
-  peligro de inundación (78) y vulnerabilidad (19).
-- GEOCATMIN Peligros Geológicos: 1.729 puntos en el área de Piura.
+- **Geología Integrada 1:100 000:** MapServer vectorial con 7 capas; **576
+  polígonos que intersectan la cuenca ANA**, en 12 hojas (10b, 10c, 10d, 11a,
+  11b, 11c, 11d, 11e, 12b, 12c, 12d y 12e). La descripción oficial enumera 27
+  hojas y no coincide con la capa; 13d no intersecta la cuenca.
+- **Geomorfología:** MapServer vectorial; **573 polígonos en la cuenca**; el
+  metadato declara 1:3 000 000, el abstract 1:100 000 de trabajo y 1:250 000 de
+  presentación.
+- **Susceptibilidad a inundación fluvial:** MapServer vectorial; **16.341
+  polígonos en la cuenca**, con GRIDCODE 2/3/4. La leyenda oficial 2018 tiene
+  cuatro clases; la capa vectorial no contiene «Muy bajo o nulo». Es
+  1:1 000 000, no una probabilidad hidrológica.
+- **Gobierno Regional de Piura / MINAM ZEE Piura:** geología (1.155 polígonos),
+  geomorfología (70), peligro de inundación (78) y vulnerabilidad (19). La
+  Memoria Final 2012, de 255 páginas, fija escala 1:100 000 y metodología; el
+  servicio no declara fecha/escala/licencia y el campo `Nivel_Vuln` es ambiguo.
+- **GEOCATMIN Peligros Geológicos:** **230 puntos** en la cuenca (capa 0), más
+  63 «otros», 12 zonas críticas y 37 polígonos de cartografía. Es un inventario
+  heterogéneo, no una susceptibilidad.
 - Estudio geodinámico de la cuenca del río Piura (1994), ya catalogado como
   documento.
 
 ### 4.2 Qué falta
 
-- Confirmar licencia, escala y fecha de cada capa.
-- Localizar el estudio ZEE Piura que explique el método y el significado de
-  `Nivel_Vuln` en la capa de peligro.
-- Verificar la fecha de los registros de peligros geológicos.
-- Decidir si la geología se publica como capa estática o solo como documento.
+- Confirmar la licencia aplicable a WFS/WMTS de INGEMMET y su compatibilidad con
+  CC BY 4.0; la licencia de descarga es no comercial.
+- Resolver la escala efectiva de geomorfología y la leyenda vectorial incompleta
+  de susceptibilidad (tres clases frente a cuatro).
+- Confirmar con el Gobierno Regional de Piura / MINAM el significado de
+  `Nivel_Vuln` y la relación entre la Memoria 2012 y las capas del Geoservidor.
+- Confirmar la fecha de los registros de peligros geológicos y su heterogeneidad.
+- Decidir si la geología se publica como capa no comercial separada o queda como
+  documento.
 
 ### 4.3 Decisión
 
-No incorporar capas en esta fase. Si se autorizan, priorizar:
+No incorporar capas en esta fase. Las tres fuentes quedan con
+`publicacion: bloqueada`. Si se autorizan, priorizar:
 
 1. geología superficial;
 2. geomorfología;
@@ -252,30 +273,37 @@ sin georreferenciación, escala y método.
 | Tarea | Complejidad | Riesgo principal |
 |---|---|---|
 | Catálogo y documentación | Media | Duplicar fuentes o perder trazabilidad |
-| SENAMHI histórico por estación | Baja | Términos de reutilización y cobertura hasta 2015 |
+| SENAMHI histórico por estación | Baja | Términos de reutilización y temperatura incompleta |
 | PISCO por subcuenca | Alta | Licencia y resolución insuficiente |
-| Geología vectorial | Media | Falta de licencia y de metadatos |
-| Susceptibilidad de INGEMMET/ZEE | Alta | Escala, fecha y metodología no declaradas |
+| Geología vectorial | Media | Licencia no comercial incompatible con CC BY 4.0 |
+| Susceptibilidad de INGEMMET/ZEE | Alta | Escala, leyenda y semántica no resueltas |
 | Infraestructura | Alta | No hay geometría oficial |
 | Ruta 2002 | Media | Track de estación seca mal interpretado como cauce actual |
 | Módulo «El recorrido del agua» | Alta | Mezclar rutas históricas y estado actual |
 
 ## 10. Puertas de decisión
 
-1. **SENAMHI histórico:** sin términos, la tabla queda en `data/processed/`, no en
-   el sitio.
+1. **SENAMHI histórico:** sin confirmación de términos, la tabla queda en
+   `data/processed/`, no en el sitio.
 2. **PISCO:** sin licencia clara, no se publica.
-3. **Geología:** sin licencia, escala y fecha, no se publica.
-4. **Susceptibilidad INGEMMET/ZEE:** sin escala, fecha y método, no se publica.
-5. **Infraestructura:** sin ejes oficiales, no se dibuja.
-6. **Ruta 2002:** sin método de reconstrucción y aviso, no se dibuja.
-7. **Inundaciones 1983/1998:** sin cartografía vectorial, los mapas quedan como
+3. **Geología:** la licencia es no comercial; sin una decisión de licencia
+   compatible, no se publica bajo CC BY 4.0.
+4. **Geomorfología:** sin escala efectiva resuelta, no se publica.
+5. **Susceptibilidad INGEMMET:** sin leyenda completa y sin decisión de licencia,
+   no se publica.
+6. **ZEE Piura:** sin semántica de `Nivel_Vuln` y sin licencia, no se publica.
+7. **Infraestructura:** sin ejes oficiales, no se dibuja.
+8. **Ruta 2002:** sin método de reconstrucción y aviso, no se dibuja.
+9. **Inundaciones 1983/1998:** sin cartografía vectorial, los mapas quedan como
    documentos.
-8. **Módulo de la cuenca baja:** sin datos nuevos, solo documentación.
+10. **Módulo de la cuenca baja:** sin datos nuevos, solo documentación.
 
 ## 11. Recomendación de fase
 
-Cerrar la fase 2.1 con catálogo, ETL de SENAMHI, documentación y fichas
-documentales. No agregar capas. Dejar PISCO, la ruta de 2002, la geología
-vectorial, la susceptibilidad y la infraestructura como candidatas de fase 3,
-cada una con su compuerta.
+Cerrar la fase 2.2 con la auditoría de SENAMHI, INGEMMET y ZEE, la documentación
+de licencias y las pruebas. No agregar capas. Dejar PISCO, la ruta de 2002, la
+geología vectorial, la susceptibilidad y la infraestructura como candidatas de
+fase 3, cada una con su compuerta. La primera candidata sería una capa de
+contexto geológico **no comercial**, separada de la licencia CC BY 4.0 del atlas,
+solo si INGEMMET confirma la compatibilidad. La ZEE sigue como referencia
+documental hasta que el autor confirme qué representa `Nivel_Vuln`.
