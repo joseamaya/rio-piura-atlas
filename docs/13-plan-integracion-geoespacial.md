@@ -303,7 +303,24 @@ sin georreferenciación, escala y método.
 Cerrar la fase 2.2 con la auditoría de SENAMHI, INGEMMET y ZEE, la documentación
 de licencias y las pruebas. No agregar capas. Dejar PISCO, la ruta de 2002, la
 geología vectorial, la susceptibilidad y la infraestructura como candidatas de
-fase 3, cada una con su compuerta. La primera candidata sería una capa de
-contexto geológico **no comercial**, separada de la licencia CC BY 4.0 del atlas,
-solo si INGEMMET confirma la compatibilidad. La ZEE sigue como referencia
-documental hasta que el autor confirme qué representa `Nivel_Vuln`.
+fase 3, cada una con su compuerta. La geología vectorial solo entra si INGEMMET
+confirma la compatibilidad de su licencia no comercial con el atlas CC BY 4.0; la
+ZEE sigue como referencia documental hasta que el autor confirme qué representa
+`Nivel_Vuln`.
+
+## 12. Decisión de apertura de fase 3 (2026-11-18)
+
+Se abre la fase 3 con la **ruta de 2002** como primera candidata. No se empieza por
+la geología porque su licencia sigue bloqueada.
+
+Condiciones de la ruta de 2002:
+
+- transformar los 178 puntos GPS de PSAD56 a WGS84 con método documentado;
+- documentar el orden del track, la escala y la incertidumbre;
+- dibujarla como **interpretación**, no como eje oficial ni como cauce;
+- mostrar una nota visible y enlazar a la fuente;
+- no publicar si la transformación o el orden no se pueden explicar.
+
+La segunda candidata es la **coherencia cromática 3D/2D**. Quedan diferidas la
+geología, la susceptibilidad, la infraestructura y las manchas de 1983/1998 hasta
+que lleguen licencias o geometrías oficiales.

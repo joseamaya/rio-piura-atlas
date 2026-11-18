@@ -363,7 +363,7 @@ como `v0.2.3`; el release se crea sobre el commit de versión.
 | 3 | Las pruebas de inundación eran mínimas | `test_flood.py` solo cubría filtrado, caso todo pequeño y extracción poligonal | **CORREGIDO** |
 | 4 | La partición derivada de subcuencas no era visible en la interfaz | `/mapa` solo enlazaba a «Bajo Piura derivado», sin advertencia sobre reasignación ni carácter oficial | **CORREGIDO** |
 | 5 | El defecto de componentes era latente en los datos actuales | `limits.json` tiene 1 componente por registro (cuenca + 9 subcuencas); no había solapamiento activo | **VERIFICADO** |
-| 6 | El job de Pages no depende del job de ETL | Un fallo de `check_data.py` no bloquea por sí solo el artefacto web | **PENDIENTE**, fuera de alcance |
+| 6 | El job de Pages no depende del job de ETL | Un fallo de `check_data.py` no bloquea por sí solo el artefacto web | **CORREGIDO en fase 2**: `deploy` usa `needs: [web, etl]` |
 
 ### 12.2 Archivos modificados
 
@@ -544,8 +544,8 @@ No se ocultaron avisos para obtener un resultado verde.
 - **VERIFICADO:** los 10 registros actuales de `limits.json` tienen un solo
   componente. La detección de solapamientos se demuestra con pruebas sintéticas,
   no con un defecto activo en los datos actuales.
-- **PENDIENTE:** el job de Pages no está condicionado al éxito del job de ETL. No se
-  modificó el workflow en esta fase.
+- **CORREGIDO en fase 2:** el job `deploy` de Pages usa `needs: [web, etl]`; un
+  fallo de `check_data.py` bloquea el despliegue. La nota anterior quedó obsoleta.
 - **PENDIENTE:** siguen fuera de alcance las manchas de 1983/1998, la reapertura del
   PDF de Copernicus, la prueba manual de accesibilidad con personas y el DOI de
   Zenodo.

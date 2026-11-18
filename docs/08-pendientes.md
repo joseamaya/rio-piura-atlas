@@ -93,6 +93,8 @@ tiene fuente, no se dibuja**.
 3. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
    falta teclado real, lector de pantalla y prueba con los tres públicos.
 4. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales.
+5. **Fase 3 — ruta de 2002.** Decidida como primera candidata; ver
+   `docs/13-plan-integracion-geoespacial.md`. Todavía no iniciada.
 
 ## Bloqueado por solicitudes
 
