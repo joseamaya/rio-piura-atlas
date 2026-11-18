@@ -609,6 +609,13 @@ publicados.
 **PENDIENTE:** DOI de Zenodo, caudales diarios, batimetría, ejes de infraestructura,
 vector 1983/1998 e informe 2023.
 
-La versión se publica como `v0.3.0`; el release se crea sobre el commit de versión.
-El detalle del CI y del sitio publicado se registra en el commit posterior a la
-publicación.
+La versión se publicó como `v0.3.0` sobre el commit `65d7c71`.
+
+- Release: <https://github.com/joseamaya/rio-piura-atlas/releases/tag/v0.3.0>
+- CI `main`: run `44322486330`, en verde.
+- CI del tag: run `44323278779`, en verde.
+- Sitio: <https://joseamaya.github.io/rio-piura-atlas/>; `/`, `/mapa/` y `/fuentes/`
+  responden 200 y el pie muestra `Versión 0.3.0`.
+- Informe de inundación: `/data/flood_2017_audit.json` responde 200 (3996 bytes).
+
+El DOI de Zenodo sigue pendiente.
