@@ -227,3 +227,17 @@ geometría publicada. Una capa publicada solo referencia fuentes `validada` o
 La fase 2 no incorporó capas geométricas nuevas. Las fuentes ANA 2014, INDECI 2009,
 Lund 2024, INGEMMET, la inspección de 2026 y la expedición de 2002 quedan como
 evidencia documental. PISCOp v3.0 queda condicionado a la aclaración de su licencia.
+
+## Series históricas por estación (fase 2.1)
+
+La API histórica de SENAMHI se procesa sin interpolar ni rellenar:
+
+1. descarga del catálogo de estaciones y de cada serie diaria;
+2. filtro de las 20 estaciones de Piura;
+3. tabla plana con fecha, precipitación, temperatura máxima y mínima;
+4. conservación de nulos y de la cobertura original (1961–2015);
+5. salida local en `data/processed/senamhi/`, no publicada hasta confirmar
+   términos.
+
+No se usa como sustituto de caudales ni de PISCO: es una serie observada por
+estación, con cobertura limitada a 2014/2015.

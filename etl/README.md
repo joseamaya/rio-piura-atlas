@@ -14,6 +14,8 @@ debe:
 etl/
 ├── download_<fuente>.py    # trae el dato a raw/
 ├── build_<producto>.py     # transforma raw/ en processed/
+├── download_senamhi_historico.py  # API histórica por estación
+├── build_senamhi_historico.py     # tabla plana de estaciones de Piura
 ├── topology.py             # auditoría y reconciliación de la partición
 ├── check_data.py           # valida fuentes, capas y archivos publicados
 ├── tests/                  # geometría, topología y contrato de datos
@@ -38,6 +40,21 @@ python3 etl/download_emsr199.py --force
 
 Los cuatro escriben en `data/raw/` y se niegan a sobrescribir sin `--force`. No
 modifican `data/processed/`.
+
+## Series históricas de SENAMHI
+
+```bash
+# catálogo y series diarias de las 20 estaciones de Piura (1961–2015)
+python3 etl/download_senamhi_historico.py
+
+# tabla plana en data/processed/senamhi/estaciones_piura.csv
+python3 etl/build_senamhi_historico.py
+```
+
+El download guarda JSON en `data/raw/senamhi/` (ignorado por Git) y se niega a
+sobrescribir sin `--force`. El build conserva nulos, no interpola y no publica en
+`web/public/`: la licencia de reutilización no está confirmada. `--limit N` y
+`--raw-dir`/`--out-dir` permiten una prueba sin tocar el repositorio.
 
 ## Construcción de capas
 

@@ -5,15 +5,15 @@ funciona, dónde se desborda y qué se construyó para contenerlo.
 
 > **Sitio publicado:** <https://joseamaya.github.io/rio-piura-atlas/>
 >
-> **Estado:** fase 2 cerrada en su parte documental. El sitio mantiene las capas
-> verificadas (cuenca, subcuencas, red, agua, relieve, cortes transversales y
-> maqueta 3D), la mancha oficial de la inundación de 2017 y las obras esquemáticas
-> de Poechos y el canal Daniel Escobar. El catálogo reúne **40 fuentes** con
-> disponibilidad y tipo de evidencia. No se agregaron capas nuevas: PISCOp v3.0
-> queda condicionado a la aclaración de su licencia; la ruta de 2002 y la
-> inspección de 2026 se registran como documentos, no como geometrías. Faltan las
-> capas que dependen de datos por solicitar: caudales, bocatomas/diques, geología
-> vectorial y las manchas de 1983 y 1998.
+> **Estado:** fase 2.1 en curso. El sitio mantiene las capas verificadas (cuenca,
+> subcuencas, red, agua, relieve, cortes transversales y maqueta 3D), la mancha
+> oficial de la inundación de 2017 y las obras esquemáticas de Poechos y el canal
+> Daniel Escobar. El catálogo reúne **48 fuentes** con disponibilidad y tipo de
+> evidencia. Se añadió el ETL de la API histórica de SENAMHI (20 estaciones de
+> Piura, precipitación/temperatura 1961–2015) y se localizaron capas vectoriales de
+> INGEMMET y ANA ZEE, todavía sin licencia/metadatos confirmados. No se agregaron
+> capas nuevas al mapa. Faltan caudales diarios, batimetría, ejes de
+> infraestructura, vector 1983/1998 e informe 2023.
 
 ## Para quién
 
@@ -46,10 +46,10 @@ fuente, no se dibuja; lo que es interpretación, se marca como tal.
 ```
 docs/                 por qué y cómo (empezar por 01-alcance.md)
 docs/00-plan-fase-0.md  plan de trabajo inmediato
-docs/08-pendientes.md   estado y pendientes de la fase 2
+docs/08-pendientes.md   estado y pendientes de la fase 2.1
 docs/09-auditoria-estabilizacion.md  auditoría, evidencias y límites
 docs/10-contexto-historico.md  registro de afirmaciones históricas y fuentes
-docs/11-auditoria-fuentes-ampliacion.md  auditoría de las siete fuentes de fase 2
+docs/11-auditoria-fuentes-ampliacion.md  auditoría de las siete fuentes y segunda ronda
 docs/12-catalogo-evidencia-territorial.md  disponibilidad, certeza y tipos de evidencia
 docs/13-plan-integracion-geoespacial.md  capas candidatas y compuertas
 docs/14-historia-y-funcionamiento-cuenca-baja.md  rutas, sedimentación y vacíos
@@ -73,6 +73,10 @@ python3 etl/download_ana.py --force
 python3 etl/download_hydrorivers.py --force
 python3 etl/download_osm_water.py --force
 python3 etl/download_emsr199.py --force
+
+# series históricas de SENAMHI (20 estaciones de Piura, 1961–2015)
+python3 etl/download_senamhi_historico.py
+python3 etl/build_senamhi_historico.py
 
 # capas (requiere el DEM del laboratorio de modelos)
 python3 etl/build_layers.py
@@ -105,9 +109,9 @@ solo se descarga al abrir esa página.
   superficie fuera por subcuenca, huecos por componente y agujeros interiores**, áreas
   geodésicas, cortes, resolución efectiva, malla de elevación, GLB y presupuesto de
   datos. Las tolerancias están justificadas a escala 1:100 000.
-- `python3 -m unittest discover -s etl/tests -v` ejecuta **89 pruebas** de geometría,
-  validación antes de reparar, topología sintética, fidelidad, esquema de fuentes y
-  contrato de datos publicados.
+- `python3 -m unittest discover -s etl/tests -v` ejecuta **96 pruebas** de geometría,
+  validación antes de reparar, topología sintética, fidelidad, esquema de fuentes,
+  ETL histórico de SENAMHI y contrato de datos publicados.
 - En `web/`: `npm run check` (tipos), `npm run check:links` (enlaces y anclas),
   `npm run check:a11y` (axe WCAG A/AA en Chrome headless) y `npm run test:e2e`
   (Playwright: mapa, dibujo de perfil, capas, ficha, teclado, fallo de red, móvil y
@@ -123,7 +127,7 @@ solo se descarga al abrir esa página.
 | `/mapa` | relieve, cuenca ANA, 8 subcuencas + Bajo Piura derivado, red hídrica, inundación 2017, referencias de obras, cortes transversales, lagunas y ciudades |
 | `/maqueta` | la cuenca, el desierto y el mar en un bloque 3D (Three.js + Draco) |
 | `/escenarios` | los eventos documentados, la mancha de 2017, los registros de la cuenca baja (2002, 2024, 2026) y lo que falta |
-| `/fuentes` | catálogo de 40 fuentes generado desde `data/sources.yml`, con disponibilidad, tipo de evidencia, licencia y enlaces |
+| `/fuentes` | catálogo de 48 fuentes generado desde `data/sources.yml`, con disponibilidad, tipo de evidencia, licencia y enlaces |
 
 ## Fase 2
 
@@ -133,14 +137,35 @@ prioritarias se investigaron individualmente; ninguna se incorporó como capa nu
 - ANA 2014 y INDECI 2009 son documentos con mapas, no shapefiles; además, ANA tiene
   licencia CC BY-NC-ND.
 - Lund 2024 es un modelo académico, no una decisión oficial.
-- INGEMMET no ofrece una capa vectorial de susceptibilidad a inundaciones para
-  Piura; su cartografía está en PDF o en un servicio de teselas.
+- INGEMMET sí tiene capas vectoriales de geología, geomorfología y susceptibilidad
+  a inundación para Piura, pero sin licencia, escala ni fecha confirmadas. La
+  Carta Geológica sigue disponible en PDF/JPG.
 - PISCOp v3.0 es descargable (0,1°, 1981–2025), pero su licencia está en disputa
   (GPL 3.0+ en Figshare, CC BY 4.0 en el artículo).
 - La inspección de 2026 y la expedición de 2002 son registros documentales sin
   geometría oficial.
 - Los reportes diarios del PECHP (2015–2026) se catalogan como fuente
   complementaria, sin publicar el CSV crudo hasta aclarar términos.
+
+## Fase 2.1
+
+La segunda ronda de búsqueda encontró datos que la fase 2 no había localizado:
+
+- **SENAMHI — API histórica por estación:** 20 estaciones de Piura, precipitación
+  y temperatura diaria 1961–2015. No incluye caudales ni cubre 2017/2023. El ETL
+  deja la tabla en `data/processed/senamhi/`; no se publica hasta confirmar
+  términos.
+- **INGEMMET:** Geología Integrada 1:100 000 vectorial (2.608 polígonos en Piura;
+  hojas 10d, 11d, 12d y 13d), geomorfología, susceptibilidad a inundación y
+  peligros geológicos. Falta licencia, escala y fecha.
+- **ANA / MINAM ZEE Piura:** geología, geomorfología, peligro de inundación (78
+  polígonos) y vulnerabilidad. Falta el estudio ZEE y sus metadatos.
+- **SIGRID:** mapas PDF/JPG de Sullana 1983/1998 y Cura Mori 1998; son evidencia
+  documental, no vectores.
+- **PECHP:** notas de batimetría de Poechos y topobatimetría del río; no hay datos
+  publicados del cauce.
+
+No se agregaron capas al mapa ni se publicó el CSV de estaciones.
 
 ## Cómo citar
 

@@ -80,7 +80,7 @@ class TestSourcesSchema(unittest.TestCase):
         self.assertIn("0,1°", pisco["escala"])
         self.assertIn("1981–2025", pisco["periodo"])
         self.assertIn("GPL 3.0+", pisco["licencia"])
-        self.assertIn("no está clara", pisco["limitaciones"])
+        self.assertIn("no está explícita", pisco["limitaciones"])
 
     def test_descargas_son_http_o_null(self):
         for fuente in self.fuentes:

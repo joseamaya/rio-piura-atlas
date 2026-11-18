@@ -68,14 +68,17 @@ requieren firma, datos personales y registro de expediente.
 | Informe ENFEN concreto | ENFEN | Edición exacta de los informes 1982-83, 1997-98 y 2017, con páginas | Sustituir la ficha genérica |
 | Documento UDEP exacto | Universidad de Piura | Tesis o informe que sustente los picos de 3 200 y 4 424 m³/s | Dejar de usar un handle genérico |
 
-## Pedidos específicos de la fase 2
+## Pedidos específicos de las fases 2 y 2.1
 
 Estos pedidos nacen de la auditoría de fuentes de 2026. No se han enviado: faltan
 firma, datos personales y registro de expediente.
 
 | Dato | Entidad | Pedido concreto | Uso |
 |---|---|---|---|
-| Licencia de PISCOp v3.0 | SENAMHI | Confirmación escrita de la licencia de los NetCDF de PISCOp v3.0 (Figshare declara GPL 3.0+; el artículo, CC BY 4.0) | Publicar o no una serie derivada por subcuenca |
+| Licencia de PISCOp v3.0 | SENAMHI | Confirmación escrita de la licencia de los NetCDF de PISCOp v3.0 (el artículo es CC BY 4.0 y aclara que el código es GPL 3.0; Figshare declara GPL 3.0+ para el dataset; la licencia del NetCDF no está explícita) | Publicar o no una serie derivada por subcuenca |
+| Términos de la API histórica | SENAMHI | Condiciones de reutilización de las series diarias por estación y del reporte PDF | Publicar o no la tabla de estaciones |
+| Metadatos de INGEMMET | INGEMMET | Escala, fecha, licencia y metodología de las capas vectoriales de geología, geomorfología y susceptibilidad | Evaluar capas candidatas |
+| Metadatos de la ZEE Piura | ANA / MINAM | Estudio ZEE Piura, fecha, escala, método y licencia de la capa Peligro Inundación | Evaluar la capa candidata |
 | Topobatimetría 2026 | PECHP | Archivo, método, fecha, cobertura y secciones del levantamiento topobatimétrico del río Piura | Superponer batimetría al DEM y documentar capacidad |
 | Carta Geológica de Piura | INGEMMET | Shapefiles de las hojas 1:100 000 que cubren la cuenca, con metadatos, CRS y licencia | Geología superficial y geomorfología |
 | Ejes de canales y diques | ANA / PECHP | Geometrías oficiales de canal Daniel Escobar, Chutuque, drenes, diques y bocatomas, con año y estado | Dejar de usar rectas de referencia |
@@ -101,5 +104,8 @@ firma, datos personales y registro de expediente.
 | 11 | ANA / PECHP | ejes de canales, diques y bocatomas | — | — | pendiente | — |
 | 12 | PECHP / ANA | coordenadas de la inspección de 2026 | — | — | pendiente | — |
 | 13 | SENAMHI | series diarias 2017 y 2023 | — | — | pendiente | — |
+| 14 | SENAMHI | términos de la API histórica por estación | — | — | pendiente | — |
+| 15 | INGEMMET | metadatos y licencia de las capas vectoriales | — | — | pendiente | — |
+| 16 | ANA / MINAM | metadatos y licencia de la ZEE Piura | — | — | pendiente | — |
 
 Actualizar esta tabla al enviar y al recibir cada respuesta.

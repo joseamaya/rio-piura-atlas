@@ -97,7 +97,10 @@ en 1998 (`siar-cambios-cauce`, p. 8; `imarpe-la-nina-2019`).
 estimación satelital, no un levantamiento.
 
 **Pregunta abierta.** No hay una mancha vectorial oficial de la inundación de
-1998. La fecha exacta del pico sigue en disputa.
+1998 para toda la cuenca. Sí existen mapas locales en PDF/JPG: Sullana 1983/1998
+(documentos SIGRID 170 y 3165), Cura Mori 1998 (documento 9400, ZIP con 34 mapas
+JPG) y Piura (documentos 676 y 761). Son evidencia documental, no capas. La fecha
+exacta del pico sigue en disputa.
 
 ### 2002 — la expedición a la cuenca baja
 
@@ -264,6 +267,11 @@ para 1983 y 1998, además de precipitación máxima en 24 horas. Son una corrobo
 documental de las cifras de SIAR, no una serie diaria descargable. La fecha exacta
 del pico de 1998 sigue en disputa.
 
+La API histórica de SENAMHI sí ofrece precipitación diaria por estación para
+1983 y 1998 (20 estaciones de Piura, 1961–2015), pero no caudales. Los mapas de
+Sullana y Cura Mori documentan la extensión local de 1998; no sustituyen una
+cobertura vectorial de la cuenca.
+
 ### 7.2 2017 y 2023
 
 2017 tiene la única mancha vectorial oficial del catálogo (Copernicus EMSR199).
@@ -279,7 +287,7 @@ del pico de 1998 sigue en disputa.
 | «Libre desembocadura» 2026 | El título afirma; el cuerpo verifica paso en puntos concretos | Se cita como registro documental; no se infiere cambio de desembocadura |
 | La Niña 2023 | Andina y NASA documentan el desborde; no hay área/volumen | No se publica cifra |
 | PISCO | Artículo CC BY 4.0; datos GPL 3.0+ | No se publica serie hasta aclarar |
-| Geología | Carta 1:100 000 en PDF; Geología Integrada en teselas | No se integra sin vector y licencia |
+| Geología | Carta 1:100 000 en PDF; Geología Integrada y geomorfología vectoriales | No se integran sin licencia, escala y fecha |
 | Infraestructura | Menciones y fichas, sin ejes oficiales | No se dibuja; se solicita |
 
 ## 9. Qué se puede decir hoy
@@ -300,8 +308,8 @@ del pico de 1998 sigue en disputa.
 ## 10. Preguntas abiertas
 
 1. ¿Cuál es la fecha exacta del pico de 1998? Falta una serie diaria.
-2. ¿Cuál era la geometría del cauce en 1891, 1983 y 1998? No hay cartografía
-   vectorial pública.
+2. ¿Cuál era la geometría del cauce en 1891, 1983 y 1998? Hay mapas locales en
+   PDF/JPG, pero no una cartografía vectorial de toda la cuenca.
 3. ¿Cómo operan exactamente las conexiones Tapa de Cuy–La Niña–Virrilá–Chutuque?
    La inspección de 2026 es puntual.
 4. ¿Cuánto sedimento se deposita en Ramón, Ñapique y Virrilá? Falta batimetría.
@@ -312,13 +320,18 @@ del pico de 1998 sigue en disputa.
 
 ## 11. Próximos pasos
 
-1. Mantener las solicitudes de series diarias, cartografía de 1983/1998,
-   batimetría, ejes de canales y operación de Poechos.
-2. Aclarar la licencia de PISCO antes de publicar una serie.
-3. Diseñar el módulo «El recorrido del agua» solo cuando existan datos suficientes.
-4. Si se reconstruye la ruta de 2002, documentar PSAD56, orden de puntos,
+1. Incorporar la API histórica de SENAMHI para la precipitación de 1983/1998 y
+   mantener las solicitudes de caudales diarios.
+2. Mantener las solicitudes de cartografía vectorial 1983/1998, batimetría, ejes de
+   canales y operación de Poechos.
+3. Aclarar la licencia de PISCO antes de publicar una serie y los términos de la API
+   histórica antes de publicar su tabla.
+4. Evaluar la geología/geomorfología de INGEMMET y la ZEE Piura solo con licencia,
+   escala y fecha confirmadas.
+5. Diseñar el módulo «El recorrido del agua» solo cuando existan datos suficientes.
+6. Si se reconstruye la ruta de 2002, documentar PSAD56, orden de puntos,
    incertidumbre y estilo de interpretación.
-5. No dibujar conexiones permanentes a partir de una inspección puntual.
+7. No dibujar conexiones permanentes a partir de una inspección puntual.
 
 ## 12. Fuentes principales
 

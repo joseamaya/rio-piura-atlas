@@ -35,7 +35,12 @@ productos derivados sean coherentes.
 
 La mancha de 2017 se construye en dos pasos: `download_emsr199.py` guarda los ZIP
 oficiales en `data/raw/emsr199/` (ignorados por Git) y `build_layers.py` publica una
-versión simplificada en `web/public/data/flood_2017.geojson`. Cada AOI conserva
+versión simplificada en `web/public/data/flood_2017.geojson`.
+
+Las series históricas de SENAMHI se descargan en `data/raw/senamhi/` y se aplanan
+en `data/processed/senamhi/estaciones_piura.csv` + `metadata.json` con
+`download_senamhi_historico.py` y `build_senamhi_historico.py`. No se publican en
+`web/public/` hasta confirmar los términos de reutilización. Cada AOI conserva
 `observaciones` por fecha y sensor (`src_date` y `source_nam` del DBF), la suma de
 observaciones, el solapamiento entre fechas, la unión original, el área filtrada, la
 simplificada, la publicada en UTM y la geodésica. `area_km2` es el área publicada;

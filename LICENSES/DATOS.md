@@ -17,7 +17,7 @@ licencia de su fuente original.
 | `obras-esquematicas` | Río Piura Atlas — Poechos y canal Daniel Escobar | CC BY 4.0 | sí, citando; es interpretación, no un dato de campo |
 | `ingemmet-geodinamica` | INGEMMET | documento público | citar |
 | `ingemmet-carta-geologica-100k` | INGEMMET — Carta Geológica Nacional 1:100 000 | uso y acceso público según escala de trabajo; verificar términos | citar; no redistribuir hojas sin confirmar |
-| `ingemmet-geologia-integrada-100k` | INGEMMET — Geología Integrada 1:100 000 | uso y acceso público según escala de trabajo; verificar términos | solo enlace; no hay vector descargable |
+| `ingemmet-geologia-integrada-100k` | INGEMMET — Geología Integrada 1:100 000 | uso y acceso público según escala de trabajo; verificar términos | **no** publicar hasta confirmar; es un servicio vectorial |
 | `ingemmet-peligros-geologicos` | INGEMMET — GEOCATMIN Peligros Geológicos | sin licencia explícita | solo enlace; no se usa como geometría |
 | `sentinel-1-2017` | Copernicus / ESA | libre con atribución | sí, citando |
 | `unosat-copernicus-ems` | UNOSAT / Copernicus EMS | libre con atribución | citar; verificar términos del producto |
@@ -33,8 +33,16 @@ licencia de su fuente original.
 | `andina-la-nina-2023` | Agencia Andina | prensa institucional | citar |
 | `nasa-la-nina-2023` | NASA Earth Observatory | documento público | citar |
 | `sernanp-illescas` | SERNANP | documento público | citar; no se copia el polígono |
-| `senamhi-pisco` | SENAMHI — PISCOp v3.0 | artículo CC BY 4.0; datos en Figshare GPL 3.0+ (por aclarar) | **no** hasta confirmar |
+| `senamhi-historico-estaciones` | SENAMHI — series históricas por estación | dato público; términos por confirmar | **no** hasta confirmar; usar con atribución |
+| `senamhi-pisco` | SENAMHI — PISCOp v3.0 | artículo CC BY 4.0; código GPL 3.0; dataset Figshare GPL 3.0+ (por aclarar) | **no** hasta confirmar |
 | `senamhi-*` | SENAMHI | por definir | **no** hasta confirmar |
+| `ingemmet-geomorfologia-vector` | INGEMMET — Geomorfología vectorial | sin licencia explícita | **no** hasta confirmar |
+| `ingemmet-susceptibilidad-inundacion-vector` | INGEMMET — susceptibilidad a inundación fluvial | sin licencia explícita | **no** hasta confirmar |
+| `ana-zee-piura` | ANA / MINAM — ZEE Piura | servicio público; términos por confirmar | **no** hasta confirmar |
+| `sigrid-sullana-inundacion-1983-1998` | SIGRID / CENEPRED — mapas de Sullana 1983/1998 | documento público; citar | citar; no reutilizar mapas |
+| `sigrid-cura-mori-riesgo-1998` | SIGRID / CENEPRED — estudio Cura Mori | documento público; citar | citar; no reutilizar mapas |
+| `sigrid-piura-peligros-inundacion` | SIGRID / CENEPRED — mapas de Piura | documento público; citar | citar; no reutilizar mapas |
+| `pechp-batimetria-poechos` | PECHP — batimetría de Poechos | documento público; datos no publicados | solo citar; no hay datos |
 | `pechp-poechos` | PECHP | por definir | **no** hasta confirmar |
 | `pechp-infraestructura` | PECHP — fichas públicas | documento público; citar | sí, citando; no se copia geometría |
 | `pechp-inspeccion-2026` | PECHP — inspección del 26/02/2026 | documento público; citar; fotografías del PECHP | citar; no reutilizar fotografías sin permiso |

@@ -48,6 +48,10 @@ abrir, se dice y no se usa para una afirmación concreta.
 | 25 | PISCOp v3.0 tiene 0,1° (~10 km) y cubre 1981–2025 | SENAMHI / *Hydrology* | Artículo y ficha de Figshare (2026) | Artículo y readme | Sí, metadatos | «0.1°»; «1981–2025» | Dato derivado; licencia en disputa |
 | 26 | No se localizó una capa vectorial de susceptibilidad a inundaciones para Piura en INGEMMET | INGEMMET | Fichas y servicios consultados (2026) | Ítems de ArcGIS | Sí, metadatos | Solo se encontraron servicios de Ancash y Apurímac | Pendiente / no incorporado |
 
+| 27 | SENAMHI ofrece precipitación y temperatura diaria por estación, 20 estaciones de Piura, 1961–2015 | SENAMHI — Observatorio | API histórica por estación (2026) | Catálogo y series | Sí, API | `historical-download/stations/{id}/series`; Chulucanas 1972–2014 | Dato medido; no incluye caudales |
+| 28 | Existen mapas locales de inundación de Sullana 1983/1998 y Cura Mori 1998 | SIGRID / CENEPRED | Documentos 170, 3165 y 9400 | Mapas PDF/JPG | Sí, PDF/ZIP | «Mapa de áreas de inundación… 1983 y 1998»; «Estudio de Riesgo… Cura Mori» | Documentado; sin vector |
+| 29 | INGEMMET y ANA ZEE tienen capas vectoriales de geología, geomorfología y peligro/susceptibilidad | INGEMMET / ANA-MINAM | Servicios ArcGIS (2026) | MapServer | Sí, servicios | 2.608 polígonos de geología; 78 de peligro ZEE | Localizado; metadatos/licencia pendientes |
+
 ## Notas de lectura
 
 - SIAR 1392 p. 4 habla de una bahía antigua al sur de la ciudad de Piura, pero no de
@@ -73,3 +77,7 @@ abrir, se dice y no se usa para una afirmación concreta.
 8. Obtener coordenadas y fichas técnicas de la inspección de 2026.
 9. Si se reconstruye la ruta de 2002, documentar PSAD56, orden de puntos e
    incertidumbre.
+10. Confirmar los términos de la API histórica de SENAMHI antes de publicar su
+    tabla.
+11. Confirmar licencia, escala y fecha de las capas vectoriales de INGEMMET y de
+    la ZEE Piura.
