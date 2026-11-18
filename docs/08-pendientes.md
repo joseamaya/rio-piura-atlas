@@ -77,7 +77,7 @@ tiene fuente, no se dibuja**.
   (`npm run check:a11y`), sin violaciones en las cinco páginas y el 404.
 - Comprobación automática de tipos (`astro check`) y de enlaces/anclas internas en CI.
 - Página 404, `robots.txt` y metadatos Open Graph/Twitter.
-- `CITATION.cff` con los metadatos de la versión 0.2.3.
+- `CITATION.cff` con los metadatos de la versión 0.3.0.
 - Sitio publicado en GitHub Pages (`https://joseamaya.github.io/rio-piura-atlas/`)
   con despliegue automático desde `main` y comprobaciones previas de tipos, enlaces
   y accesibilidad.
@@ -86,10 +86,10 @@ tiene fuente, no se dibuja**.
 
 1. **Dominio propio (opcional).** Sustituir `joseamaya.github.io` por un dominio
    definitivo y actualizar `SITE_URL`.
-2. **DOI Zenodo.** El release `v0.2.3` se publica sobre esta versión. Falta
+2. **DOI Zenodo.** El release `v0.3.0` se publica sobre esta versión. Falta
    depositarlo en Zenodo y añadir el DOI a `CITATION.cff` y
-   `docs/06-como-citar.md`. El tag `v0.2.2` es la versión anterior; `v0.2.1`,
-   `v0.2.0` y `v0.1.0` son anteriores a la estabilización.
+   `docs/06-como-citar.md`. El tag `v0.2.3` es la versión anterior; `v0.2.2` y
+   anteriores corresponden a la fase 1.
 3. **Prueba de accesibilidad con personas.** La auditoría automática está limpia;
    falta teclado real, lector de pantalla y prueba con los tres públicos.
 4. **Rendimiento futuro.** Migrar a PMTiles/COG si crecen las capas vectoriales.

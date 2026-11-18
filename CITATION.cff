@@ -4,13 +4,14 @@ title: "Atlas de la cuenca del río Piura"
 abstract: >-
   Atlas interactivo, documentado y citable de la cuenca del río Piura: límites
   oficiales, red hídrica, relieve, cortes transversales, la mancha oficial de la
-  inundación de 2017, obras esquemáticas y auditoría de fidelidad geométrica. No es
-  un sistema de alerta ni un modelo hidráulico.
+  inundación de 2017, obras esquemáticas, auditoría de fidelidad geométrica y un
+  catálogo de 49 fuentes con disponibilidad y estado de licencia. La fase 2 no
+  agregó capas nuevas al mapa. No es un sistema de alerta ni un modelo hidráulico.
 type: software
 authors:
   - name: "Río Piura Atlas"
-version: "0.2.3"
-date-released: "2026-11-17"
+version: "0.3.0"
+date-released: "2026-11-18"
 license: CC-BY-4.0
 repository-code: "https://github.com/joseamaya/rio-piura-atlas"
 url: "https://joseamaya.github.io/rio-piura-atlas/"

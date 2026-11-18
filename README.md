@@ -200,7 +200,7 @@ La validación científica de la fase 2.2 está en `docs/15`–`docs/17`:
 ## Cómo citar
 
 Ver [`docs/06-como-citar.md`](docs/06-como-citar.md) y [`CITATION.cff`](CITATION.cff).
-Versión 0.2.3; release en GitHub y DOI pendiente de Zenodo.
+Versión 0.3.0; release en GitHub y DOI pendiente de Zenodo.
 
 ## Licencias
 

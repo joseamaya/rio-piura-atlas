@@ -567,3 +567,48 @@ La rama se integró por fast-forward en `main` y el release se creó sobre el co
 - Informe: `/data/flood_2017_audit.json` responde 200 (3996 bytes).
 
 El DOI de Zenodo sigue pendiente.
+
+## 13. Publicación de v0.3.0
+
+Fecha: 2026-11-18.
+Rama: `release/v0.3.0`, creada desde `main` en `68e17ac`.
+Base pública: `v0.2.3` (`f43026e`).
+
+La versión **0.3.0** cierra la fase 2.1–2.2. El cambio principal no es una capa
+nueva, sino la ampliación y auditoría del catálogo de fuentes:
+
+- **49 fuentes** con disponibilidad, tipo de evidencia, periodo, formato, CRS y
+  limitaciones.
+- **SENAMHI histórico:** 20 estaciones de Piura, 357.524 filas verificadas, 0 días
+  faltantes y 0 duplicados; 7 estaciones sin temperatura y 3 con temperatura
+  parcial. La tabla queda en `data/processed/senamhi/` y no se publica mientras no
+  se confirmen los términos.
+- **INGEMMET y ZEE Piura:** servicios vectoriales auditados. La fase 2.2 corrigió
+  los conteos anteriores: 576 polígonos de geología, 573 de geomorfología, 16.341
+  de susceptibilidad a inundación y 230 puntos de peligros. La licencia no comercial
+  de INGEMMET y la ausencia de licencia de la ZEE dejan esas capas bloqueadas.
+- **PISCOp v3.0:** catalogado y condicionado a la aclaración de licencia; no se
+  publicó ninguna serie derivada.
+- **Interfaz:** dirección visual «Lámina y margen», sin cambiar la arquitectura ni
+  agregar capas nuevas al mapa.
+- **Pruebas:** 136 pruebas Python (3 de integración en vivo opt-in, omitidas sin
+  `RUN_LIVE_TESTS=1`), 55 pruebas Playwright, 161 enlaces internos y 0 violaciones
+  WCAG A/AA.
+
+**CORREGIDO:** el catálogo distingue disponibilidad, certeza, tipo de evidencia y
+estado de publicación; `check_data.py` impide publicar una capa de una fuente con
+licencia bloqueada.
+
+**VERIFICADO:** las cifras de SENAMHI, INGEMMET y ZEE se auditaron contra los
+servicios y documentos; los conteos antiguos que no se reprodujeron se retiraron.
+
+**ADVERTENCIA:** la fase 2 no agregó capas geométricas nuevas. SENAMHI, INGEMMET y
+ZEE siguen bloqueadas por licencia o semántica; no se presentan como datos
+publicados.
+
+**PENDIENTE:** DOI de Zenodo, caudales diarios, batimetría, ejes de infraestructura,
+vector 1983/1998 e informe 2023.
+
+La versión se publica como `v0.3.0`; el release se crea sobre el commit de versión.
+El detalle del CI y del sitio publicado se registra en el commit posterior a la
+publicación.
